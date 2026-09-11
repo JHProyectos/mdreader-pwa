@@ -1060,6 +1060,49 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
   });
 }
 
+/* ============================================================
+   Web Share Target — archivos que llegan desde el menú
+   "Compartir" de Android (WhatsApp, Drive, explorador, etc.)
+   El service worker los deja en un caché; acá los levantamos.
+   ============================================================ */
+async function cargarCompartidos(){
+  try{
+    const cache = await caches.open("lector-md-share");
+    const keys  = await cache.keys();
+    if(!keys.length) return;
+
+    const archivos = [];
+    for(const k of keys){
+      const res = await cache.match(k);
+      if(!res) continue;
+      const nombre = decodeURIComponent(new URL(k.url).pathname.split("/").pop());
+      const blob = await res.blob();
+      archivos.push(new File([blob], nombre, {type:"text/markdown"}));
+    }
+
+    // vaciar el caché: ya tenemos los archivos en memoria
+    for(const k of keys) await cache.delete(k);
+
+    if(archivos.length) addFiles(archivos);
+  }catch(e){
+    console.error("No se pudieron leer los archivos compartidos:", e);
+  }finally{
+    // sacar el ?compartido=1 para que un refresh no reintente
+    history.replaceState(null, "", location.pathname);
+  }
+}
+
+if(new URLSearchParams(location.search).has("compartido")){
+  if(navigator.serviceWorker && navigator.serviceWorker.controller){
+    cargarCompartidos();
+  }else{
+    // el SW todavía no tomó control: esperamos a que lo haga
+    navigator.serviceWorker
+      ? navigator.serviceWorker.ready.then(cargarCompartidos)
+      : null;
+  }
+}
+
 /* Service worker: habilita instalación como PWA (requisito de file_handlers)
    y mantiene la app actualizada sin que nadie tenga que limpiar el caché. */
 if("serviceWorker" in navigator){
