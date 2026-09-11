@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lector MD</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#34399B">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMzNDM5OUIiLz4KICA8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNOSAyMGg3bDYgOCA2LThoN3YyNWgtN1YzMWwtNiA4LTYtOHYxNEg5eiIvPgogIDxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MiAxOGg4djE2aDdMNDYgNDcgMzUgMzRoN3oiLz4KPC9zdmc+Cg==">
+<style>
+:root{
+  --bg:#F0F1F4; --surface:#FAFBFD; --surface-2:#E9EBF1;
+  --ink:#1A1D26; --muted:#6B6F80; --line:#DCDEE6;
+  --accent:#34399B; --accent-soft:#34399B18; --warm:#B0452E; --good:#2F6B4F;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","Consolas","SFMono-Regular",Menlo,monospace;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131520; --surface:#1A1D2A; --surface-2:#232736;
+    --ink:#E9EAF0; --muted:#9498AC; --line:#2A2E3E;
+    --accent:#8F94F0; --accent-soft:#8F94F022; --warm:#E2907A; --good:#6FBF95;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131520; --surface:#1A1D2A; --surface-2:#232736;
+  --ink:#E9EAF0; --muted:#9498AC; --line:#2A2E3E;
+  --accent:#8F94F0; --accent-soft:#8F94F022; --warm:#E2907A; --good:#6FBF95;
+}
+
+/* ================= densidad: cómodo (por defecto) / compacto ================= */
+:root{
+  --lh-prose:1.6;
+  --sp-p:1em;          /* margen inferior de párrafos */
+  --sp-h:1.9em;        /* margen superior de encabezados */
+  --sp-h2:2.2em;
+  --sp-blk:1.2em;      /* pre, tablas, citas */
+  --sp-math:6px 0 10px;   /* padding del bloque de fórmula con KaTeX */
+  --sp-mathfb:14px 16px;  /* idem en modo simple (sin KaTeX) */
+  --sp-li:.28em;
+  --art-pad:34px 28px 96px;
+  --katex-disp:0.35em;    /* margen propio de .katex-display */
+}
+body.compact{
+  --lh-prose:1.38;
+  --sp-p:.4em;
+  --sp-h:.85em;
+  --sp-h2:1.1em;
+  --sp-blk:.45em;
+  /* 4px por lado: KaTeX se pasa hasta 4px con \boxed y \begin{cases},
+     y como el bloque no puede scrollear en vertical, se recortaria */
+  --sp-math:4px 0;
+  --sp-mathfb:5px 10px;
+  --sp-li:.08em;
+  --art-pad:16px 24px 32px;
+  --katex-disp:0.1em;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:var(--lh-prose);
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+/* ================= layout ================= */
+.app{display:grid; grid-template-columns:264px minmax(0,1fr); height:100vh}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside{position:fixed; inset:0 auto 0 0; width:280px; z-index:20;
+        transform:translateX(-100%); transition:transform .2s}
+  aside.open{transform:none}
+  .scrim{position:fixed; inset:0; background:#0008; z-index:15}
+}
+
+/* ================= sidebar ================= */
+aside{
+  background:var(--surface); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; min-height:0;
+}
+.brand{padding:16px 16px 12px; border-bottom:1px solid var(--line)}
+.brand h1{
+  font-family:var(--serif); font-size:17px; font-weight:600; margin:0;
+  letter-spacing:-.01em;
+}
+.brand p{margin:3px 0 0; font-size:11.5px; color:var(--muted)}
+
+.actions{padding:12px 16px; display:flex; flex-direction:column; gap:7px; border-bottom:1px solid var(--line)}
+.btn{
+  font:inherit; font-size:13px; font-weight:500; cursor:pointer; text-align:left;
+  padding:8px 11px; border-radius:4px; border:1px solid var(--line);
+  background:transparent; color:var(--ink); display:flex; align-items:center; gap:8px;
+}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--surface)}
+.btn.primary:hover{color:var(--surface); opacity:.9}
+.btn kbd{
+  margin-left:auto; font-family:var(--mono); font-size:10px; color:var(--muted);
+  border:1px solid var(--line); border-radius:3px; padding:0 4px;
+}
+.btn.primary kbd{color:var(--surface); border-color:#fff5}
+
+.listhd{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:9px 16px 0; font-family:var(--mono); font-size:10px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+}
+.link{
+  font:inherit; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  cursor:pointer; background:none; border:none; color:var(--muted);
+  padding:2px 0; text-decoration:underline; text-underline-offset:3px;
+}
+.link:hover{color:var(--warm)}
+
+.files{flex:1 1 auto; overflow-y:auto; min-height:0; padding:8px 8px 16px}
+.files .empty{padding:14px 8px; font-size:12.5px; color:var(--muted); line-height:1.5}
+
+.filerow{
+  display:flex; align-items:stretch; border-radius:4px;
+  border-left:2px solid transparent;
+}
+.filerow:hover{background:var(--surface-2)}
+.filerow.cur{
+  background:var(--accent-soft); border-left-color:var(--accent);
+}
+.file{
+  flex:1 1 auto; min-width:0; text-align:left; font:inherit; font-size:13px;
+  cursor:pointer; border:none; background:transparent; color:var(--ink);
+  padding:7px 4px 7px 9px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.filerow.cur .file{color:var(--accent); font-weight:500}
+.rm{
+  flex:none; width:26px; font:inherit; font-size:15px; line-height:1; cursor:pointer;
+  border:none; background:none; color:var(--muted); padding:0 6px 0 0;
+  opacity:0; transition:opacity .12s, color .12s;
+}
+.filerow:hover .rm, .rm:focus-visible{opacity:1}
+.rm:hover{color:var(--warm)}
+.grp{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); padding:12px 9px 4px;
+}
+/* ---- bloques plegables (índice y aclaraciones) ---- */
+.fold{border-top:1px solid var(--line); flex:none}
+.fold > summary{
+  cursor:pointer; padding:9px 16px; list-style:none;
+  font-family:var(--mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--muted); display:flex; align-items:center; gap:7px; user-select:none;
+}
+.fold > summary::-webkit-details-marker{display:none}
+.fold > summary::marker{content:""}
+.fold > summary::after{
+  content:"›"; margin-left:auto; font-size:13px; line-height:1;
+  transition:transform .15s; transform-origin:50% 50%;
+}
+.fold[open] > summary::after{transform:rotate(90deg)}
+.fold > summary:hover{color:var(--accent)}
+.fold > summary:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+.fold > .body{
+  padding:0 16px 12px; font-size:10.5px; line-height:1.5; color:var(--muted);
+}
+.fold > .body b{color:var(--ink); font-weight:600}
+.fold .k{
+  font-family:var(--mono); font-size:9.5px; color:var(--ink);
+  border:1px solid var(--line); border-radius:3px; padding:0 3px; white-space:nowrap;
+}
+
+.toc[open]{min-height:0; display:flex; flex-direction:column}
+.toc > nav{max-height:34vh; overflow-y:auto; padding:0 8px 8px}
+.toc a{
+  display:block; font-size:12px; color:var(--muted); text-decoration:none;
+  padding:3px 8px; border-radius:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.toc a:hover{color:var(--accent); background:var(--surface-2)}
+.toc a.h3{padding-left:20px; font-size:11.5px}
+
+.foot{
+  padding:10px 16px; border-top:1px solid var(--line);
+  display:flex; flex-wrap:wrap; gap:7px; align-items:center;
+}
+.icon{
+  font:inherit; font-size:13px; cursor:pointer; background:none; border:1px solid var(--line);
+  color:var(--muted); border-radius:4px; padding:5px 9px;
+}
+.icon:hover{border-color:var(--accent); color:var(--accent)}
+
+/* ================= main ================= */
+main{overflow-y:auto; min-height:0; position:relative}
+.topbar{
+  position:sticky; top:0; z-index:10; background:var(--bg);
+  border-bottom:1px solid var(--line); display:flex; align-items:center;
+  gap:10px; padding:9px 20px;
+}
+.topbar .name{font-family:var(--mono); font-size:12px; color:var(--muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#search{
+  margin-left:auto; font:inherit; font-size:13px; width:190px;
+  padding:6px 10px; border-radius:4px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink);
+}
+#search:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+.hits{font-family:var(--mono); font-size:11px; color:var(--muted); white-space:nowrap}
+
+.drop{
+  margin:0; padding:64px 24px; text-align:center; color:var(--muted);
+}
+.drop .big{
+  font-family:var(--serif); font-size:24px; color:var(--ink); margin:0 0 8px;
+}
+.drop p{max-width:46ch; margin:0 auto 6px; font-size:14px}
+.drop ol{max-width:44ch; margin:20px auto 0; text-align:left; font-size:13.5px; line-height:1.9}
+body.dragging main{outline:2px dashed var(--accent); outline-offset:-10px}
+
+/* ================= documento ================= */
+article{
+  max-width:78ch; margin:0 auto; padding:var(--art-pad);
+}
+article h1,article h2,article h3,article h4{
+  font-family:var(--serif); font-weight:600; letter-spacing:-.012em;
+  text-wrap:balance; line-height:1.2; margin:var(--sp-h) 0 .35em;
+}
+article > h1:first-child{margin-top:0}
+article h1{font-size:29px; padding-bottom:.3em; border-bottom:1px solid var(--line)}
+article h2{font-size:22px; margin-top:var(--sp-h2)}
+article h3{font-size:17.5px}
+article h4{font-size:15.5px}
+article p{margin:0 0 var(--sp-p)}
+article ul,article ol{margin:0 0 var(--sp-p); padding-left:1.5em}
+article li{margin:var(--sp-li) 0}
+article li > ul,article li > ol{margin:var(--sp-li) 0}
+article a{color:var(--accent); text-underline-offset:2px}
+article hr{border:none; border-top:1px solid var(--line); margin:var(--sp-h2) 0}
+article strong{font-weight:600}
+
+blockquote{
+  margin:0 0 var(--sp-p); padding:2px 0 2px 16px; border-left:3px solid var(--warm);
+  color:var(--muted);
+}
+blockquote strong{color:var(--ink)}
+blockquote > :last-child{margin-bottom:0}
+
+code{
+  font-family:var(--mono); font-size:.875em;
+  background:var(--surface-2); border-radius:3px; padding:.12em .34em;
+}
+pre{
+  font-family:var(--mono); font-size:13px; line-height:1.55;
+  background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent);
+  border-radius:3px; padding:10px 14px; margin:0 0 var(--sp-blk);
+  overflow-x:auto; white-space:pre;
+}
+pre code{background:none; padding:0; font-size:inherit}
+
+.tablewrap{overflow-x:auto; margin:0 0 var(--sp-blk)}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-align:top}
+th{background:var(--surface-2); font-weight:600; font-size:12.5px}
+td{font-variant-numeric:tabular-nums}
+
+/* ---- estado de KaTeX ---- */
+#mathWrap .dot{
+  width:7px; height:7px; border-radius:50%; background:var(--muted); flex:none;
+}
+#mathWrap.on .dot{background:var(--good)}
+#mathWrap.on > summary{color:var(--good)}
+
+/* ---- matemática ---- */
+.mathblock.katex-on{
+  font-family:inherit; font-size:inherit; line-height:1.3;
+  background:transparent; border:none; padding:var(--sp-math);
+  margin:0 0 var(--sp-blk);
+}
+/* KaTeX trae margin:1em 0 propio en .katex-display: es la causa principal
+   del aire entre formulas. Lo reemplazamos por un token controlable. */
+.mathblock .katex-display{margin:var(--katex-disp) 0}
+.katex{color:var(--ink)}
+.mathblock{
+  font-family:var(--mono); font-size:14.5px; text-align:center;
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  padding:var(--sp-mathfb); margin:0 0 var(--sp-blk); line-height:1.9;
+  /* solo scroll horizontal: con overflow-x:auto suelto, overflow-y pasa a auto
+     y el margen del hijo dispara una barra vertical de 1-2px */
+  overflow-x:auto; overflow-y:hidden;
+}
+.mathinline{font-family:var(--mono); font-size:.9em; white-space:nowrap}
+.boxed{border:1.5px solid var(--accent); border-radius:3px; padding:3px 9px; display:inline-block}
+.frac{display:inline-block; vertical-align:middle; text-align:center; margin:0 .18em}
+.frac .num{display:block; padding:0 .3em; border-bottom:1.2px solid currentColor; line-height:1.5}
+.frac .den{display:block; padding:0 .3em; line-height:1.5}
+.root{border-top:1.2px solid currentColor; padding:0 .15em}
+mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
+
+@media print{
+  /* al imprimir siempre va compacto, incluso si en pantalla estás en cómodo */
+  :root{
+    --lh-prose:1.3;
+    --sp-p:.35em; --sp-h:.75em; --sp-h2:.95em; --sp-blk:.4em;
+    --sp-math:4px 0; --sp-mathfb:4px 8px; --sp-li:.06em;
+    --art-pad:0; --katex-disp:.08em;
+  }
+  @page{margin:14mm}
+  aside,.topbar,.scrim{display:none!important}
+  .app{display:block; height:auto}
+  main{overflow:visible}
+  body{background:#fff; color:#000; font-size:10.5pt}
+  article{max-width:none; padding:0}
+  article h1{font-size:19pt} article h2{font-size:15pt}
+  article h3{font-size:12.5pt} article h4{font-size:11pt}
+  pre{font-size:9pt; padding:6px 9px}
+  table{font-size:9.5pt} th,td{padding:3px 6px}
+  pre,.mathblock,table,th,td{border-color:#bbb}
+  pre{border-left-color:#666}
+  article h1,article h2,article h3,article h4{break-after:avoid}
+  pre,.mathblock,table,blockquote{break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside id="side">
+    <div class="brand">
+      <h1>Lector MD</h1>
+      <p>Portátil · funciona sin internet</p>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="pickFolder">Abrir carpeta<kbd>recomendado</kbd></button>
+      <button class="btn" id="pickFiles">Abrir archivos sueltos</button>
+      <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
+      <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
+    </div>
+
+    <div class="listhd" id="listHd" hidden>
+      <span id="fileCount"></span>
+      <button class="link" id="clearAll"
+              title="Vacía la lista del lector. No borra ningún archivo del disco.">Limpiar todo</button>
+    </div>
+
+    <div class="files" id="files">
+      <p class="empty">Todavía no cargaste nada.<br><br>
+      Usá <b>Abrir carpeta</b> y elegí la carpeta de la materia: aparecen todos los
+      <code>.md</code> que haya adentro, incluidos los de subcarpetas.</p>
+    </div>
+
+    <details class="fold toc" id="tocWrap" hidden open>
+      <summary>En este archivo</summary>
+      <nav id="toc"></nav>
+    </details>
+
+    <details class="fold" id="mathWrap">
+      <summary><span class="dot" id="mathDot"></span><span id="mathSum">fórmulas</span></summary>
+      <div class="body" id="mathTxt">modo simple: aproximación en Unicode</div>
+    </details>
+
+    <div class="foot">
+      <button class="icon" id="theme" title="Cambiar tema">◐ Tema</button>
+      <button class="icon" id="print"
+              title="Imprimir o guardar como PDF. Activá &quot;Encabezados y pies de página&quot; en el diálogo para que numere las hojas">⎙ PDF</button>
+      <button class="icon" id="density"
+              title="Interlineado compacto, para que entre más por hoja">⇕ Compacto</button>
+    </div>
+
+    <details class="fold" id="printWrap">
+      <summary>Numerar las hojas al imprimir</summary>
+      <div class="body">
+        En el diálogo de impresión abrí <span class="k">Más opciones</span> y activá
+        <span class="k">Encabezados y pies de página</span>. El navegador agrega el número
+        de página y el nombre del archivo. No se puede numerar desde la hoja de estilos:
+        ningún navegador implementa esa parte de CSS.
+      </div>
+    </details>
+  </aside>
+
+  <main id="main">
+    <div class="topbar">
+      <span class="name" id="docname">ningún archivo abierto</span>
+      <input type="search" id="search" placeholder="Buscar en el documento…" disabled>
+      <span class="hits" id="hits"></span>
+    </div>
+
+    <div class="drop" id="drop">
+      <p class="big">Arrastrá tus apuntes acá</p>
+      <p>O usá <b>Abrir carpeta</b> en el panel izquierdo. Nada sale de tu máquina:
+         el archivo se lee y se muestra localmente, sin subir nada a ningún lado.</p>
+      <ol>
+        <li>Copiá este <code>lector-md.html</code> al pendrive junto a los apuntes.</li>
+        <li>Doble clic: se abre en cualquier navegador, en cualquier PC.</li>
+        <li>Abrí la carpeta y leé. Con <b>⎙ PDF</b> lo imprimís o lo guardás en PDF.</li>
+      </ol>
+    </div>
+
+    <article id="doc" hidden></article>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   estado
+   ============================================================ */
+const DOCS = [];          // {name, path, text}
+let current = -1;
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   utilidades
+   ============================================================ */
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+/* ---------- símbolos LaTeX -> unicode ---------- */
+const SYM = {
+  alpha:"α", beta:"β", gamma:"γ", Gamma:"Γ", delta:"δ", Delta:"Δ",
+  epsilon:"ε", varepsilon:"ε", zeta:"ζ", eta:"η", theta:"θ", Theta:"Θ",
+  iota:"ι", kappa:"κ", lambda:"λ", Lambda:"Λ", mu:"μ", nu:"ν", xi:"ξ",
+  pi:"π", Pi:"Π", rho:"ρ", sigma:"σ", Sigma:"Σ", tau:"τ", upsilon:"υ",
+  phi:"φ", varphi:"φ", Phi:"Φ", chi:"χ", psi:"ψ", Psi:"Ψ", omega:"ω", Omega:"Ω",
+  infty:"∞", partial:"∂", nabla:"∇", int:"∫", iint:"∬", oint:"∮",
+  sum:"Σ", prod:"Π", pm:"±", mp:"∓", times:"×", div:"÷", cdot:"·", ast:"∗",
+  leq:"≤", le:"≤", geq:"≥", ge:"≥", neq:"≠", ne:"≠", approx:"≈", equiv:"≡",
+  sim:"∼", propto:"∝", in:"∈", notin:"∉", subset:"⊂", cup:"∪", cap:"∩",
+  to:"→", rightarrow:"→", leftarrow:"←", Rightarrow:"⟹", Leftarrow:"⟸",
+  leftrightarrow:"↔", Leftrightarrow:"⟺", mapsto:"↦", forall:"∀", exists:"∃",
+  angle:"∠", perp:"⊥", parallel:"∥", degree:"°", prime:"′", ldots:"…", dots:"…",
+  cdots:"⋯", vdots:"⋮", Re:"ℜ", Im:"ℑ", ell:"ℓ", hbar:"ℏ", emptyset:"∅",
+  lim:"lim", log:"log", ln:"ln", exp:"exp", sin:"sin", cos:"cos", tan:"tan",
+  arctan:"arctan", arcsin:"arcsin", arccos:"arccos", sinh:"sinh", cosh:"cosh",
+  max:"max", min:"min", det:"det", deg:"deg"
+};
+
+/* convierte un fragmento LaTeX en HTML legible (aproximación, no tipografía real) */
+function mathify(src){
+  let s = esc(src);
+
+  // limpieza de comandos de espaciado y tamaño
+  s = s.replace(/\\(left|right|big|Big|bigg|Bigg|displaystyle|limits|!|,|;|:|\s)/g," ");
+  s = s.replace(/\\begin\{(cases|aligned|align\*?|array)\}(\{[^}]*\})?/g,"");
+  s = s.replace(/\\end\{(cases|aligned|align\*?|array)\}/g,"");
+  s = s.replace(/\\\\/g," ; ");
+  s = s.replace(/&amp;/g," ");
+
+  // estructuras (dos pasadas para anidamiento simple)
+  for(let i=0;i<2;i++){
+    s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,
+        '<span class="frac"><span class="num">$1</span><span class="den">$2</span></span>');
+    s = s.replace(/\\d?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,
+        '<span class="frac"><span class="num">$1</span><span class="den">$2</span></span>');
+    s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g,'√<span class="root">$1</span>');
+    s = s.replace(/\\boxed\s*\{([^{}]*)\}/g,'<span class="boxed">$1</span>');
+    s = s.replace(/\\(?:mathcal|mathbb|mathrm|mathbf|text|operatorname)\s*\{([^{}]*)\}/g, (m,g)=>{
+      if(g==="L") return "ℒ";
+      if(g==="F") return "ℱ";
+      if(g==="Z") return "ℤ";
+      if(g==="R") return "ℝ";
+      return g;
+    });
+  }
+
+  // exponentes y subíndices
+  s = s.replace(/\^\s*\{([^{}]*)\}/g,"<sup>$1</sup>");
+  s = s.replace(/_\s*\{([^{}]*)\}/g,"<sub>$1</sub>");
+  s = s.replace(/\^(-?[0-9a-zA-Z])/g,"<sup>$1</sup>");
+  s = s.replace(/_(-?[0-9a-zA-Z])/g,"<sub>$1</sub>");
+
+  // símbolos con nombre
+  s = s.replace(/\\([A-Za-z]+)/g, (m,name)=> SYM[name] !== undefined ? SYM[name] : name);
+
+  // llaves residuales
+  s = s.replace(/[{}]/g,"");
+  return s;
+}
+
+/* ============================================================
+   parser markdown
+   ============================================================ */
+/* deshace el escapado HTML: KaTeX necesita el TeX crudo */
+const unesc = s => s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");
+
+/* ------------------------------------------------------------
+   renderMath: KaTeX si está disponible, aproximación si no
+   ------------------------------------------------------------ */
+let KATEX = false;
+
+function renderMath(tex, display){
+  if(KATEX && window.katex){
+    try{
+      const html = katex.renderToString(tex, {
+        displayMode: display, throwOnError: false, strict: false,
+        trust: false, output: "html"
+      });
+      return display ? '<div class="mathblock katex-on">'+html+'</div>' : html;
+    }catch(e){ /* TeX que KaTeX no entiende → cae a la aproximación */ }
+  }
+  return display
+    ? '<div class="mathblock">'+mathify(tex)+'</div>'
+    : '<span class="mathinline">'+mathify(tex)+'</span>';
+}
+
+function inline(t){
+  let s = esc(t);
+
+  // código en línea primero: se protege del resto
+  const code = [];
+  s = s.replace(/`([^`]+)`/g, (m,g)=>{ code.push(g); return ""+(code.length-1)+""; });
+
+  // matemática en línea \( ... \) y $ ... $ — se guarda con su propio centinela para
+  // que el HTML generado no pase por los reemplazos de énfasis y enlaces
+  const math = [];
+  const keep = g => "" + (math.push(unesc(g)) - 1) + "";
+  s = s.replace(/\\\((.+?)\\\)/g, (m,g)=>keep(g));
+  s = s.replace(/(^|[^$\\])\$([^$\n]+)\$/g, (m,pre,g)=>pre+keep(g));
+
+  // énfasis
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g,"<strong><em>$1</em></strong>");
+  s = s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
+  s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+  s = s.replace(/(^|[^_\w])_([^_\n]+)_/g,"$1<em>$2</em>");
+  s = s.replace(/~~(.+?)~~/g,"<del>$1</del>");
+
+  // enlaces e imágenes
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,'<img src="$2" alt="$1">');
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/(^|\s)(https?:\/\/[^\s<]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+
+  // wiki-links tipo [[nombre]]
+  s = s.replace(/\[\[([^\]]+)\]\]/g,'<code>$1</code>');
+
+  // restaurar matemática ya renderizada
+  s = s.replace(/(\d+)/g,(m,i)=>renderMath(math[+i], false));
+
+  // restaurar código
+  s = s.replace(/(\d+)/g,(m,i)=>"<code>"+code[+i]+"</code>");
+  return s;
+}
+
+let hCount = 0;
+function slug(t,i){ return "h"+i+"-"+t.toLowerCase().replace(/[^a-z0-9áéíóúñü]+/g,"-").slice(0,40); }
+
+function render(md){
+  const L = md.replace(/\r\n?/g,"\n").split("\n");
+  const out = [];
+  const heads = [];
+  // hCount no se reinicia: los id deben ser únicos en todo el documento
+  let i = 0;
+
+  const flushPara = buf => { if(buf.length){ out.push("<p>"+inline(buf.join(" "))+"</p>"); buf.length = 0; } };
+  let para = [];
+
+  while(i < L.length){
+    const ln = L[i];
+
+    /* ---- código cercado ---- */
+    const fence = ln.match(/^\s*(```+|~~~+)\s*([\w+-]*)\s*$/);
+    if(fence){
+      flushPara(para);
+      const mark = fence[1][0].repeat(3);
+      const body = [];
+      i++;
+      while(i < L.length && !new RegExp("^\\s*"+mark).test(L[i])){ body.push(L[i]); i++; }
+      i++;
+      // ```math  /  ```latex  → bloque de fórmula (estilo GitHub)
+      if(/^(math|latex|tex)$/i.test(fence[2] || "")){
+        out.push(renderMath(body.join(" "), true));
+      } else {
+        out.push("<pre><code>"+esc(body.join("\n"))+"</code></pre>");
+      }
+      continue;
+    }
+
+    /* ---- matemática en bloque \[ ... \]  ó  $$ ... $$ ---- */
+    if(/^\s*(\\\[|\$\$)\s*$/.test(ln)){
+      flushPara(para);
+      const close = ln.includes("$$") ? /\$\$/ : /\\\]/;
+      const body = [];
+      i++;
+      while(i < L.length && !close.test(L[i])){ body.push(L[i]); i++; }
+      i++;
+      out.push(renderMath(body.join(" "), true));
+      continue;
+    }
+    // en una sola línea: \[ x \]  ó  $$ x $$
+    const one = ln.match(/^\s*\\\[(.+?)\\\]\s*$/) || ln.match(/^\s*\$\$(.+?)\$\$\s*$/);
+    if(one){
+      flushPara(para);
+      out.push(renderMath(one[1], true));
+      i++; continue;
+    }
+
+    /* ---- bloque indentado (4 espacios) = preformateado ---- */
+    if(/^ {4}\S/.test(ln) && !para.length){
+      flushPara(para);
+      const body = [];
+      while(i < L.length && (/^ {4}/.test(L[i]) || L[i].trim()==="")){
+        if(L[i].trim()==="" && !/^ {4}/.test(L[i+1]||"")) break;
+        body.push(L[i].replace(/^ {4}/,""));
+        i++;
+      }
+      out.push("<pre><code>"+esc(body.join("\n"))+"</code></pre>");
+      continue;
+    }
+
+    /* ---- tabla ---- */
+    if(/^\s*\|.*\|\s*$/.test(ln) && /^\s*\|[\s:|-]+\|\s*$/.test(L[i+1]||"")){
+      flushPara(para);
+      const cells = r => r.trim().replace(/^\||\|$/g,"").split("|").map(c=>c.trim());
+      const head = cells(ln);
+      i += 2;
+      const rows = [];
+      while(i < L.length && /^\s*\|.*\|\s*$/.test(L[i])){ rows.push(cells(L[i])); i++; }
+      let t = '<div class="tablewrap"><table><thead><tr>';
+      head.forEach(c => t += "<th>"+inline(c)+"</th>");
+      t += "</tr></thead><tbody>";
+      rows.forEach(r=>{
+        t += "<tr>";
+        for(let k=0;k<head.length;k++) t += "<td>"+inline(r[k]||"")+"</td>";
+        t += "</tr>";
+      });
+      out.push(t+"</tbody></table></div>");
+      continue;
+    }
+
+    /* ---- encabezado ---- */
+    const h = ln.match(/^(#{1,6})\s+(.*)$/);
+    if(h){
+      flushPara(para);
+      const lv = h[1].length;
+      const txt = h[2].replace(/\s*#+\s*$/,"");
+      const id = slug(txt, ++hCount);
+      if(lv <= 3) heads.push({lv, txt, id});
+      out.push("<h"+lv+' id="'+id+'">'+inline(txt)+"</h"+lv+">");
+      i++; continue;
+    }
+
+    /* ---- regla horizontal ---- */
+    if(/^\s*([-*_])(\s*\1){2,}\s*$/.test(ln)){
+      flushPara(para); out.push("<hr>"); i++; continue;
+    }
+
+    /* ---- cita ---- */
+    if(/^\s*>/.test(ln)){
+      flushPara(para);
+      const body = [];
+      while(i < L.length && /^\s*>/.test(L[i])){ body.push(L[i].replace(/^\s*>\s?/,"")); i++; }
+      out.push("<blockquote>"+render(body.join("\n")).html+"</blockquote>");
+      continue;
+    }
+
+    /* ---- listas ---- */
+    if(/^\s*([-*+]|\d+[.)])\s+/.test(ln)){
+      flushPara(para);
+      const ord = /^\s*\d+[.)]\s+/.test(ln);
+      const items = [];
+      let baseIndent = ln.match(/^\s*/)[0].length;
+      while(i < L.length && /^\s*([-*+]|\d+[.)])\s+/.test(L[i])){
+        const ind = L[i].match(/^\s*/)[0].length;
+        if(ind < baseIndent) break;
+        let txt = L[i].replace(/^\s*([-*+]|\d+[.)])\s+/,"");
+        i++;
+        // continuación: líneas más indentadas o sublistas
+        const cont = [];
+        while(i < L.length && L[i].trim() !== "" && !/^\s*([-*+]|\d+[.)])\s+/.test(L[i])
+              && L[i].match(/^\s*/)[0].length > ind){
+          cont.push(L[i].trim()); i++;
+        }
+        // sublista
+        const sub = [];
+        while(i < L.length && /^\s*([-*+]|\d+[.)])\s+/.test(L[i])
+              && L[i].match(/^\s*/)[0].length > ind){
+          sub.push(L[i]); i++;
+        }
+        let html = inline([txt, ...cont].join(" "));
+        if(sub.length) html += render(sub.map(s=>s.replace(/^\s{0,3}/,"")).join("\n")).html;
+        items.push("<li>"+html+"</li>");
+      }
+      out.push((ord?"<ol>":"<ul>")+items.join("")+(ord?"</ol>":"</ul>"));
+      continue;
+    }
+
+    /* ---- vacío / párrafo ---- */
+    if(ln.trim() === ""){ flushPara(para); i++; continue; }
+    para.push(ln.trim());
+    i++;
+  }
+  flushPara(para);
+  return {html: out.join("\n"), heads};
+}
+
+/* ============================================================
+   interfaz
+   ============================================================ */
+function addFiles(list){
+  const md = [...list].filter(f => /\.(md|markdown|txt)$/i.test(f.name));
+  if(!md.length){
+    alert("No encontré archivos .md en lo que elegiste.");
+    return;
+  }
+  let pending = md.length;
+  md.forEach(f=>{
+    const r = new FileReader();
+    r.onload = () => {
+      const path = f.webkitRelativePath || f.name;
+      const exists = DOCS.findIndex(d => d.path === path);
+      const doc = {name:f.name, path, text:r.result};
+      if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
+      if(--pending === 0) afterLoad();
+    };
+    r.onerror = () => { if(--pending === 0) afterLoad(); };
+    r.readAsText(f, "utf-8");
+  });
+}
+
+function afterLoad(){
+  // orden: primero los archivos en la raíz, después los de subcarpetas
+  DOCS.sort((a,b)=>{
+    const w = p => p.includes("/") ? 1 : 0;
+    return w(a.path) - w(b.path) || a.path.localeCompare(b.path,"es");
+  });
+  drawFiles();
+  if(current < 0 && DOCS.length) open(0);
+}
+
+function drawFiles(){
+  const box = $("files");
+  if(!DOCS.length) return;
+  let html = "", lastGrp = null;
+  DOCS.forEach((d,idx)=>{
+    const parts = d.path.split("/");
+    const grp = parts.length > 1 ? parts.slice(0,-1).join(" / ") : "raíz de la carpeta";
+    if(grp !== lastGrp){ html += '<div class="grp">'+esc(grp)+"</div>"; lastGrp = grp; }
+    html += '<div class="filerow'+(idx===current?" cur":"")+'">'
+          +   '<button class="file" data-i="'+idx+'" aria-current="'+(idx===current)+
+              '" title="'+esc(d.path)+'">'+esc(d.name)+'</button>'
+          +   '<button class="rm" data-rm="'+idx+'" aria-label="Quitar '+esc(d.name)+
+              ' de la lista" title="Quitar de la lista (no borra el archivo)">&times;</button>'
+          + '</div>';
+  });
+  box.innerHTML = html;
+  box.querySelectorAll(".file").forEach(b => b.onclick = () => open(+b.dataset.i));
+  box.querySelectorAll(".rm").forEach(b => b.onclick = () => removeDoc(+b.dataset.rm));
+
+  $("listHd").hidden = false;
+  $("fileCount").textContent = DOCS.length + (DOCS.length === 1 ? " archivo" : " archivos");
+}
+
+/* quita un solo archivo de la lista (no toca el disco) */
+function removeDoc(i){
+  if(i < 0 || i >= DOCS.length) return;
+  DOCS.splice(i, 1);
+
+  if(!DOCS.length){ resetWorkspace(); return; }
+
+  if(i === current){
+    // se cerró el que estaba abierto: abro el vecino
+    open(Math.min(i, DOCS.length - 1));
+  } else {
+    if(i < current) current--;          // los índices de arriba se corrieron
+    drawFiles();
+  }
+}
+
+/* vacía el área de trabajo y vuelve a la pantalla inicial */
+function resetWorkspace(){
+  DOCS.length = 0;
+  current = -1;
+
+  $("doc").hidden = true;
+  $("doc").innerHTML = "";
+  $("drop").hidden = false;
+  $("docname").textContent = "ningún archivo abierto";
+  document.title = "Lector MD";
+  $("search").value = "";
+  $("search").disabled = true;
+  $("hits").textContent = "";
+  $("tocWrap").hidden = true;
+  $("toc").innerHTML = "";
+  $("listHd").hidden = true;
+  $("fileCount").textContent = "";
+  $("files").innerHTML =
+    '<p class="empty">Área de trabajo vacía.<br><br>' +
+    'Volvé a usar <b>Abrir carpeta</b> cuando quieras. ' +
+    'Nada de esto borra archivos del disco.</p>';
+
+  // los input file se limpian para poder volver a elegir la MISMA carpeta
+  $("inFolder").value = "";
+  $("inFiles").value = "";
+}
+
+function open(i){
+  current = i;
+  const d = DOCS[i];
+  const {html, heads} = render(d.text);
+  $("doc").innerHTML = html;
+  $("doc").hidden = false;
+  $("drop").hidden = true;
+  $("docname").textContent = d.path;
+  // el navegador usa document.title en el encabezado impreso, así que le ponemos
+  // el nombre real del archivo en vez del nombre del lector
+  document.title = d.name.replace(/\.(md|markdown|txt)$/i, "");
+  $("search").disabled = false;
+  $("search").value = "";
+  $("hits").textContent = "";
+  $("main").scrollTop = 0;
+
+  const toc = $("toc");
+  if(heads.length > 2){
+    toc.innerHTML = heads.map(h =>
+      '<a href="#'+h.id+'" class="'+(h.lv>=3?"h3":"")+'">'+esc(h.txt)+"</a>").join("");
+    $("tocWrap").hidden = false;
+    toc.querySelectorAll("a").forEach(a => a.onclick = e => {
+      e.preventDefault();
+      const t = document.getElementById(a.getAttribute("href").slice(1));
+      if(t) $("main").scrollTo({top: t.offsetTop - 52, behavior:"smooth"});
+    });
+  } else { $("tocWrap").hidden = true; toc.innerHTML = ""; }
+
+  drawFiles();
+  $("side").classList.remove("open");
+  $("scrim") && $("scrim").remove();
+}
+
+/* ---------- búsqueda ---------- */
+function clearMarks(root){
+  root.querySelectorAll("mark").forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+  root.normalize();
+}
+function search(q){
+  const art = $("doc");
+  clearMarks(art);
+  if(!q || q.length < 2){ $("hits").textContent = ""; return; }
+  const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "gi");
+  let n = 0, first = null;
+  const walk = document.createTreeWalker(art, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while(walk.nextNode()) nodes.push(walk.currentNode);
+  nodes.forEach(node=>{
+    if(!rx.test(node.nodeValue)) return;
+    rx.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0, m;
+    while((m = rx.exec(node.nodeValue))){
+      frag.appendChild(document.createTextNode(node.nodeValue.slice(last, m.index)));
+      const mk = document.createElement("mark");
+      mk.textContent = m[0];
+      frag.appendChild(mk);
+      if(!first) first = mk;
+      n++; last = m.index + m[0].length;
+      if(m[0].length === 0) rx.lastIndex++;
+    }
+    frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+    node.replaceWith(frag);
+  });
+  $("hits").textContent = n ? n + (n===1?" resultado":" resultados") : "sin resultados";
+  if(first) $("main").scrollTo({top: first.offsetTop - 90, behavior:"smooth"});
+}
+
+/* ---------- eventos ---------- */
+$("pickFolder").onclick = () => $("inFolder").click();
+$("pickFiles").onclick  = () => $("inFiles").click();
+// se limpia el value después de cargar, si no elegir la misma carpeta no dispara change
+$("inFolder").onchange  = e => { addFiles(e.target.files); e.target.value = ""; };
+$("inFiles").onchange   = e => { addFiles(e.target.files); e.target.value = ""; };
+$("clearAll").onclick   = () => resetWorkspace();
+
+let searchT;
+$("search").addEventListener("input", e=>{
+  clearTimeout(searchT);
+  const v = e.target.value;
+  searchT = setTimeout(()=>search(v), 160);
+});
+
+$("print").onclick = () => window.print();
+
+/* ---------- densidad ---------- */
+function setDensity(compact){
+  document.body.classList.toggle("compact", compact);
+  const b = $("density");
+  b.textContent = compact ? "⇕ Cómodo" : "⇕ Compacto";
+  b.title = compact
+    ? "Volver al interlineado cómodo para leer en pantalla"
+    : "Interlineado compacto, para que entre más por hoja";
+  try{ localStorage.setItem("lectormd-density", compact ? "compact" : "comfy"); }catch(e){}
+}
+$("density").onclick = () => setDensity(!document.body.classList.contains("compact"));
+
+/* ---------- bloques plegables: recuerdan si los dejaste abiertos ---------- */
+document.querySelectorAll("details.fold").forEach(d => {
+  const key = "lectormd-fold-" + d.id;
+  try{
+    const v = localStorage.getItem(key);
+    if(v === "1") d.open = true;
+    else if(v === "0") d.open = false;
+  }catch(e){}
+  d.addEventListener("toggle", () => {
+    try{ localStorage.setItem(key, d.open ? "1" : "0"); }catch(e){}
+  });
+});
+try{
+  if(localStorage.getItem("lectormd-density") === "compact") setDensity(true);
+}catch(e){}
+
+$("theme").onclick = ()=>{
+  const cur = document.documentElement.getAttribute("data-theme");
+  const dark = cur === "dark" ||
+    (!cur && matchMedia("(prefers-color-scheme:dark)").matches);
+  const next = dark ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try{ localStorage.setItem("lectormd-theme", next); }catch(e){}
+};
+try{
+  const t = localStorage.getItem("lectormd-theme");
+  if(t) document.documentElement.setAttribute("data-theme", t);
+}catch(e){}
+
+/* arrastrar y soltar */
+["dragenter","dragover"].forEach(ev =>
+  document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.add("dragging"); }));
+["dragleave","drop"].forEach(ev =>
+  document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.remove("dragging"); }));
+document.addEventListener("drop", e=>{
+  const items = e.dataTransfer.files;
+  if(items && items.length) addFiles(items);
+});
+
+/* atajos */
+document.addEventListener("keydown", e=>{
+  if((e.ctrlKey||e.metaKey) && e.key === "f"){ e.preventDefault(); $("search").focus(); $("search").select(); }
+  if(e.key === "Escape" && document.activeElement === $("search")){
+    $("search").value = ""; search(""); $("search").blur();
+  }
+  if(e.target.tagName === "INPUT") return;
+  if((e.key === "j" || e.key === "ArrowDown") && e.altKey && current < DOCS.length-1) open(current+1);
+  if((e.key === "k" || e.key === "ArrowUp")   && e.altKey && current > 0) open(current-1);
+});
+
+/* ============================================================
+   KaTeX opcional: si hay internet se carga desde CDN y las
+   fórmulas salen con tipografía matemática real. Si no, el
+   lector sigue funcionando con la aproximación en Unicode.
+   ============================================================ */
+(function loadKatex(){
+  const VER = "0.16.9";
+  const BASE = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/" + VER + "/";
+
+  const css = document.createElement("link");
+  css.rel = "stylesheet";
+  css.href = BASE + "katex.min.css";
+  document.head.appendChild(css);
+
+  const js = document.createElement("script");
+  js.src = BASE + "katex.min.js";
+
+  js.onload = () => {
+    KATEX = true;
+    $("mathWrap").classList.add("on");
+    $("mathSum").textContent = "fórmulas: KaTeX " + VER;
+    $("mathTxt").textContent =
+      "Tipografía matemática real, cargada desde CDN. Fracciones apiladas, radicales y " +
+      "recuadros se dibujan como en un libro.";
+    if(current >= 0) open(current);   // re-render con lo ya abierto
+  };
+
+  js.onerror = () => {
+    $("mathSum").textContent = "fórmulas: modo simple";
+    $("mathTxt").textContent =
+      "No se pudo cargar KaTeX (sin conexión). Las fórmulas se dibujan con la " +
+      "aproximación en Unicode: se leen bien, pero no es tipografía matemática real.";
+  };
+
+  document.head.appendChild(js);
+})();
+
+/* ============================================================
+   File Handling API — abrir .md directo desde el explorador
+   (requiere PWA instalada desde un origen https, ver manifest.json)
+   ============================================================ */
+if("launchQueue" in window && "files" in LaunchParams.prototype){
+  window.launchQueue.setConsumer(async (launchParams) => {
+    if(!launchParams.files.length) return;
+    const files = [];
+    for(const handle of launchParams.files){
+      try{
+        const file = await handle.getFile();
+        files.push(file);
+      }catch(e){
+        console.error("No se pudo leer el archivo entregado por el sistema:", e);
+      }
+    }
+    if(files.length) addFiles(files);
+  });
+}
+
+/* Service worker: habilita instalación como PWA (requisito de file_handlers) */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(e=>{
+      console.error("No se pudo registrar el service worker:", e);
+    });
+  });
+}
+</script>
+</body>
+</html>
