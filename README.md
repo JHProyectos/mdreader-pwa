@@ -11,8 +11,6 @@
 
 A standalone, offline-first Markdown reader, installable as a PWA. Single HTML file with no build dependencies, math formula support (KaTeX), and integration with the OS so you can open `.md` files straight from other apps.
 
-> Replace `YOUR_USERNAME` in the "Deploy with Vercel" badge with your actual GitHub username, so the button clones this repo correctly.
-
 ## Features
 
 - **Single HTML file.** No build step, no `node_modules`, no framework. Open it directly in a browser or serve it as-is.
@@ -128,8 +126,6 @@ MIT — use it, modify it, and adapt it to whatever you need.
 [English](#mdreader-pwa) · **Español**
 
 Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un solo archivo HTML sin dependencias de build, con soporte de fórmulas matemáticas (KaTeX) e integración con el sistema operativo para abrir `.md` desde otras apps.
-
-> Reemplazá `YOUR_USERNAME` en el badge "Deploy with Vercel" por tu usuario real de GitHub, para que el botón clone este repo correctamente.
 
 ## Características
 
