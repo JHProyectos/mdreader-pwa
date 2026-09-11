@@ -3,9 +3,10 @@
 // —requisito ineludible para que file_handlers funcione en Android—
 // y (2) que el lector siga abriendo sin conexión una vez visitado.
 
-const CACHE_NAME = "lector-md-v1";
+const CACHE_NAME = "lector-md-v2";
 const SHELL = [
-  "/lector-md.html",
+  "/",
+  "/index.html",
   "/manifest.json"
 ];
 
