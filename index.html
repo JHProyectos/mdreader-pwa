@@ -336,6 +336,24 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   article h1,article h2,article h3,article h4{break-after:avoid}
   pre,.mathblock,table,blockquote{break-inside:avoid}
 }
+/* aviso de versión nueva disponible */
+#updBar{
+  position:fixed; left:16px; right:16px; bottom:16px; margin:0 auto;
+  z-index:50; display:flex; align-items:center; justify-content:space-between;
+  gap:12px; width:fit-content; max-width:calc(100vw - 32px);
+  padding:10px 12px 10px 16px; border-radius:6px;
+  background:var(--accent); color:#fff;
+  font-size:13px; line-height:1.35; box-shadow:0 4px 16px #0004;
+}
+#updBar button{
+  font:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+  padding:6px 12px; border-radius:4px; white-space:nowrap;
+  border:1px solid #fff6; background:#fff2; color:#fff;
+}
+#updBar button:hover{background:#fff3}
+
+@media print{ #updBar{display:none!important} }
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -1042,13 +1060,55 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
   });
 }
 
-/* Service worker: habilita instalación como PWA (requisito de file_handlers) */
+/* Service worker: habilita instalación como PWA (requisito de file_handlers)
+   y mantiene la app actualizada sin que nadie tenga que limpiar el caché. */
 if("serviceWorker" in navigator){
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(e=>{
+    navigator.serviceWorker.register("/sw.js").then(reg => {
+
+      // Si aparece una versión nueva mientras la app está abierta, avisamos.
+      reg.addEventListener("updatefound", () => {
+        const nuevo = reg.installing;
+        if(!nuevo) return;
+        nuevo.addEventListener("statechange", () => {
+          // "installed" + controller existente = hay una versión previa corriendo
+          if(nuevo.state === "installed" && navigator.serviceWorker.controller){
+            avisarActualizacion(reg);
+          }
+        });
+      });
+
+      // Buscar actualizaciones al volver a la app (PWA instalada no recarga sola)
+      document.addEventListener("visibilitychange", () => {
+        if(document.visibilityState === "visible") reg.update();
+      });
+
+    }).catch(e=>{
       console.error("No se pudo registrar el service worker:", e);
     });
+
+    // Cuando el service worker nuevo toma control, recargamos una sola vez
+    let recargando = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if(recargando) return;
+      recargando = true;
+      location.reload();
+    });
   });
+}
+
+function avisarActualizacion(reg){
+  if(document.getElementById("updBar")) return;
+  const bar = document.createElement("div");
+  bar.id = "updBar";
+  bar.innerHTML =
+    '<span>Hay una versión nueva disponible.</span>' +
+    '<button type="button" id="updBtn">Actualizar</button>';
+  document.body.appendChild(bar);
+  document.getElementById("updBtn").onclick = () => {
+    // pedirle al SW en espera que tome control; controllerchange recarga
+    if(reg.waiting) reg.waiting.postMessage("SKIP_WAITING");
+  };
 }
 </script>
 </body>
