@@ -12,8 +12,11 @@
 // Además, cada despliegue nuevo toma control inmediato (skipWaiting +
 // clients.claim) y borra los cachés de versiones anteriores.
 
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE_NAME = "lector-md-" + VERSION;
+// caché aparte, de vida corta: sólo transporta los archivos que llegan
+// por el menú "Compartir" de Android hasta que la página los levanta.
+const SHARE_CACHE = "lector-md-share";
 
 const SHELL = ["/", "/index.html", "/manifest.json"];
 
@@ -32,7 +35,9 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+          keys
+            .filter((k) => k !== CACHE_NAME && k !== SHARE_CACHE)
+            .map((k) => caches.delete(k))
         )
       )
       .then(() => self.clients.claim())
@@ -53,10 +58,40 @@ function isDocument(request) {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  const url = new URL(request.url);
+
+  // Web Share Target (Android): la PWA aparece en el menú "Compartir".
+  // El archivo llega como POST multipart; el hosting es estático, así que
+  // lo resolvemos acá: guardamos el archivo y redirigimos a la app.
+  if (request.method === "POST" && url.pathname === "/share-target") {
+    event.respondWith(
+      (async () => {
+        try {
+          const formData = await request.formData();
+          const files = formData.getAll("file").filter((f) => f && f.name);
+          const cache = await caches.open(SHARE_CACHE);
+          // limpiar restos de una compartida anterior
+          for (const k of await cache.keys()) await cache.delete(k);
+          let i = 0;
+          for (const f of files) {
+            await cache.put(
+              new Request(
+                "/__shared__/" + i++ + "/" + encodeURIComponent(f.name)
+              ),
+              new Response(f)
+            );
+          }
+        } catch (e) {
+          // si algo falla igual abrimos la app, sin archivo
+        }
+        return Response.redirect("/?compartido=1", 303);
+      })()
+    );
+    return;
+  }
 
   if (request.method !== "GET") return;
 
-  const url = new URL(request.url);
   const sameOrigin = url.origin === self.location.origin;
 
   // 1. Documento HTML -> network-first.
