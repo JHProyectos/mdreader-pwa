@@ -12,7 +12,7 @@
 // Además, cada despliegue nuevo toma control inmediato (skipWaiting +
 // clients.claim) y borra los cachés de versiones anteriores.
 
-const VERSION = "v4";
+const VERSION = "v0.4.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 // caché aparte, de vida corta: sólo transporta los archivos que llegan
 // por el menú "Compartir" de Android hasta que la página los levanta.
