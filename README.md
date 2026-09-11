@@ -65,8 +65,6 @@ If you deploy somewhere other than Vercel, port the two rules in `vercel.json`: 
 
 On Android the entry point is **Share**, not "Open with" — Chrome for Android does not implement the File Handling API, so an installed PWA cannot register itself as a handler for a file extension there.
 
-> **If the app doesn't show up in the Share sheet**, it was probably installed before `share_target` was added to the manifest. Chrome bakes the intent filters into a WebAPK at install time, so uninstall the app and reinstall it to regenerate the package.
-
 ### Known limitations
 
 - **iOS/Safari supports neither File Handling nor Share Target for files.** On iPhone the app can be installed as a PWA (home screen icon, works offline), but the system won't offer it as a way to open `.md` files from outside the app. There, the only way in is the **Open folder / Open individual files** pickers inside the app itself.
@@ -180,8 +178,6 @@ Si lo desplegás fuera de Vercel, replicá las dos reglas de `vercel.json`: el h
 3. Elegí **Lector MD** en el menú de compartir. El archivo se abre directo en el lector.
 
 En Android el punto de entrada es **Compartir**, no "Abrir con": Chrome para Android no implementa la File Handling API, así que una PWA instalada no puede registrarse como handler de una extensión de archivo.
-
-> **Si la app no aparece en el menú Compartir**, probablemente se instaló antes de que el manifest tuviera `share_target`. Chrome hornea los intent filters en un WebAPK al momento de instalar, así que desinstalá la app y volvé a instalarla para regenerar el paquete.
 
 ### Limitaciones conocidas
 
