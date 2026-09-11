@@ -1,59 +1,102 @@
 // Service worker del Lector MD.
-// Objetivo único: (1) habilitar que Chrome considere la PWA "instalable"
-// —requisito ineludible para que file_handlers funcione en Android—
-// y (2) que el lector siga abriendo sin conexión una vez visitado.
+//
+// Estrategia de actualización (importante):
+//   - El documento HTML usa NETWORK-FIRST. Cada vez que hay conexión se busca
+//     la versión más nueva del servidor; el caché sólo se usa como respaldo
+//     offline. Esto evita que una versión vieja quede congelada para siempre
+//     en los dispositivos que ya visitaron el sitio.
+//   - Los íconos y el manifest usan STALE-WHILE-REVALIDATE: se sirve el caché
+//     al instante (rápido) y en paralelo se baja la versión nueva para la
+//     próxima carga.
+//
+// Además, cada despliegue nuevo toma control inmediato (skipWaiting +
+// clients.claim) y borra los cachés de versiones anteriores.
 
-const CACHE_NAME = "lector-md-v2";
-const SHELL = [
-  "/",
-  "/index.html",
-  "/manifest.json"
-];
+const VERSION = "v3";
+const CACHE_NAME = "lector-md-" + VERSION;
+
+const SHELL = ["/", "/index.html", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL))
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(SHELL))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+        )
       )
-    )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
+
+// Permite que la página pida activar de inmediato una versión en espera.
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") self.skipWaiting();
+});
+
+function isDocument(request) {
+  if (request.mode === "navigate") return true;
+  if (request.destination === "document") return true;
+  const accept = request.headers.get("accept") || "";
+  return accept.includes("text/html");
+}
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // Solo interceptamos GET; todo lo demás pasa directo a la red.
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
+  const sameOrigin = url.origin === self.location.origin;
 
-  // Recursos propios (shell): cache-first, así abre instantáneo y offline.
-  if (url.origin === self.location.origin) {
+  // 1. Documento HTML -> network-first.
+  //    Si hay red, siempre gana la versión del servidor: así un deploy nuevo
+  //    llega solo, sin que nadie tenga que limpiar el caché a mano.
+  if (sameOrigin && isDocument(request)) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
+      fetch(request)
+        .then((response) => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
-        });
+        })
+        .catch(() =>
+          caches
+            .match(request)
+            .then((cached) => cached || caches.match("/index.html"))
+        )
+    );
+    return;
+  }
+
+  // 2. Resto de recursos propios (íconos, manifest) -> stale-while-revalidate.
+  if (sameOrigin) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const network = fetch(request)
+          .then((response) => {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            return response;
+          })
+          .catch(() => cached);
+        return cached || network;
       })
     );
     return;
   }
 
-  // KaTeX (CDN externo): network-first, con fallback a cache si no hay conexión.
-  // Así si cdnjs actualiza la versión la tomamos, pero si estás sin internet
-  // seguís teniendo las fórmulas ya vistas anteriormente.
+  // 3. KaTeX (CDN externo) -> network-first con respaldo en caché.
   event.respondWith(
     fetch(request)
       .then((response) => {
