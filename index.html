@@ -372,6 +372,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   border:1px solid #fff6; background:#fff2; color:#fff;
 }
 #updBar button:hover{background:#fff3}
+#updBar button:disabled{cursor:default; opacity:.72}
 
 @media print{ #updBar{display:none!important} }
 
@@ -488,6 +489,232 @@ const DOCS = [];          // {name, path, text}
 let current = -1;
 
 const $ = id => document.getElementById(id);
+
+/* ============================================================
+   persistencia del área de trabajo
+
+   Los documentos se guardan en IndexedDB, separados del caché del
+   service worker. Por eso una actualización puede reemplazar el shell
+   de la app sin perder los archivos cargados ni el punto de lectura.
+   ============================================================ */
+const DB_NAME = "lector-md-datos";
+const DB_VERSION = 1;
+const DOC_STORE = "documentos";
+const STATE_STORE = "estado";
+const STATE_KEY = "workspace";
+
+const scrollPorRuta = Object.create(null);
+let restaurandoWorkspace = false;
+let avisoPersistenciaMostrado = false;
+let guardadoEstadoT = null;
+let workspaceReady = Promise.resolve();
+
+function abrirBaseDeDatos(){
+  return new Promise((resolve, reject) => {
+    if(!("indexedDB" in window)){
+      reject(new Error("IndexedDB no está disponible en este navegador."));
+      return;
+    }
+
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(DOC_STORE)){
+        db.createObjectStore(DOC_STORE, {keyPath:"path"});
+      }
+      if(!db.objectStoreNames.contains(STATE_STORE)){
+        db.createObjectStore(STATE_STORE, {keyPath:"key"});
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error("No se pudo abrir IndexedDB."));
+    req.onblocked = () => reject(new Error("La base local está bloqueada por otra ventana."));
+  });
+}
+
+const DB_READY = abrirBaseDeDatos();
+// Evita un rechazo sin manejar si el navegador bloquea IndexedDB al iniciar.
+DB_READY.catch(() => {});
+
+function avisarErrorPersistencia(error){
+  console.error("No se pudo guardar el área de trabajo:", error);
+  if(avisoPersistenciaMostrado || !DOCS.length) return;
+  avisoPersistenciaMostrado = true;
+  alert(
+    "Los archivos se abrieron, pero el navegador no pudo guardar la sesión local. " +
+    "La app no aplicará una actualización mientras haya documentos abiertos."
+  );
+}
+
+function esperarTransaccion(tx){
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error("Falló la operación local."));
+    tx.onabort = () => reject(tx.error || new Error("Se canceló la operación local."));
+  });
+}
+
+function leerWorkspacePersistido(){
+  return DB_READY.then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction([DOC_STORE, STATE_STORE], "readonly");
+    const docsReq = tx.objectStore(DOC_STORE).getAll();
+    const stateReq = tx.objectStore(STATE_STORE).get(STATE_KEY);
+
+    tx.oncomplete = () => resolve({
+      docs: Array.isArray(docsReq.result) ? docsReq.result : [],
+      state: stateReq.result || null
+    });
+    tx.onerror = () => reject(tx.error || new Error("No se pudo leer la sesión local."));
+    tx.onabort = () => reject(tx.error || new Error("Se canceló la lectura local."));
+  }));
+}
+
+async function guardarDocumentosPersistidos(documentos){
+  if(!documentos.length) return true;
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction(DOC_STORE, "readwrite");
+    const store = tx.objectStore(DOC_STORE);
+    documentos.forEach(d => store.put({name:d.name, path:d.path, text:d.text}));
+    await esperarTransaccion(tx);
+    return true;
+  }catch(error){
+    avisarErrorPersistencia(error);
+    return false;
+  }
+}
+
+function tomarPosicionActual(){
+  if(current < 0 || !DOCS[current]) return;
+  scrollPorRuta[DOCS[current].path] = $("main").scrollTop;
+}
+
+function crearEstadoPersistible(){
+  tomarPosicionActual();
+  const posiciones = {};
+  DOCS.forEach(d => {
+    const valor = Number(scrollPorRuta[d.path]);
+    posiciones[d.path] = Number.isFinite(valor) && valor > 0 ? valor : 0;
+  });
+  return {
+    key: STATE_KEY,
+    currentPath: current >= 0 && DOCS[current] ? DOCS[current].path : null,
+    scrollPorRuta: posiciones,
+    guardadoEn: new Date().toISOString()
+  };
+}
+
+async function guardarEstadoPersistido(){
+  if(restaurandoWorkspace || !DOCS.length) return true;
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction(STATE_STORE, "readwrite");
+    tx.objectStore(STATE_STORE).put(crearEstadoPersistible());
+    await esperarTransaccion(tx);
+    return true;
+  }catch(error){
+    avisarErrorPersistencia(error);
+    return false;
+  }
+}
+
+function programarGuardadoEstado(){
+  if(restaurandoWorkspace || !DOCS.length) return;
+  clearTimeout(guardadoEstadoT);
+  guardadoEstadoT = setTimeout(() => {
+    guardadoEstadoT = null;
+    void guardarEstadoPersistido();
+  }, 220);
+}
+
+async function eliminarDocumentoPersistido(path){
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction(DOC_STORE, "readwrite");
+    tx.objectStore(DOC_STORE).delete(path);
+    await esperarTransaccion(tx);
+    return true;
+  }catch(error){
+    avisarErrorPersistencia(error);
+    return false;
+  }
+}
+
+async function vaciarWorkspacePersistido(){
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction([DOC_STORE, STATE_STORE], "readwrite");
+    tx.objectStore(DOC_STORE).clear();
+    tx.objectStore(STATE_STORE).clear();
+    await esperarTransaccion(tx);
+    return true;
+  }catch(error){
+    console.error("No se pudo vaciar el área de trabajo guardada:", error);
+    return false;
+  }
+}
+
+/* Escritura completa usada antes de una actualización manual. Si falla,
+   la página no se recarga y los documentos siguen abiertos en memoria. */
+async function guardarWorkspaceCompleto(){
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction([DOC_STORE, STATE_STORE], "readwrite");
+    const docsStore = tx.objectStore(DOC_STORE);
+    docsStore.clear();
+    DOCS.forEach(d => docsStore.put({name:d.name, path:d.path, text:d.text}));
+    tx.objectStore(STATE_STORE).put(crearEstadoPersistible());
+    await esperarTransaccion(tx);
+    return true;
+  }catch(error){
+    avisarErrorPersistencia(error);
+    return false;
+  }
+}
+
+async function restaurarWorkspace(){
+  restaurandoWorkspace = true;
+  try{
+    const {docs, state} = await leerWorkspacePersistido();
+    const validos = docs.filter(d =>
+      d && typeof d.name === "string" && typeof d.path === "string" &&
+      typeof d.text === "string"
+    );
+    if(validos.length){
+      DOCS.splice(0, DOCS.length, ...validos);
+      DOCS.sort((a,b)=>{
+        const w = p => p.includes("/") ? 1 : 0;
+        return w(a.path) - w(b.path) || a.path.localeCompare(b.path,"es");
+      });
+
+      if(state && state.scrollPorRuta && typeof state.scrollPorRuta === "object"){
+        DOCS.forEach(d => {
+          const valor = Number(state.scrollPorRuta[d.path]);
+          if(Number.isFinite(valor) && valor >= 0) scrollPorRuta[d.path] = valor;
+        });
+      }
+
+      const recordado = state && typeof state.currentPath === "string"
+        ? DOCS.findIndex(d => d.path === state.currentPath)
+        : -1;
+      open(recordado >= 0 ? recordado : 0, {
+        guardarAnterior:false,
+        persistir:false
+      });
+    }
+  }catch(error){
+    // La app sigue siendo utilizable aunque el navegador no permita persistencia.
+    console.warn("No se pudo restaurar el área de trabajo:", error);
+  }finally{
+    restaurandoWorkspace = false;
+  }
+
+  // Solicita protección contra la limpieza automática de almacenamiento.
+  // El navegador decide si la concede; no muestra un permiso invasivo.
+  if(navigator.storage && navigator.storage.persist){
+    navigator.storage.persist().catch(() => {});
+  }
+}
 
 /* ============================================================
    utilidades
@@ -774,35 +1001,67 @@ function render(md){
 /* ============================================================
    interfaz
    ============================================================ */
-function addFiles(list){
+function leerArchivoComoTexto(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve({
+      name:file.name,
+      path:file.webkitRelativePath || file.name,
+      text:String(r.result ?? "")
+    });
+    r.onerror = () => reject(r.error || new Error("No se pudo leer " + file.name));
+    r.readAsText(file, "utf-8");
+  });
+}
+
+async function addFiles(list){
+  await workspaceReady;
   const md = [...list].filter(f => /\.(md|markdown|txt)$/i.test(f.name));
   if(!md.length){
     alert("No encontré archivos .md en lo que elegiste.");
     return;
   }
-  let pending = md.length;
-  md.forEach(f=>{
-    const r = new FileReader();
-    r.onload = () => {
-      const path = f.webkitRelativePath || f.name;
-      const exists = DOCS.findIndex(d => d.path === path);
-      const doc = {name:f.name, path, text:r.result};
-      if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
-      if(--pending === 0) afterLoad();
-    };
-    r.onerror = () => { if(--pending === 0) afterLoad(); };
-    r.readAsText(f, "utf-8");
+
+  const rutaActiva = current >= 0 && DOCS[current] ? DOCS[current].path : null;
+  const resultados = await Promise.allSettled(md.map(leerArchivoComoTexto));
+  const leidos = resultados
+    .filter(r => r.status === "fulfilled")
+    .map(r => r.value);
+
+  resultados
+    .filter(r => r.status === "rejected")
+    .forEach(r => console.error("No se pudo leer un archivo:", r.reason));
+
+  if(!leidos.length){
+    alert("No se pudo leer ninguno de los archivos elegidos.");
+    return;
+  }
+
+  leidos.forEach(doc => {
+    const exists = DOCS.findIndex(d => d.path === doc.path);
+    if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
   });
+
+  afterLoad(rutaActiva);
+  await guardarDocumentosPersistidos(leidos);
+  await guardarEstadoPersistido();
+
+  if(navigator.storage && navigator.storage.persist){
+    navigator.storage.persist().catch(() => {});
+  }
 }
 
-function afterLoad(){
+function afterLoad(rutaActiva = null){
   // orden: primero los archivos en la raíz, después los de subcarpetas
   DOCS.sort((a,b)=>{
     const w = p => p.includes("/") ? 1 : 0;
     return w(a.path) - w(b.path) || a.path.localeCompare(b.path,"es");
   });
-  drawFiles();
-  if(current < 0 && DOCS.length) open(0);
+
+  const siguiente = rutaActiva
+    ? DOCS.findIndex(d => d.path === rutaActiva)
+    : -1;
+  if(DOCS.length) open(siguiente >= 0 ? siguiente : 0);
 }
 
 function drawFiles(){
@@ -831,23 +1090,31 @@ function drawFiles(){
 /* quita un solo archivo de la lista (no toca el disco) */
 function removeDoc(i){
   if(i < 0 || i >= DOCS.length) return;
-  DOCS.splice(i, 1);
+  tomarPosicionActual();
+  const [quitado] = DOCS.splice(i, 1);
+  delete scrollPorRuta[quitado.path];
 
   if(!DOCS.length){ resetWorkspace(); return; }
 
   if(i === current){
     // se cerró el que estaba abierto: abro el vecino
-    open(Math.min(i, DOCS.length - 1));
+    open(Math.min(i, DOCS.length - 1), {guardarAnterior:false});
   } else {
     if(i < current) current--;          // los índices de arriba se corrieron
     drawFiles();
+    programarGuardadoEstado();
   }
+
+  void eliminarDocumentoPersistido(quitado.path);
 }
 
 /* vacía el área de trabajo y vuelve a la pantalla inicial */
-function resetWorkspace(){
+function resetWorkspace(persistir = true){
+  clearTimeout(guardadoEstadoT);
+  guardadoEstadoT = null;
   DOCS.length = 0;
   current = -1;
+  Object.keys(scrollPorRuta).forEach(path => delete scrollPorRuta[path]);
 
   $("doc").hidden = true;
   $("doc").innerHTML = "";
@@ -869,9 +1136,16 @@ function resetWorkspace(){
   // los input file se limpian para poder volver a elegir la MISMA carpeta
   $("inFolder").value = "";
   $("inFiles").value = "";
+
+  if(persistir) void vaciarWorkspacePersistido();
 }
 
-function open(i){
+function open(i, opciones = {}){
+  if(i < 0 || i >= DOCS.length) return;
+  const guardarAnterior = opciones.guardarAnterior !== false;
+  const persistir = opciones.persistir !== false;
+  if(guardarAnterior) tomarPosicionActual();
+
   current = i;
   const d = DOCS[i];
   const {html, heads} = render(d.text);
@@ -885,7 +1159,14 @@ function open(i){
   $("search").disabled = false;
   $("search").value = "";
   $("hits").textContent = "";
-  $("main").scrollTop = 0;
+  const posicion = Number(scrollPorRuta[d.path]);
+  const posicionObjetivo = Number.isFinite(posicion) && posicion >= 0 ? posicion : 0;
+  $("main").scrollTop = posicionObjetivo;
+  requestAnimationFrame(() => {
+    if(current >= 0 && DOCS[current] && DOCS[current].path === d.path){
+      $("main").scrollTop = posicionObjetivo;
+    }
+  });
 
   const toc = $("toc");
   if(heads.length > 2){
@@ -901,6 +1182,7 @@ function open(i){
 
   drawFiles();
   closeSide();
+  if(persistir) programarGuardadoEstado();
 }
 
 /* ---------- búsqueda ---------- */
@@ -945,8 +1227,16 @@ $("pickFiles").onclick  = () => $("inFiles").click();
 $("pickFolder2").onclick = () => $("inFolder").click();
 $("pickFiles2").onclick  = () => $("inFiles").click();
 // se limpia el value después de cargar, si no elegir la misma carpeta no dispara change
-$("inFolder").onchange  = e => { addFiles(e.target.files); e.target.value = ""; };
-$("inFiles").onchange   = e => { addFiles(e.target.files); e.target.value = ""; };
+$("inFolder").onchange = e => {
+  const files = [...e.target.files];
+  e.target.value = "";
+  void addFiles(files);
+};
+$("inFiles").onchange = e => {
+  const files = [...e.target.files];
+  e.target.value = "";
+  void addFiles(files);
+};
 $("clearAll").onclick   = () => resetWorkspace();
 
 /* ---------- sidebar en mobile ---------- */
@@ -974,6 +1264,26 @@ $("search").addEventListener("input", e=>{
   clearTimeout(searchT);
   const v = e.target.value;
   searchT = setTimeout(()=>search(v), 160);
+});
+
+$("main").addEventListener("scroll", () => {
+  if(restaurandoWorkspace || current < 0 || !DOCS[current]) return;
+  scrollPorRuta[DOCS[current].path] = $("main").scrollTop;
+  programarGuardadoEstado();
+}, {passive:true});
+
+// El guardado es continuo; estos eventos sólo fuerzan el último estado pendiente.
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "hidden"){
+    clearTimeout(guardadoEstadoT);
+    guardadoEstadoT = null;
+    void guardarEstadoPersistido();
+  }
+});
+window.addEventListener("pagehide", () => {
+  clearTimeout(guardadoEstadoT);
+  guardadoEstadoT = null;
+  void guardarEstadoPersistido();
 });
 
 $("print").onclick = () => window.print();
@@ -1019,6 +1329,9 @@ try{
   if(t) document.documentElement.setAttribute("data-theme", t);
 }catch(e){}
 
+// Restaura los documentos antes de procesar archivos recibidos desde el sistema.
+workspaceReady = restaurarWorkspace();
+
 /* arrastrar y soltar */
 ["dragenter","dragover"].forEach(ev =>
   document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.add("dragging"); }));
@@ -1026,7 +1339,7 @@ try{
   document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.remove("dragging"); }));
 document.addEventListener("drop", e=>{
   const items = e.dataTransfer.files;
-  if(items && items.length) addFiles(items);
+  if(items && items.length) void addFiles([...items]);
 });
 
 /* atajos */
@@ -1093,7 +1406,7 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
         console.error("No se pudo leer el archivo entregado por el sistema:", e);
       }
     }
-    if(files.length) addFiles(files);
+    if(files.length) await addFiles(files);
   });
 }
 
@@ -1120,7 +1433,7 @@ async function cargarCompartidos(){
     // vaciar el caché: ya tenemos los archivos en memoria
     for(const k of keys) await cache.delete(k);
 
-    if(archivos.length) addFiles(archivos);
+    if(archivos.length) await addFiles(archivos);
   }catch(e){
     console.error("No se pudieron leer los archivos compartidos:", e);
   }finally{
@@ -1142,9 +1455,17 @@ if(new URLSearchParams(location.search).has("compartido")){
 
 /* Service worker: habilita instalación como PWA (requisito de file_handlers)
    y mantiene la app actualizada sin que nadie tenga que limpiar el caché. */
+let recargaSolicitada = false;
+let recargandoPorActualizacion = false;
+
 if("serviceWorker" in navigator){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").then(reg => {
+
+      // Puede haber una actualización esperando desde una sesión anterior.
+      if(reg.waiting && navigator.serviceWorker.controller){
+        avisarActualizacion(reg);
+      }
 
       // Si aparece una versión nueva mientras la app está abierta, avisamos.
       reg.addEventListener("updatefound", () => {
@@ -1167,11 +1488,11 @@ if("serviceWorker" in navigator){
       console.error("No se pudo registrar el service worker:", e);
     });
 
-    // Cuando el service worker nuevo toma control, recargamos una sola vez
-    let recargando = false;
+    // Un cambio de controller nunca recarga por sí solo. Sólo recargamos cuando
+    // el usuario eligió "Actualizar ahora" y la sesión ya quedó guardada.
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if(recargando) return;
-      recargando = true;
+      if(!recargaSolicitada || recargandoPorActualizacion) return;
+      recargandoPorActualizacion = true;
       location.reload();
     });
   });
@@ -1182,12 +1503,31 @@ function avisarActualizacion(reg){
   const bar = document.createElement("div");
   bar.id = "updBar";
   bar.innerHTML =
-    '<span>Hay una versión nueva disponible.</span>' +
-    '<button type="button" id="updBtn">Actualizar</button>';
+    '<span>Nueva versión lista. Se aplicará al cerrar la app.</span>' +
+    '<button type="button" id="updBtn">Actualizar ahora</button>';
   document.body.appendChild(bar);
-  document.getElementById("updBtn").onclick = () => {
-    // pedirle al SW en espera que tome control; controllerchange recarga
-    if(reg.waiting) reg.waiting.postMessage("SKIP_WAITING");
+  document.getElementById("updBtn").onclick = async () => {
+    const btn = document.getElementById("updBtn");
+    const mensaje = bar.querySelector("span");
+    btn.disabled = true;
+    mensaje.textContent = "Guardando los documentos abiertos…";
+
+    const guardado = await guardarWorkspaceCompleto();
+    if(!guardado && DOCS.length){
+      mensaje.textContent = "No se pudo guardar la sesión. La actualización quedó en espera.";
+      btn.disabled = false;
+      return;
+    }
+
+    const waiting = reg.waiting;
+    if(!waiting){
+      mensaje.textContent = "La actualización se aplicará la próxima vez que abras la app.";
+      return;
+    }
+
+    recargaSolicitada = true;
+    mensaje.textContent = "Actualizando… tus documentos se restaurarán enseguida.";
+    waiting.postMessage("SKIP_WAITING");
   };
 }
 </script>
