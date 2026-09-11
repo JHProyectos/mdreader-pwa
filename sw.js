@@ -9,12 +9,14 @@
 //     al instante (rápido) y en paralelo se baja la versión nueva para la
 //     próxima carga.
 //
-// Además, cada despliegue nuevo toma control inmediato (skipWaiting +
-// clients.claim) y borra los cachés de versiones anteriores.
+// Una versión nueva se instala en segundo plano y queda esperando mientras
+// exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
+// página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.4.0";
+const VERSION = "v0.5.0";
 const CACHE_NAME = "lector-md-" + VERSION;
-// caché aparte, de vida corta: sólo transporta los archivos que llegan
+
+// Caché aparte, de vida corta: sólo transporta los archivos que llegan
 // por el menú "Compartir" de Android hasta que la página los levanta.
 const SHARE_CACHE = "lector-md-share";
 
@@ -25,7 +27,6 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(SHELL))
-      .then(() => self.skipWaiting())
   );
 });
 
@@ -36,7 +37,12 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k !== CACHE_NAME && k !== SHARE_CACHE)
+            .filter(
+              (k) =>
+                k.startsWith("lector-md-") &&
+                k !== CACHE_NAME &&
+                k !== SHARE_CACHE
+            )
             .map((k) => caches.delete(k))
         )
       )
@@ -46,12 +52,15 @@ self.addEventListener("activate", (event) => {
 
 // Permite que la página pida activar de inmediato una versión en espera.
 self.addEventListener("message", (event) => {
-  if (event.data === "SKIP_WAITING") self.skipWaiting();
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 function isDocument(request) {
   if (request.mode === "navigate") return true;
   if (request.destination === "document") return true;
+
   const accept = request.headers.get("accept") || "";
   return accept.includes("text/html");
 }
@@ -68,11 +77,19 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const formData = await request.formData();
-          const files = formData.getAll("file").filter((f) => f && f.name);
+          const files = formData
+            .getAll("file")
+            .filter((f) => f && f.name);
+
           const cache = await caches.open(SHARE_CACHE);
-          // limpiar restos de una compartida anterior
-          for (const k of await cache.keys()) await cache.delete(k);
+
+          // Limpiar restos de una compartida anterior.
+          for (const k of await cache.keys()) {
+            await cache.delete(k);
+          }
+
           let i = 0;
+
           for (const f of files) {
             await cache.put(
               new Request(
@@ -82,11 +99,13 @@ self.addEventListener("fetch", (event) => {
             );
           }
         } catch (e) {
-          // si algo falla igual abrimos la app, sin archivo
+          // Si algo falla, igual abrimos la app sin archivo.
         }
+
         return Response.redirect("/?compartido=1", 303);
       })()
     );
+
     return;
   }
 
@@ -95,48 +114,66 @@ self.addEventListener("fetch", (event) => {
   const sameOrigin = url.origin === self.location.origin;
 
   // 1. Documento HTML -> network-first.
-  //    Si hay red, siempre gana la versión del servidor: así un deploy nuevo
-  //    llega solo, sin que nadie tenga que limpiar el caché a mano.
+  // Si hay red, siempre gana la versión del servidor.
+  // El caché se utiliza como respaldo offline.
   if (sameOrigin && isDocument(request)) {
     event.respondWith(
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => cache.put(request, copy));
+
           return response;
         })
         .catch(() =>
           caches
             .match(request)
-            .then((cached) => cached || caches.match("/index.html"))
+            .then(
+              (cached) =>
+                cached || caches.match("/index.html")
+            )
         )
     );
+
     return;
   }
 
-  // 2. Resto de recursos propios (íconos, manifest) -> stale-while-revalidate.
+  // 2. Recursos propios: stale-while-revalidate.
   if (sameOrigin) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const network = fetch(request)
           .then((response) => {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(request, copy));
+
             return response;
           })
           .catch(() => cached);
+
         return cached || network;
       })
     );
+
     return;
   }
 
-  // 3. KaTeX (CDN externo) -> network-first con respaldo en caché.
+  // 3. KaTeX externo: network-first con respaldo en caché.
   event.respondWith(
     fetch(request)
       .then((response) => {
         const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+
+        caches
+          .open(CACHE_NAME)
+          .then((cache) => cache.put(request, copy));
+
         return response;
       })
       .catch(() => caches.match(request))
