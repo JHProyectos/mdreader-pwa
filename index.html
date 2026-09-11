@@ -75,7 +75,25 @@ img{max-width:100%}
         transform:translateX(-100%); transition:transform .2s}
   aside.open{transform:none}
   .scrim{position:fixed; inset:0; background:#0008; z-index:15}
+  .menubtn{display:inline-flex!important}
 }
+
+/* botón de menú: sólo en pantallas chicas, donde el sidebar está oculto */
+.menubtn{
+  display:none; align-items:center; justify-content:center;
+  font:inherit; font-size:17px; line-height:1; cursor:pointer;
+  width:32px; height:32px; flex:none; margin-right:2px;
+  border:1px solid var(--line); border-radius:4px;
+  background:transparent; color:var(--ink);
+}
+.menubtn:hover{border-color:var(--accent); color:var(--accent)}
+
+/* acciones dentro de la pantalla vacía */
+.dropactions{
+  display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  margin:18px 0 4px;
+}
+.dropactions .btn{text-align:center}
 
 /* ================= sidebar ================= */
 aside{
@@ -380,6 +398,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
   <main id="main">
     <div class="topbar">
+      <button class="menubtn" id="menu" aria-label="Abrir panel de archivos" title="Archivos">☰</button>
       <span class="name" id="docname">ningún archivo abierto</span>
       <input type="search" id="search" placeholder="Buscar en el documento…" disabled>
       <span class="hits" id="hits"></span>
@@ -387,8 +406,12 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
     <div class="drop" id="drop">
       <p class="big">Arrastrá tus archivos acá</p>
-      <p>O usá <b>Abrir carpeta</b> en el panel izquierdo. Nada sale de tu máquina:
+      <p>O elegilos directamente. Nada sale de tu máquina:
          el archivo se lee y se muestra localmente, sin subir nada a ningún lado.</p>
+      <div class="dropactions">
+        <button class="btn primary" id="pickFolder2">Abrir carpeta</button>
+        <button class="btn" id="pickFiles2">Abrir archivos sueltos</button>
+      </div>
       <ol>
         <li>Copiá este <code>index.html</code> a un USB junto a tus archivos.</li>
         <li>Doble clic: se abre en cualquier navegador, en cualquier PC.</li>
@@ -822,8 +845,7 @@ function open(i){
   } else { $("tocWrap").hidden = true; toc.innerHTML = ""; }
 
   drawFiles();
-  $("side").classList.remove("open");
-  $("scrim") && $("scrim").remove();
+  closeSide();
 }
 
 /* ---------- búsqueda ---------- */
@@ -864,10 +886,33 @@ function search(q){
 /* ---------- eventos ---------- */
 $("pickFolder").onclick = () => $("inFolder").click();
 $("pickFiles").onclick  = () => $("inFiles").click();
+// mismos disparadores desde la pantalla vacía (en mobile el sidebar está oculto)
+$("pickFolder2").onclick = () => $("inFolder").click();
+$("pickFiles2").onclick  = () => $("inFiles").click();
 // se limpia el value después de cargar, si no elegir la misma carpeta no dispara change
 $("inFolder").onchange  = e => { addFiles(e.target.files); e.target.value = ""; };
 $("inFiles").onchange   = e => { addFiles(e.target.files); e.target.value = ""; };
 $("clearAll").onclick   = () => resetWorkspace();
+
+/* ---------- sidebar en mobile ---------- */
+function closeSide(){
+  $("side").classList.remove("open");
+  const s = $("scrim");
+  if(s) s.remove();
+}
+function openSide(){
+  $("side").classList.add("open");
+  if(!$("scrim")){
+    const s = document.createElement("div");
+    s.className = "scrim";
+    s.id = "scrim";
+    s.onclick = closeSide;
+    document.body.appendChild(s);
+  }
+}
+$("menu").onclick = () => {
+  $("side").classList.contains("open") ? closeSide() : openSide();
+};
 
 let searchT;
 $("search").addEventListener("input", e=>{
