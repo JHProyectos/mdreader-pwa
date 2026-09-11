@@ -2,7 +2,7 @@
   "name": "Lector MD",
   "short_name": "Lector MD",
   "description": "Lector portátil de archivos Markdown, funciona sin internet",
-  "start_url": "/lector-md.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
@@ -30,7 +30,7 @@
   ],
   "file_handlers": [
     {
-      "action": "/lector-md.html",
+      "action": "/",
       "accept": {
         "text/markdown": [".md", ".markdown"],
         "text/plain": [".txt"]
