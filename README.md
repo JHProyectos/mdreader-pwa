@@ -6,7 +6,6 @@
 [![Deploy with Vercel](https://img.shields.io/badge/deploy-Vercel-000000?logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/JHProyectos/mdreader-pwa)
 
 
-
 **English** · [Español](#español)
 
 A standalone, offline-first Markdown reader, installable as a PWA. Single HTML file with no build dependencies, math formula support (KaTeX), and integration with the OS so you can open `.md` files straight from other apps.
@@ -18,6 +17,7 @@ A standalone, offline-first Markdown reader, installable as a PWA. Single HTML f
 - **Math formulas.** When online, it loads [KaTeX](https://katex.org/) from a CDN for real math typesetting (`$inline$` and `$$block$$`). Offline, it falls back to a readable Unicode approximation.
 - **Open entire folders.** Browse multiple `.md` files from a project in a side panel, without uploading anything to a server.
 - **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from WhatsApp, Drive, Telegram, or a file manager straight into the reader. On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
+- **Keeps your workspace.** Loaded documents, the selected file, and the reading position are stored locally and restored after closing, restarting, or updating the app. A document stays loaded until you remove it explicitly.
 - **Updates itself.** New deploys reach installed copies automatically — no cache clearing, no reinstalling. See [Updates](#updates).
 - **Dedicated print styles.** A separate `@media print` stylesheet so what you read on screen prints cleanly.
 
@@ -74,21 +74,22 @@ On Android the entry point is **Share**, not "Open with" — Chrome for Android 
 
 ## Updates
 
-Installed copies update on their own. The mechanism has three parts:
+Installed copies update on their own without interrupting an open document. The mechanism has four parts:
 
 - **`sw.js` serves the HTML network-first.** With a connection, the server's version always wins; the cache is only an offline fallback. This is what prevents a stale version from being frozen on a device forever. Icons and the manifest use stale-while-revalidate — instant from cache, refreshed in the background.
 - **The page checks for a new service worker** on load and every time the app becomes visible again, which is the normal usage pattern for an installed PWA.
-- **When a new version is ready, a bar offers to reload.** Accepting it tells the waiting worker to take over, and the page reloads once.
+- **A new worker waits while the current app is open.** It is downloaded in the background but does not take control or reload the page automatically.
+- **The workspace lives in IndexedDB, outside the service-worker cache.** If you choose **Update now**, the app first stores every loaded document, the selected file, and its scroll position. It reloads only after that write succeeds and restores the same workspace immediately. If you do nothing, the update is applied the next time the app starts.
 
 ### Releasing a new version
 
-Bump `VERSION` at the top of `sw.js` and deploy. The `activate` handler deletes every cache that doesn't match the new name, so the old shell is cleared automatically:
+Bump `VERSION` at the top of `sw.js` and deploy. The new version is installed in the background and remains waiting while the app is in use. Once activated, its `activate` handler deletes older `lector-md-*` shell caches automatically:
 
 ```js
-const VERSION = "0.4.0";
+const VERSION = "v0.5.0";
 ```
 
-The share-target cache is excluded from that cleanup, since it may be holding a file that was shared moments before the update.
+The share-target cache and the IndexedDB workspace are excluded from that cleanup. Therefore, deleting an old application cache never removes a loaded document. The workspace is cleared only with **Clear all**, by removing documents individually, or by clearing the site's browser data.
 
 ## Project structure
 
@@ -107,6 +108,7 @@ The share-target cache is excluded from that cleanup, since it may be holding a 
 ## Technical notes
 
 - **Shared files travel through a cache.** Android delivers a shared file as a `POST` to `/share-target`, but static hosting can't accept a POST. The service worker intercepts it, writes the file into a short-lived cache, and redirects to the app, which picks it up and empties the cache.
+- **The open workspace is stored locally in IndexedDB.** Markdown contents are never sent to the server. The browser may remove them only if the user clears site data or the device removes site storage; the app requests persistent storage when the browser supports it.
 - **The maskable icon** has its content scaled to 80% and centered, inside the "safe zone" Android respects when cropping icons into different shapes (circle, squircle, etc. depending on the manufacturer).
 - **`"launch_type": "single-client"`** in `file_handlers` means each opened file reuses the same app window instead of spawning one instance per file.
 - **KaTeX is optional by design.** It loads from a CDN and the app degrades to a Unicode approximation if the request fails, so the reader never depends on a network call to render a document.
@@ -132,6 +134,7 @@ Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un 
 - **Fórmulas matemáticas.** Si hay conexión, carga [KaTeX](https://katex.org/) desde CDN para tipografía matemática real (`$inline$` y `$$bloque$$`). Sin conexión, cae a una aproximación en Unicode legible.
 - **Abrir carpetas completas.** Navegá varios `.md` de un proyecto desde un panel lateral, sin subir nada a un servidor.
 - **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde WhatsApp, Drive, Telegram o el explorador directo al lector. En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
+- **Conserva el área de trabajo.** Los documentos cargados, el archivo seleccionado y la posición de lectura se guardan localmente y se restauran después de cerrar, reiniciar o actualizar la app. Un documento permanece cargado hasta que lo quitás explícitamente.
 - **Se actualiza sola.** Los deploys nuevos llegan solos a las copias instaladas, sin limpiar caché ni reinstalar. Ver [Actualizaciones](#actualizaciones).
 - **Impresión con estilos dedicados.** Hoja de estilos `@media print` propia para que lo que se lee en pantalla se imprima limpio.
 
@@ -188,21 +191,22 @@ En Android el punto de entrada es **Compartir**, no "Abrir con": Chrome para And
 
 ## Actualizaciones
 
-Las copias instaladas se actualizan solas. El mecanismo tiene tres partes:
+Las copias instaladas se actualizan solas sin interrumpir un documento abierto. El mecanismo tiene cuatro partes:
 
 - **`sw.js` sirve el HTML network-first.** Con conexión siempre gana la versión del servidor; el caché es solo respaldo offline. Esto es lo que evita que una versión vieja quede congelada para siempre en un dispositivo. Los íconos y el manifest usan stale-while-revalidate: instantáneos desde el caché, refrescados en segundo plano.
 - **La página busca un service worker nuevo** al cargar y cada vez que la app vuelve a estar visible, que es el patrón de uso normal de una PWA instalada.
-- **Cuando hay una versión nueva lista, una barra ofrece recargar.** Al aceptar, el worker en espera toma control y la página se recarga una sola vez.
+- **Un worker nuevo espera mientras la app actual está abierta.** Se descarga en segundo plano, pero no toma control ni recarga la página automáticamente.
+- **El área de trabajo vive en IndexedDB, fuera del caché del service worker.** Si elegís **Actualizar ahora**, la app guarda primero todos los documentos cargados, el archivo seleccionado y su posición. Sólo recarga si ese guardado termina correctamente y restaura inmediatamente la misma sesión. Si no hacés nada, la actualización se aplica la próxima vez que abras la app.
 
 ### Publicar una versión nueva
 
-Subí `VERSION` arriba de todo en `sw.js` y desplegá. El handler de `activate` borra todos los cachés cuyo nombre no coincida con el nuevo, así que el shell viejo se limpia solo:
+Subí `VERSION` arriba de todo en `sw.js` y desplegá. La versión nueva se instala en segundo plano y queda en espera mientras la app esté en uso. Una vez activada, su handler de `activate` elimina automáticamente los cachés de shell `lector-md-*` anteriores:
 
 ```js
-const VERSION = "0.4.0";
+const VERSION = "v0.5.0";
 ```
 
-El caché del share target queda excluido de esa limpieza, porque puede estar guardando un archivo que se compartió instantes antes de la actualización.
+El caché del share target y el área de trabajo guardada en IndexedDB quedan fuera de esa limpieza. Por eso borrar un caché viejo de la aplicación nunca elimina un documento cargado. El área de trabajo sólo se vacía con **Limpiar todo**, quitando cada documento o borrando los datos del sitio desde el navegador.
 
 ## Estructura del proyecto
 
@@ -221,6 +225,7 @@ El caché del share target queda excluido de esa limpieza, porque puede estar gu
 ## Notas técnicas
 
 - **Los archivos compartidos viajan por un caché.** Android entrega el archivo compartido como un `POST` a `/share-target`, pero un hosting estático no puede recibir POST. El service worker lo intercepta, escribe el archivo en un caché de vida corta y redirige a la app, que lo levanta y vacía el caché.
+- **El área de trabajo abierta se guarda localmente en IndexedDB.** El contenido Markdown nunca se envía al servidor. Sólo puede desaparecer si el usuario borra los datos del sitio o si el dispositivo elimina ese almacenamiento; la app solicita almacenamiento persistente cuando el navegador lo permite.
 - **El ícono maskable** tiene el contenido escalado al 80% y centrado, dentro de la "zona segura" que Android respeta al recortar los íconos en distintas formas (círculo, squircle, etc. según el fabricante).
 - **`"launch_type": "single-client"`** en `file_handlers` hace que cada archivo abierto reutilice la misma ventana de la app en vez de abrir una instancia nueva por archivo.
 - **KaTeX es opcional por diseño.** Se carga desde CDN y la app degrada a una aproximación en Unicode si el pedido falla, así el lector nunca depende de una llamada de red para mostrar un documento.
@@ -228,3 +233,4 @@ El caché del share target queda excluido de esa limpieza, porque puede estar gu
 ## Licencia
 
 MIT — usalo, modificalo, y adaptalo a lo que necesites.
+
