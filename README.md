@@ -99,6 +99,7 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 
 ```
 ├── index.html                # The full app: HTML + CSS + JS in a single file
+├── ejemplo.md                # Sample document: manual and live demo of the supported syntax
 ├── manifest.json             # PWA metadata, file_handlers and share_target
 ├── sw.js                     # Service worker: caching, updates, share-target handling
 ├── icon-192.png              # App icon (192×192)
@@ -220,6 +221,7 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 
 ```
 ├── index.html                # La app completa: HTML + CSS + JS en un solo archivo
+├── ejemplo.md                # Documento de muestra: manual y demo viva de la sintaxis soportada
 ├── manifest.json             # Metadata de PWA, file_handlers y share_target
 ├── sw.js                     # Service worker: caché, actualizaciones y share target
 ├── icon-192.png              # Ícono de la app (192×192)
