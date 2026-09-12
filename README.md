@@ -2,7 +2,7 @@
 
 [![Live demo](https://img.shields.io/badge/demo-live-34399B.svg)](https://mdreader.jhproyectos.com.ar)
 [![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?style=flat&logo=pwa&logoColor=white)](https://mdreader.jhproyectos.com.ar)
-[![Markdown](https://img.shields.io/badge/Markdown-.md%20%C2%B7%20.markdown%20%C2%B7%20.txt-000000?logo=markdown&logoColor=white)](#features)
+[![Markdown](https://img.shields.io/badge/Markdown-.md%20%20%20-000000?logo=markdown&logoColor=white)](#features)
 [![Math: KaTeX](https://img.shields.io/badge/math-KaTeX-008080?logo=latex&logoColor=white)](https://katex.org/)
 [![Diagrams: Mermaid](https://img.shields.io/badge/diagrams-Mermaid-FF3670?logo=mermaid&logoColor=white)](https://mermaid.js.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
