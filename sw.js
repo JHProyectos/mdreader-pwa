@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.5.0";
+const VERSION = "v0.6.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -164,7 +164,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. KaTeX externo: network-first con respaldo en caché.
+  // 3. Librerías externas (KaTeX, Mermaid): network-first con respaldo en caché.
+  // Gracias a esto, una vez bajadas los diagramas y las fórmulas siguen
+  // funcionando sin conexión.
   event.respondWith(
     fetch(request)
       .then((response) => {

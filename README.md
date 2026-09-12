@@ -8,13 +8,14 @@
 
 **English** · [Español](#español)
 
-A standalone, offline-first Markdown reader, installable as a PWA. Single HTML file with no build dependencies, math formula support (KaTeX), and integration with the OS so you can open `.md` files straight from other apps.
+A standalone, offline-first Markdown reader, installable as a PWA. Single HTML file with no build dependencies, math formula support (KaTeX), diagrams (Mermaid), and integration with the OS so you can open `.md` files straight from other apps.
 
 ## Features
 
 - **Single HTML file.** No build step, no `node_modules`, no framework. Open it directly in a browser or serve it as-is.
 - **Works offline.** All Markdown processing happens client-side. Nothing you open ever leaves your machine.
 - **Math formulas.** When online, it loads [KaTeX](https://katex.org/) from a CDN for real math typesetting (`$inline$` and `$$block$$`). Offline, it falls back to a readable Unicode approximation.
+- **Diagrams.** ` ```mermaid ` blocks are drawn with [Mermaid](https://mermaid.js.org/) — flowcharts, sequence, class, state, Gantt. They follow the reader's theme and are redrawn in light colors before printing. If the library can't be loaded, the block stays visible as source code.
 - **Open entire folders.** Browse multiple `.md` files from a project in a side panel, without uploading anything to a server.
 - **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from WhatsApp, Drive, Telegram, or a file manager straight into the reader. On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
 - **Keeps your workspace.** Loaded documents, the selected file, and the reading position are stored locally and restored after closing, restarting, or updating the app. A document stays loaded until you remove it explicitly.
@@ -86,7 +87,7 @@ Installed copies update on their own without interrupting an open document. The 
 Bump `VERSION` at the top of `sw.js` and deploy. The new version is installed in the background and remains waiting while the app is in use. Once activated, its `activate` handler deletes older `lector-md-*` shell caches automatically:
 
 ```js
-const VERSION = "v0.5.0";
+const VERSION = "v0.6.0";
 ```
 
 The share-target cache and the IndexedDB workspace are excluded from that cleanup. Therefore, deleting an old application cache never removes a loaded document. The workspace is cleared only with **Clear all**, by removing documents individually, or by clearing the site's browser data.
@@ -112,6 +113,9 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 - **The maskable icon** has its content scaled to 80% and centered, inside the "safe zone" Android respects when cropping icons into different shapes (circle, squircle, etc. depending on the manufacturer).
 - **`"launch_type": "single-client"`** in `file_handlers` means each opened file reuses the same app window instead of spawning one instance per file.
 - **KaTeX is optional by design.** It loads from a CDN and the app degrades to a Unicode approximation if the request fails, so the reader never depends on a network call to render a document.
+- **Mermaid is loaded on demand.** The library weighs about 3 MB, so it is only requested when the open document actually contains a diagram; after that the service worker caches it and diagrams keep working offline. The parser emits the source inside a `<pre>` and the SVG replaces it once drawn, which makes "no library" and "invalid diagram" the same, already-readable fallback.
+- **Diagram text is excluded from the in-document search.** A rendered diagram is SVG, and an HTML `<mark>` inside it would not paint — it would make the matched text disappear. Hidden nodes (the diagram source behind a drawn SVG) are skipped for the same reason: a hit that can't be shown shouldn't be counted.
+- **Diagrams are redrawn in light colors for printing.** Mermaid bakes colors into the SVG, so a diagram rendered in dark theme would print as pale strokes on white paper. The ⎙ PDF button redraws them light, prints, and restores the screen theme. Pressing Ctrl+P directly bypasses this and prints with the current theme.
 
 ## License
 
@@ -125,13 +129,14 @@ MIT — use it, modify it, and adapt it to whatever you need.
 
 [English](#mdreader-pwa) · **Español**
 
-Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un solo archivo HTML sin dependencias de build, con soporte de fórmulas matemáticas (KaTeX) e integración con el sistema operativo para abrir `.md` desde otras apps.
+Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un solo archivo HTML sin dependencias de build, con soporte de fórmulas matemáticas (KaTeX), diagramas (Mermaid) e integración con el sistema operativo para abrir `.md` desde otras apps.
 
 ## Características
 
 - **Un solo archivo HTML.** Sin paso de build, sin `node_modules`, sin framework. Se puede abrir directo en el navegador o servir como está.
 - **Funciona sin conexión.** Todo el procesamiento de Markdown ocurre en el cliente. Nada de lo que abrís sale de tu máquina.
 - **Fórmulas matemáticas.** Si hay conexión, carga [KaTeX](https://katex.org/) desde CDN para tipografía matemática real (`$inline$` y `$$bloque$$`). Sin conexión, cae a una aproximación en Unicode legible.
+- **Diagramas.** Los bloques ` ```mermaid ` se dibujan con [Mermaid](https://mermaid.js.org/): flujos, secuencias, clases, estados, Gantt. Siguen el tema del lector y se redibujan en claro antes de imprimir. Si la librería no se puede cargar, el bloque queda a la vista como código fuente.
 - **Abrir carpetas completas.** Navegá varios `.md` de un proyecto desde un panel lateral, sin subir nada a un servidor.
 - **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde WhatsApp, Drive, Telegram o el explorador directo al lector. En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
 - **Conserva el área de trabajo.** Los documentos cargados, el archivo seleccionado y la posición de lectura se guardan localmente y se restauran después de cerrar, reiniciar o actualizar la app. Un documento permanece cargado hasta que lo quitás explícitamente.
@@ -203,7 +208,7 @@ Las copias instaladas se actualizan solas sin interrumpir un documento abierto. 
 Subí `VERSION` arriba de todo en `sw.js` y desplegá. La versión nueva se instala en segundo plano y queda en espera mientras la app esté en uso. Una vez activada, su handler de `activate` elimina automáticamente los cachés de shell `lector-md-*` anteriores:
 
 ```js
-const VERSION = "v0.5.0";
+const VERSION = "v0.6.0";
 ```
 
 El caché del share target y el área de trabajo guardada en IndexedDB quedan fuera de esa limpieza. Por eso borrar un caché viejo de la aplicación nunca elimina un documento cargado. El área de trabajo sólo se vacía con **Limpiar todo**, quitando cada documento o borrando los datos del sitio desde el navegador.
@@ -229,6 +234,9 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 - **El ícono maskable** tiene el contenido escalado al 80% y centrado, dentro de la "zona segura" que Android respeta al recortar los íconos en distintas formas (círculo, squircle, etc. según el fabricante).
 - **`"launch_type": "single-client"`** en `file_handlers` hace que cada archivo abierto reutilice la misma ventana de la app en vez de abrir una instancia nueva por archivo.
 - **KaTeX es opcional por diseño.** Se carga desde CDN y la app degrada a una aproximación en Unicode si el pedido falla, así el lector nunca depende de una llamada de red para mostrar un documento.
+- **Mermaid se carga a demanda.** La librería pesa unos 3 MB, así que se pide recién cuando el documento abierto tiene algún diagrama; después el service worker la cachea y los diagramas siguen funcionando sin conexión. El parser deja el código fuente en un `<pre>` y el SVG lo reemplaza una vez dibujado, de modo que "sin librería" y "diagrama inválido" caen en el mismo respaldo, que ya es legible.
+- **El texto de los diagramas queda fuera de la búsqueda.** Un diagrama dibujado es SVG, y un `<mark>` de HTML adentro no se pinta: haría desaparecer el texto encontrado. Lo oculto (el código fuente detrás de un SVG ya dibujado) se saltea por lo mismo: no tiene sentido contar un resultado que no se puede mostrar.
+- **Los diagramas se redibujan en claro para imprimir.** Mermaid hornea los colores dentro del SVG, así que un diagrama renderizado en tema oscuro saldría con trazos pálidos sobre papel blanco. El botón ⎙ PDF los redibuja en claro, imprime y restaura el tema de pantalla. Con Ctrl+P directo eso no se puede interceptar y sale con el tema actual.
 
 ## Licencia
 

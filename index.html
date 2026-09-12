@@ -38,6 +38,7 @@
   --sp-blk:1.2em;      /* pre, tablas, citas */
   --sp-math:6px 0 10px;   /* padding del bloque de fórmula con KaTeX */
   --sp-mathfb:14px 16px;  /* idem en modo simple (sin KaTeX) */
+  --sp-diag:12px 14px;    /* padding del bloque de diagrama ya dibujado */
   --sp-li:.28em;
   --art-pad:34px 28px 96px;
   --katex-disp:0.35em;    /* margen propio de .katex-display */
@@ -52,6 +53,7 @@ body.compact{
      y como el bloque no puede scrollear en vertical, se recortaria */
   --sp-math:4px 0;
   --sp-mathfb:5px 10px;
+  --sp-diag:6px 8px;
   --sp-li:.08em;
   --art-pad:16px 24px 32px;
   --katex-disp:0.1em;
@@ -301,12 +303,12 @@ th,td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-
 th{background:var(--surface-2); font-weight:600; font-size:12.5px}
 td{font-variant-numeric:tabular-nums}
 
-/* ---- estado de KaTeX ---- */
-#mathWrap .dot{
+/* ---- estado de KaTeX y de Mermaid ---- */
+#mathWrap .dot,#diagWrap .dot{
   width:7px; height:7px; border-radius:50%; background:var(--muted); flex:none;
 }
-#mathWrap.on .dot{background:var(--good)}
-#mathWrap.on > summary{color:var(--good)}
+#mathWrap.on .dot,#diagWrap.on .dot{background:var(--good)}
+#mathWrap.on > summary,#diagWrap.on > summary{color:var(--good)}
 
 /* ---- matemática ---- */
 .mathblock.katex-on{
@@ -332,6 +334,21 @@ td{font-variant-numeric:tabular-nums}
 .frac .num{display:block; padding:0 .3em; border-bottom:1.2px solid currentColor; line-height:1.5}
 .frac .den{display:block; padding:0 .3em; line-height:1.5}
 .root{border-top:1.2px solid currentColor; padding:0 .15em}
+
+/* ---- diagramas (Mermaid) ---- */
+/* Mientras el diagrama no está dibujado -o no se pudo dibujar- el bloque
+   muestra el código fuente: el <pre> de adentro ya trae su propio marco,
+   así que el contenedor no dibuja nada. */
+.diagram{margin:0}
+.diagram[data-diagram="listo"]{
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  padding:var(--sp-diag); margin:0 0 var(--sp-blk); text-align:center; line-height:1;
+  /* solo scroll horizontal, igual que .mathblock */
+  overflow-x:auto; overflow-y:hidden;
+}
+.diagram[data-diagram="listo"] svg{max-width:100%; height:auto; vertical-align:middle}
+.diagram-err{margin:0 0 var(--sp-blk); font-size:12.5px; line-height:1.4; color:var(--warm)}
+
 mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 @media print{
@@ -339,7 +356,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   :root{
     --lh-prose:1.3;
     --sp-p:.35em; --sp-h:.75em; --sp-h2:.95em; --sp-blk:.4em;
-    --sp-math:4px 0; --sp-mathfb:4px 8px; --sp-li:.06em;
+    --sp-math:4px 0; --sp-mathfb:4px 8px; --sp-diag:4px 6px; --sp-li:.06em;
     --art-pad:0; --katex-disp:.08em;
   }
   @page{margin:14mm}
@@ -354,8 +371,11 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   table{font-size:9.5pt} th,td{padding:3px 6px}
   pre,.mathblock,table,th,td{border-color:#bbb}
   pre{border-left-color:#666}
+  /* los diagramas se redibujan en claro antes de imprimir (ver $("print")),
+     así que el marco del bloque no debe aportar el fondo oscuro del tema */
+  .diagram[data-diagram="listo"]{background:none; border-color:#bbb}
   article h1,article h2,article h3,article h4{break-after:avoid}
-  pre,.mathblock,table,blockquote{break-inside:avoid}
+  pre,.mathblock,.diagram,table,blockquote{break-inside:avoid}
 }
 /* aviso de versión nueva disponible */
 #updBar{
@@ -415,6 +435,13 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     <details class="fold" id="mathWrap">
       <summary><span class="dot" id="mathDot"></span><span id="mathSum">fórmulas</span></summary>
       <div class="body" id="mathTxt">modo simple: aproximación en Unicode</div>
+    </details>
+
+    <details class="fold" id="diagWrap">
+      <summary><span class="dot" id="diagDot"></span><span id="diagSum">diagramas</span></summary>
+      <div class="body" id="diagTxt">Los bloques <code>```mermaid</code> se dibujan como
+        diagrama. La librería se baja del CDN recién cuando abrís un archivo que tenga
+        alguno, así el lector no pesa más de lo necesario.</div>
     </details>
 
     <div class="foot">
@@ -809,6 +836,22 @@ function renderMath(tex, display){
     : '<span class="mathinline">'+mathify(tex)+'</span>';
 }
 
+/* ------------------------------------------------------------
+   renderDiagram: mermaid.render() es asíncrono, así que el parser
+   sólo deja el código fuente en un <pre> y el dibujo se completa
+   después, ya montado el HTML (ver pintarDiagramas).
+
+   Ese <pre> es además el respaldo visible: si la librería no está
+   -sin conexión, archivo suelto en un USB- o el diagrama tiene un
+   error de sintaxis, el bloque se queda mostrando el código, que
+   sigue siendo legible.
+   ------------------------------------------------------------ */
+function renderDiagram(src){
+  return '<div class="diagram" data-diagram="pendiente">'
+       +   '<pre class="diagram-src"><code>'+esc(src)+'</code></pre>'
+       + '</div>';
+}
+
 function inline(t){
   let s = esc(t);
 
@@ -871,9 +914,12 @@ function render(md){
       i++;
       while(i < L.length && !new RegExp("^\\s*"+mark).test(L[i])){ body.push(L[i]); i++; }
       i++;
+      const lang = fence[2] || "";
       // ```math  /  ```latex  → bloque de fórmula (estilo GitHub)
-      if(/^(math|latex|tex)$/i.test(fence[2] || "")){
+      if(/^(math|latex|tex)$/i.test(lang)){
         out.push(renderMath(body.join(" "), true));
+      } else if(/^mermaid$/i.test(lang)){
+        out.push(renderDiagram(body.join("\n")));
       } else {
         out.push("<pre><code>"+esc(body.join("\n"))+"</code></pre>");
       }
@@ -996,6 +1042,159 @@ function render(md){
   }
   flushPara(para);
   return {html: out.join("\n"), heads};
+}
+
+/* ============================================================
+   diagramas Mermaid
+
+   La librería pesa unos 3 MB, así que no se carga con la app: se
+   baja del CDN recién cuando el archivo abierto tiene algún
+   diagrama. Después queda en el caché del service worker, y a
+   partir de ahí funciona también sin conexión.
+   ============================================================ */
+const MERMAID_VER = "11.15.0";
+let MERMAID = false;        // librería disponible
+let mmdCarga = null;        // promesa de carga, para no pedirla dos veces
+let mmdSeq = 0;             // ids únicos para mermaid.render
+let mmdClaro = null;        // con qué tema se configuró la última vez
+let generacionDoc = 0;      // cambia al abrir otro archivo: corta pintados en curso
+
+function esTemaOscuro(){
+  const tema = document.documentElement.getAttribute("data-theme");
+  return tema === "dark" ||
+    (!tema && matchMedia("(prefers-color-scheme:dark)").matches);
+}
+
+function asegurarMermaid(){
+  if(mmdCarga) return mmdCarga;
+
+  $("diagSum").textContent = "diagramas: cargando Mermaid…";
+
+  mmdCarga = new Promise(resolve => {
+    const js = document.createElement("script");
+    js.src = "https://cdnjs.cloudflare.com/ajax/libs/mermaid/" + MERMAID_VER + "/mermaid.min.js";
+
+    const fallo = () => {
+      js.remove();
+      $("diagWrap").classList.remove("on");
+      $("diagSum").textContent = "diagramas: modo código";
+      $("diagTxt").textContent =
+        "No se pudo cargar Mermaid (sin conexión). Los bloques ```mermaid se muestran " +
+        "como código: se leen igual, pero no se dibujan. Con conexión se reintenta.";
+      resolve(false);
+    };
+
+    js.onload = () => {
+      if(!window.mermaid){ fallo(); return; }
+      MERMAID = true;
+      $("diagWrap").classList.add("on");
+      $("diagSum").textContent = "diagramas: Mermaid " + MERMAID_VER;
+      $("diagTxt").textContent =
+        "Diagramas dibujados de verdad: flujos, secuencias, clases, estados, Gantt. " +
+        "Siguen el tema del lector y al imprimir salen en claro.";
+      resolve(true);
+    };
+    js.onerror = fallo;
+
+    document.head.appendChild(js);
+  });
+
+  return mmdCarga;
+}
+
+/* Mermaid hornea los colores adentro del SVG, así que el tema se decide
+   en el momento de dibujar y hay que reconfigurarlo si cambió. */
+function configurarMermaid(claro){
+  if(mmdClaro === claro) return;
+  const css = getComputedStyle(document.body);
+  // Las etiquetas de las flechas se dibujan con fondo propio: tiene que ser el
+  // del bloque. Si el tema del diagrama no coincide con el del lector es porque
+  // se está redibujando para imprimir, y ahí el bloque va sin fondo (papel).
+  const forzado = claro !== !esTemaOscuro();
+  const fondo = forzado ? "#ffffff" : (css.getPropertyValue("--surface").trim() || "#ffffff");
+
+  mermaid.initialize({
+    startOnLoad: false,
+    // los .md llegan de afuera (WhatsApp, Drive): sin HTML ni interacción
+    securityLevel: "strict",
+    // el error lo mostramos nosotros junto al código, no su SVG de error
+    suppressErrorRendering: true,
+    theme: claro ? "default" : "dark",
+    themeVariables: {
+      fontFamily: css.fontFamily,
+      fontSize: "14px",
+      edgeLabelBackground: fondo
+    }
+  });
+  mmdClaro = claro;
+}
+
+function marcarDiagramaConError(bloque, error){
+  const fuente = bloque.querySelector(".diagram-src");
+  if(fuente) fuente.hidden = false;
+  bloque.dataset.diagram = "error";
+  if(bloque.querySelector(".diagram-err")) return;
+
+  const detalle = String((error && error.message) || error || "").split("\n")[0].trim();
+  const nota = document.createElement("p");
+  nota.className = "diagram-err";
+  nota.textContent = "No se pudo dibujar este diagrama" + (detalle ? ": " + detalle : ".");
+  bloque.appendChild(nota);
+}
+
+/* Dibuja los bloques que todavía están pendientes. Con {claro:true} los
+   dibuja en tema claro sin importar el tema del lector (para imprimir). */
+async function pintarDiagramas(opciones = {}){
+  const pendientes = () => [...$("doc").querySelectorAll('.diagram[data-diagram="pendiente"]')];
+  if(!pendientes().length) return;
+
+  const gen = generacionDoc;
+  if(!MERMAID){
+    const listo = await asegurarMermaid();
+    // sin librería queda el código a la vista; se reintenta al abrir otro archivo
+    if(!listo){ mmdCarga = null; return; }
+    if(gen !== generacionDoc) return;
+  }
+
+  configurarMermaid(opciones.claro === true || !esTemaOscuro());
+
+  for(const bloque of pendientes()){
+    const fuente = bloque.querySelector(".diagram-src");
+    if(!fuente) continue;
+    try{
+      const {svg} = await mermaid.render("mmd-" + (++mmdSeq), fuente.textContent);
+      if(gen !== generacionDoc || !bloque.isConnected) return;
+      const caja = document.createElement("div");
+      caja.className = "diagram-svg";
+      caja.innerHTML = svg;
+      bloque.appendChild(caja);
+      fuente.hidden = true;
+      bloque.dataset.diagram = "listo";
+    }catch(error){
+      if(gen !== generacionDoc || !bloque.isConnected) return;
+      marcarDiagramaConError(bloque, error);
+    }
+  }
+}
+
+/* vuelve a dejar todos los diagramas sin dibujar */
+function reiniciarDiagramas(){
+  $("doc").querySelectorAll(".diagram").forEach(bloque => {
+    const svg = bloque.querySelector(".diagram-svg");
+    if(svg) svg.remove();
+    const nota = bloque.querySelector(".diagram-err");
+    if(nota) nota.remove();
+    const fuente = bloque.querySelector(".diagram-src");
+    if(fuente) fuente.hidden = false;
+    bloque.dataset.diagram = "pendiente";
+  });
+}
+
+/* el SVG trae los colores adentro: al cambiar de tema hay que redibujar */
+function redibujarDiagramas(){
+  if(!MERMAID) return;
+  reiniciarDiagramas();
+  void pintarDiagramas();
 }
 
 /* ============================================================
@@ -1149,9 +1348,11 @@ function open(i, opciones = {}){
   current = i;
   const d = DOCS[i];
   const {html, heads} = render(d.text);
+  generacionDoc++;                  // corta el pintado de diagramas del archivo anterior
   $("doc").innerHTML = html;
   $("doc").hidden = false;
   $("drop").hidden = true;
+  void pintarDiagramas();
   $("docname").textContent = d.path;
   // el navegador usa document.title en el encabezado impreso, así que le ponemos
   // el nombre real del archivo en vez del nombre del lector
@@ -1196,7 +1397,15 @@ function search(q){
   if(!q || q.length < 2){ $("hits").textContent = ""; return; }
   const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "gi");
   let n = 0, first = null;
-  const walk = document.createTreeWalker(art, NodeFilter.SHOW_TEXT);
+  // Dos cosas quedan fuera de la búsqueda: los diagramas ya dibujados, porque
+  // son SVG y un <mark> de HTML adentro no se dibuja -haría desaparecer el
+  // texto-, y lo que está oculto, como el código fuente de esos diagramas:
+  // no tiene sentido contar un resultado que no se puede mostrar.
+  const walk = document.createTreeWalker(art, NodeFilter.SHOW_TEXT, {
+    acceptNode: node => node.parentElement && node.parentElement.closest("svg,[hidden]")
+      ? NodeFilter.FILTER_REJECT
+      : NodeFilter.FILTER_ACCEPT
+  });
   const nodes = [];
   while(walk.nextNode()) nodes.push(walk.currentNode);
   nodes.forEach(node=>{
@@ -1286,7 +1495,19 @@ window.addEventListener("pagehide", () => {
   void guardarEstadoPersistido();
 });
 
-$("print").onclick = () => window.print();
+/* Los colores de Mermaid quedan dentro del SVG: en tema oscuro un diagrama
+   sale con trazos claros, ilegibles en papel. Antes de abrir el diálogo se
+   redibujan en claro y al volver se restauran al tema de pantalla.
+   (Con Ctrl+P directo no hay forma de interceptarlo: sale con el tema actual.) */
+$("print").onclick = async () => {
+  const redibujar = MERMAID && esTemaOscuro() && !!$("doc").querySelector(".diagram");
+  if(redibujar){
+    reiniciarDiagramas();
+    await pintarDiagramas({claro:true});
+  }
+  window.print();
+  if(redibujar) redibujarDiagramas();
+};
 
 /* ---------- densidad ---------- */
 function setDensity(compact){
@@ -1317,17 +1538,20 @@ try{
 }catch(e){}
 
 $("theme").onclick = ()=>{
-  const cur = document.documentElement.getAttribute("data-theme");
-  const dark = cur === "dark" ||
-    (!cur && matchMedia("(prefers-color-scheme:dark)").matches);
-  const next = dark ? "light" : "dark";
+  const next = esTemaOscuro() ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
   try{ localStorage.setItem("lectormd-theme", next); }catch(e){}
+  redibujarDiagramas();
 };
 try{
   const t = localStorage.getItem("lectormd-theme");
   if(t) document.documentElement.setAttribute("data-theme", t);
 }catch(e){}
+
+/* si el tema lo decide el sistema, puede cambiar con la app abierta */
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change", () => {
+  if(!document.documentElement.getAttribute("data-theme")) redibujarDiagramas();
+});
 
 // Restaura los documentos antes de procesar archivos recibidos desde el sistema.
 workspaceReady = restaurarWorkspace();
