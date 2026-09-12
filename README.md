@@ -91,7 +91,7 @@ Installed copies update on their own without interrupting an open document. The 
 Bump `VERSION` at the top of `sw.js` and deploy. The new version is installed in the background and remains waiting while the app is in use. Once activated, its `activate` handler deletes older `lector-md-*` shell caches automatically:
 
 ```js
-const VERSION = "v0.7.0";
+const VERSION = "v0.8.0";
 ```
 
 The share-target cache and the IndexedDB workspace are excluded from that cleanup. Therefore, deleting an old application cache never removes a loaded document. The workspace is cleared only with **Clear all**, by removing documents individually, or by clearing the site's browser data.
@@ -101,6 +101,7 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 ```
 ├── index.html                # The full app: HTML + CSS + JS in a single file
 ├── ejemplo.md                # Sample document: manual and live demo of the supported syntax
+├── ejemplo-portada.png       # Illustration shown at the top of that document
 ├── manifest.json             # PWA metadata, file_handlers and share_target
 ├── sw.js                     # Service worker: caching, updates, share-target handling
 ├── icon-192.png              # App icon (192×192)
@@ -215,7 +216,7 @@ Las copias instaladas se actualizan solas sin interrumpir un documento abierto. 
 Subí `VERSION` arriba de todo en `sw.js` y desplegá. La versión nueva se instala en segundo plano y queda en espera mientras la app esté en uso. Una vez activada, su handler de `activate` elimina automáticamente los cachés de shell `lector-md-*` anteriores:
 
 ```js
-const VERSION = "v0.7.0";
+const VERSION = "v0.8.0";
 ```
 
 El caché del share target y el área de trabajo guardada en IndexedDB quedan fuera de esa limpieza. Por eso borrar un caché viejo de la aplicación nunca elimina un documento cargado. El área de trabajo sólo se vacía con **Limpiar todo**, quitando cada documento o borrando los datos del sitio desde el navegador.
@@ -225,6 +226,7 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 ```
 ├── index.html                # La app completa: HTML + CSS + JS en un solo archivo
 ├── ejemplo.md                # Documento de muestra: manual y demo viva de la sintaxis soportada
+├── ejemplo-portada.png       # Ilustración que encabeza ese documento
 ├── manifest.json             # Metadata de PWA, file_handlers y share_target
 ├── sw.js                     # Service worker: caché, actualizaciones y share target
 ├── icon-192.png              # Ícono de la app (192×192)

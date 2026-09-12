@@ -525,6 +525,9 @@ que ves es exactamente lo que el lector entiende.
 Si lo estás leyendo en GitHub, algunas cosas se van a ver distinto. Esa es
 justamente la gracia: descargalo y abrilo en el lector.
 
+![Un pendrive del que sale una hoja escrita, y al lado una nube tachada: los
+archivos se leen desde donde estén, sin pasar por internet](ejemplo-portada.png)
+
 ## Qué es esto
 
 Un lector de archivos Markdown que funciona **sin internet** y **sin subir nada
@@ -539,6 +542,23 @@ Instalado como app tiene dos cosas más:
 - En **Android** aparece en el menú *Compartir*: mandás un `.md` desde WhatsApp,
   Drive o el explorador y se abre acá.
 - En **escritorio** aparece en *Abrir con*.
+
+## Todo lo que hace, de un vistazo
+
+| | |
+|---|---|
+| **Abrir** | una carpeta entera con sus subcarpetas, archivos sueltos, o arrastrando y soltando |
+| **Desde otras apps** | en Android por el menú *Compartir*; en escritorio, por *Abrir con* |
+| **Markdown** | encabezados, listas anidadas, tablas, código, citas, énfasis, enlaces |
+| **Fórmulas** | con KaTeX si hay conexión, en Unicode si no |
+| **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
+| **Navegar** | índice automático de niveles 1 a 3, y `Alt`+`J` / `Alt`+`K` entre archivos |
+| **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
+| **Imprimir** | o guardar en PDF, con estilos propios para papel |
+| **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
+| **Recordar** | qué archivos cargaste, cuál leías y en qué parte de cada uno |
+| **Funcionar** | sin conexión, sin servidor, con un solo archivo que podés llevar a cualquier lado |
+| **Actualizarse** | sola, sin perder lo que tenías abierto |
 
 ## Cómo abrir archivos
 
@@ -736,6 +756,29 @@ sólo en el que estás leyendo.
 El texto de los diagramas queda afuera de la búsqueda: un diagrama dibujado es
 una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto.
 
+### Cómodo o compacto
+
+El botón **⇕** del panel alterna entre dos densidades de lectura. No cambia el
+tamaño de la letra: cambia el aire, o sea el interlineado y la separación entre
+párrafos, títulos y bloques.
+
+| | Cómodo | Compacto |
+|---|---|---|
+| Interlineado | 1.6 | 1.38 |
+| Entre párrafos | amplio | mínimo |
+| Margen de la hoja | generoso | ajustado |
+
+**Cómodo** viene puesto de fábrica y es para leer en pantalla sin cansarte.
+**Compacto** aprieta todo para que entre más contenido de una: sirve para
+revisar un documento largo de un vistazo. La elección queda guardada, así que
+la próxima vez abrís como lo dejaste.
+
+Al **imprimir siempre sale compacto**, estés como estés en pantalla. Es a
+propósito: en papel el aire de más se traduce en hojas de más.
+
+El botón **◐** de al lado hace lo mismo con el tema, entre claro y oscuro, y
+también se acuerda de tu elección.
+
 ### Imprimir o guardar en PDF
 
 El botón **⎙ PDF** abre el diálogo de impresión del navegador, que también
@@ -763,6 +806,45 @@ incluso después de una actualización de la app.
 
 Se guarda en tu máquina, no en un servidor. **Limpiar todo** vacía la lista
 del lector, y nunca borra archivos de tu disco.
+
+## Pedirle a una IA un archivo que use todo
+
+Si querés probar el lector con algo tuyo, la forma más rápida es pedirle a
+ChatGPT, Claude o el que uses que te genere un `.md` que ejercite todas las
+funciones. El problema de pedirlo suelto es que los modelos escriben Markdown
+"de GitHub", con cosas que este lector no interpreta, y el resultado se ve a
+medias.
+
+Copiá este pedido, cambiá el tema por el que quieras y pegalo tal cual:
+
+```
+Necesito un archivo Markdown de prueba, en español, sobre CAMBIÁ ESTO POR TU TEMA.
+
+Tiene que usar todo lo siguiente, porque lo voy a abrir en un lector que soporta
+exactamente esta sintaxis:
+
+- Encabezados de nivel 1 a 3, al menos cinco en total, para que se arme un índice
+- Párrafos normales, con negrita, cursiva, tachado y código en línea
+- Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
+- Una cita, con algo en negrita adentro
+- Una tabla de tres columnas con encabezado
+- Un bloque de código con el lenguaje declarado
+- Una fórmula matemática en línea y otra de bloque, en LaTeX
+- Un diagrama Mermaid de flujo y otro de secuencia
+- Una regla horizontal
+
+No uses nada de esto, porque el lector no lo interpreta y queda a la vista como
+texto crudo: listas de tareas con casillas para tildar, notas al pie, etiquetas
+HTML sueltas, enlaces por referencia con la definición al final, ni encabezados
+subrayados en vez de encabezados con numeral.
+
+Devolvémelo como un único bloque de Markdown crudo, listo para guardar como
+archivo .md en UTF-8.
+```
+
+Guardá la respuesta como `prueba.md` y abrila con **Abrir archivos sueltos**. Si
+algo se ve como texto crudo en vez de renderizado, es casi seguro que el modelo
+metió alguna de las cosas de la lista de abajo.
 
 ## Lo que no hace
 

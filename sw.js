@@ -13,14 +13,16 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.7.0";
+const VERSION = "v0.8.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
 // por el menú "Compartir" de Android hasta que la página los levanta.
 const SHARE_CACHE = "lector-md-share";
 
-const SHELL = ["/", "/index.html", "/manifest.json"];
+// La imagen de la ayuda entra acá y no en la revalidación perezosa: si no,
+// la primera vez que abrís la ayuda sin conexión saldría sin ilustración.
+const SHELL = ["/", "/index.html", "/manifest.json", "/ejemplo-portada.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
