@@ -405,7 +405,7 @@ article .doctoc a{text-decoration:none}
 article .doctoc a:hover{text-decoration:underline}
 article .doctoc > ol > li > a{font-weight:500}
 
-/* ---- gráficos de barras y líneas (los dibuja el lector, ver armarGrafico) ---- */
+/* ---- gráficos: barras, líneas, área, dispersión y torta (los dibuja el lector, ver armarGrafico) ---- */
 /* Igual que los diagramas: hasta que se dibuja, o si los datos tienen un
    error, el bloque muestra el texto de la valla con su propio marco. */
 .chart{margin:0}
@@ -423,6 +423,7 @@ article .doctoc > ol > li > a{font-weight:500}
 .chart-leyenda i,.chart-tip i{flex:none; background:currentColor}
 .chart-leyenda i{width:10px; height:10px; border-radius:2px}
 .chart-leyenda.lineas i{width:14px; height:2px; border-radius:1px}
+.chart-leyenda.dispersion i{width:9px; height:9px; border-radius:50%}
 .chart-lienzo{position:relative}
 .chart-lienzo svg{display:block; width:100%; height:auto; overflow:visible; touch-action:pan-y}
 .chart text{fill:var(--muted); font-family:var(--sans); font-size:11px; font-variant-numeric:tabular-nums}
@@ -431,6 +432,11 @@ article .doctoc > ol > li > a{font-weight:500}
 .chart .barra{fill:currentColor; transition:opacity .12s}
 .chart svg.hover .grupo:not(.activo) .barra{opacity:.4}
 .chart .linea{fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
+/* el área se pinta translúcida para que dos series encimadas se sigan leyendo */
+.chart .area{fill:currentColor; fill-opacity:.16; stroke:none}
+/* la porción lleva el borde del color del fondo, que hace de separador */
+.chart .porcion{fill:currentColor; stroke:var(--surface); stroke-width:2; transition:opacity .12s}
+.chart svg.hover .porcion:not(.activo){opacity:.4}
 .chart .punto{fill:currentColor; stroke:var(--surface); stroke-width:2}
 .chart .cruz{stroke:var(--muted); stroke-width:1; visibility:hidden}
 .chart .cruz.ver{visibility:visible}
@@ -718,9 +724,19 @@ const TEXTOS = {
     verDatos: "Ver datos",
     graficoBarras: "Gráfico de barras",
     graficoLineas: "Gráfico de líneas",
+    graficoArea: "Gráfico de área",
+    graficoDispersion: "Gráfico de dispersión",
+    graficoTorta: "Gráfico de torta",
     graficoError: detalle => "No se pudo dibujar este gráfico" + (detalle ? ": " + detalle : "."),
     serie: n => "Serie " + n,
-    errTipo: tipo => "el tipo \"" + tipo + "\" no existe: tiene que ser barras o lineas",
+    errTipo: tipo => "el tipo \"" + tipo + "\" no existe: tiene que ser barras, " +
+      "lineas, area, dispersion o torta",
+    errTortaSeries: n => "la torta reparte una sola columna de valores y hay " + n +
+      ": dejá una, o usá barras",
+    errMuchasPorciones: (n, max) => "hay " + n + " porciones y el máximo es " + max +
+      ": agrupá las más chicas",
+    errTortaNegativo: "la torta no puede tener valores negativos: son partes de un total",
+    errTortaCero: "los valores de la torta suman cero: no hay nada que repartir",
     errMinMax: (clave, valor) => clave + " tiene que ser un número, no \"" + valor + "\"",
     errFaltanDatos: "faltan datos: hace falta una fila de encabezado y al menos una de valores",
     errSinSeries: "el encabezado necesita al menos una columna de valores después de la de categorías",
@@ -820,9 +836,19 @@ const TEXTOS = {
     verDatos: "Show data",
     graficoBarras: "Bar chart",
     graficoLineas: "Line chart",
+    graficoArea: "Area chart",
+    graficoDispersion: "Scatter chart",
+    graficoTorta: "Pie chart",
     graficoError: detalle => "This chart could not be drawn" + (detalle ? ": " + detalle : "."),
     serie: n => "Series " + n,
-    errTipo: tipo => "there is no type \"" + tipo + "\": it must be bar or line",
+    errTipo: tipo => "there is no type \"" + tipo + "\": it must be bar, line, " +
+      "area, scatter or pie",
+    errTortaSeries: n => "a pie splits a single value column and there are " + n +
+      ": keep one, or use bars",
+    errMuchasPorciones: (n, max) => "there are " + n + " slices and the maximum is " + max +
+      ": group the smallest ones",
+    errTortaNegativo: "a pie can't have negative values: they are parts of a total",
+    errTortaCero: "the pie values add up to zero: there is nothing to split",
     errMinMax: (clave, valor) => clave + " must be a number, not \"" + valor + "\"",
     errFaltanDatos: "missing data: it needs a header row and at least one row of values",
     errSinSeries: "the header needs at least one value column after the category column",
@@ -921,7 +947,7 @@ Instalado como app tiene dos cosas más:
 | **Fórmulas** | con KaTeX si hay conexión, en Unicode si no |
 | **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
 | **Código** | con colores para JavaScript, TypeScript, Python, HTML, CSS, Java, C y C# |
-| **Gráficos** | de barras y de líneas, a partir de una tabla de datos escrita en el archivo |
+| **Gráficos** | de barras, de líneas, de área, de dispersión y de torta, a partir de una tabla de datos escrita en el archivo |
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
@@ -1231,10 +1257,10 @@ se lee igual.
 
 ### Gráficos
 
-Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras o de
-líneas. Arriba van las opciones, una por línea; después, los datos. La primera
-fila de datos es el encabezado: la primera columna tiene las categorías y cada
-una de las siguientes es una serie.
+Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras, de
+líneas, de área, de dispersión o de torta. Arriba van las opciones, una por
+línea; después, los datos. La primera fila de datos es el encabezado: la
+primera columna tiene las categorías y cada una de las siguientes es una serie.
 
 ~~~markdown
 ```grafico
@@ -1297,9 +1323,104 @@ Usuarios; Con caché; Sin caché
 400; 25; 700
 ```
 
+El **área** es una línea con la superficie pintada hasta el cero. Va bien para
+un acumulado, donde lo que se mira es cuánto se juntó:
+
+~~~markdown
+```grafico
+tipo: area
+titulo: Páginas leídas en el mes
+unidad: pág.
+
+Semana, Leídas
+1, 40
+2, 95
+3, 130
+4, 210
+```
+~~~
+
+Se ve así:
+
+```grafico
+tipo: area
+titulo: Páginas leídas en el mes
+unidad: pág.
+
+Semana, Leídas
+1, 40
+2, 95
+3, 130
+4, 210
+```
+
+La **dispersión** no une los puntos. Si las categorías son números, el eje
+horizontal también lo es y cada punto cae en su lugar, así que un salto en los
+datos se ve como un hueco y no repartido parejo:
+
+~~~markdown
+```grafico
+tipo: dispersion
+titulo: Nota según las horas de estudio
+
+Horas, Nota
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+~~~
+
+Se ve así:
+
+```grafico
+tipo: dispersion
+titulo: Nota según las horas de estudio
+
+Horas, Nota
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+
+La **torta** reparte un total entre sus categorías, con el porcentaje de cada
+porción al costado. Lleva una sola columna de valores, sin negativos, y hasta
+ocho porciones:
+
+~~~markdown
+```grafico
+tipo: torta
+titulo: De dónde salen las visitas
+
+Origen, Visitas
+Buscadores, 540
+Directo, 260
+Redes, 150
+Enlaces, 50
+```
+~~~
+
+Se ve así:
+
+```grafico
+tipo: torta
+titulo: De dónde salen las visitas
+
+Origen, Visitas
+Buscadores, 540
+Directo, 260
+Redes, 150
+Enlaces, 50
+```
+
 | Opción | Qué hace | Si no la ponés |
 |---|---|---|
-| `tipo` | `barras` o `lineas` | barras |
+| `tipo` | `barras`, `lineas`, `area`, `dispersion` o `torta` | barras |
 | `titulo` | texto arriba del gráfico | sin título |
 | `unidad` | texto sobre el eje vertical y al lado de cada valor | nada |
 | `min`, `max` | un valor que el eje tiene que incluir, como `min: 0` | se calcula solo |
@@ -1307,18 +1428,21 @@ Usuarios; Con caché; Sin caché
 Algunos detalles:
 
 - Las opciones también se entienden en inglés: `type`, `title` y `unit`, con
-  `bar` o `line`.
+  `bar`, `line`, `area`, `scatter` o `pie`.
 - También sirven tabulaciones, que es lo que queda al copiar celdas de una
   planilla, y barras verticales: una tabla Markdown pegada adentro de la valla
   funciona tal cual.
 - Una celda vacía deja un hueco: la barra no aparece y la línea se corta.
 - Entran hasta 8 series, una por color. Con más, conviene partir el gráfico.
+  En la torta el límite son 8 porciones, por el mismo motivo.
+- Las barras y el área arrancan siempre del cero, porque lo que se lee es el
+  tamaño; las líneas y los puntos, sólo si los datos quedan cerca.
 - Los números van sin separador de miles: `1234`, no `1.234`.
 
 Al pasar el mouse, o al tocar con el dedo, se ven los valores de esa
-categoría. Abajo, **Ver datos** muestra la misma información como tabla. Si
-los datos tienen un error, el bloque se queda mostrando el texto de la valla,
-con un aviso de qué falló.
+categoría, y en la torta también el porcentaje. Abajo, **Ver datos** muestra la
+misma información como tabla. Si los datos tienen un error, el bloque se queda
+mostrando el texto de la valla, con un aviso de qué falló.
 
 A diferencia de los diagramas, los gráficos los dibuja el propio lector, sin
 bajar nada: funcionan sin conexión desde el primer momento.
@@ -1507,7 +1631,7 @@ exactamente esta sintaxis:
 - Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c o csharp
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
-- Un gráfico de barras y otro de líneas, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: barras" (o "tipo: lineas") y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías
+- Un gráfico de cada tipo, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: ..." (barras, lineas, area, dispersion o torta) y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías. En el de torta, una sola columna de valores, todos positivos, y hasta ocho filas; en el de dispersión conviene que las categorías sean números
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como
@@ -1582,7 +1706,7 @@ Installed as an app, it does two more things:
 | **Formulas** | with KaTeX when online, in Unicode when not |
 | **Diagrams** | with Mermaid, downloaded only if the file has one |
 | **Code** | colored for JavaScript, TypeScript, Python, HTML, CSS, Java, C and C# |
-| **Charts** | bar and line charts, from a data table written in the file |
+| **Charts** | bar, line, area, scatter and pie charts, from a data table written in the file |
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
 | **Print** | or save as PDF, with a stylesheet made for paper |
@@ -1891,10 +2015,10 @@ still reads fine.
 
 ### Charts
 
-A fence with the language `chart` (or `grafico`) draws a bar or line chart.
-Options go first, one per line; then the data. The first data row is the
-header: the first column holds the categories and each of the following ones
-is a series.
+A fence with the language `chart` (or `grafico`) draws a bar, line, area,
+scatter or pie chart. Options go first, one per line; then the data. The first
+data row is the header: the first column holds the categories and each of the
+following ones is a series.
 
 ~~~markdown
 ```chart
@@ -1956,9 +2080,104 @@ Users, Cached, Uncached
 400, 25, 700
 ```
 
+An **area** chart is a line with the surface filled down to zero. It suits a
+running total, where what you read is how much has piled up:
+
+~~~markdown
+```chart
+type: area
+title: Pages read this month
+unit: pp.
+
+Week, Read
+1, 40
+2, 95
+3, 130
+4, 210
+```
+~~~
+
+It looks like this:
+
+```chart
+type: area
+title: Pages read this month
+unit: pp.
+
+Week, Read
+1, 40
+2, 95
+3, 130
+4, 210
+```
+
+A **scatter** chart doesn't join the points. If the categories are numbers the
+horizontal axis is numeric too and each point lands where it belongs, so a jump
+in the data shows up as a gap instead of being spread out evenly:
+
+~~~markdown
+```chart
+type: scatter
+title: Grade by hours of study
+
+Hours, Grade
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+~~~
+
+It looks like this:
+
+```chart
+type: scatter
+title: Grade by hours of study
+
+Hours, Grade
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+
+A **pie** chart splits a total between its categories, with each slice's share
+next to it. It takes a single value column, no negatives, and up to eight
+slices:
+
+~~~markdown
+```chart
+type: pie
+title: Where the visits come from
+
+Source, Visits
+Search, 540
+Direct, 260
+Social, 150
+Links, 50
+```
+~~~
+
+It looks like this:
+
+```chart
+type: pie
+title: Where the visits come from
+
+Source, Visits
+Search, 540
+Direct, 260
+Social, 150
+Links, 50
+```
+
 | Option | What it does | If you leave it out |
 |---|---|---|
-| `type` | `bar` or `line` | bar |
+| `type` | `bar`, `line`, `area`, `scatter` or `pie` | bar |
 | `title` | text above the chart | no title |
 | `unit` | text above the vertical axis and next to each value | nothing |
 | `min`, `max` | a value the axis must include, such as `min: 0` | worked out automatically |
@@ -1966,19 +2185,22 @@ Users, Cached, Uncached
 A few details:
 
 - The options are also understood in Spanish: `tipo`, `titulo` and `unidad`,
-  with `barras` or `lineas`.
+  with `barras`, `lineas`, `area`, `dispersion` or `torta`.
 - Columns are separated by commas. If your numbers use a **decimal comma**,
   separate the columns with semicolons instead.
 - Tabs work too, which is what you get when copying cells from a spreadsheet,
   and so do vertical bars: a Markdown table pasted inside the fence works as is.
 - An empty cell leaves a gap: the bar doesn't appear and the line breaks.
-- Up to 8 series fit, one per color. With more, split the chart.
+- Up to 8 series fit, one per color. With more, split the chart. A pie is
+  capped at 8 slices, for the same reason.
+- Bars and areas always start at zero, because what you read is the size; lines
+  and points do so only when the data lands near it.
 - Numbers go without thousands separators: `1234`, not `1,234`.
 
 Hovering with the mouse, or tapping with a finger, shows the values for that
-category. Below, **Show data** shows the same information as a table. If the
-data has an error, the block keeps showing the fence's text, with a note on
-what went wrong.
+category, and on a pie the share as well. Below, **Show data** shows the same
+information as a table. If the data has an error, the block keeps showing the
+fence's text, with a note on what went wrong.
 
 Unlike diagrams, charts are drawn by the reader itself, without downloading
 anything: they work offline from the very first moment.
@@ -2168,7 +2390,7 @@ exactly this syntax:
 - A code block with its language declared, one of: js, ts, python, html, css, java, c or csharp
 - An inline math formula and a block one, in LaTeX
 - A Mermaid flowchart and a sequence diagram
-- A bar chart and a line chart, each in a fence with the language chart: first the lines "type: bar" (or "type: line") and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories
+- One chart of each kind, each in a fence with the language chart: first the lines "type: ..." (bar, line, area, scatter or pie) and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories. The pie takes a single value column, all positive, and up to eight rows; on the scatter the categories should be numbers
 - A horizontal rule
 
 Don't use any of the following, because the reader doesn't interpret it and it
@@ -3062,6 +3284,12 @@ const GRAF_MAX_SERIES = 8;     // una por color de la paleta: no se inventan col
 const GRAF_ALTO = 220;         // alto del área de datos, en px
 const GRAF_CARACTER = 6.4;     // ancho medio de un carácter a 11px, para reservar lugar sin medir
 
+/* nombre de cada tipo para el aria-label, cuando el gráfico no tiene título */
+const NOMBRE_GRAFICO = {
+  barras:"graficoBarras", lineas:"graficoLineas", area:"graficoArea",
+  dispersion:"graficoDispersion", torta:"graficoTorta"
+};
+
 const GRAF_CLAVES = {
   tipo:"tipo", type:"tipo",
   titulo:"titulo", "título":"titulo", title:"titulo",
@@ -3127,8 +3355,11 @@ function leerGrafico(src){
   }
 
   const tipo = String(g.tipo).toLowerCase();
-  if(/^(barras?|columnas?|bars?)$/.test(tipo)) g.tipo = "barras";
+  if(/^(barras?|columnas?|bars?|columns?)$/.test(tipo)) g.tipo = "barras";
   else if(/^(l[ií]neas?|lines?)$/.test(tipo)) g.tipo = "lineas";
+  else if(/^[áa]reas?$/.test(tipo)) g.tipo = "area";
+  else if(/^(dispersi[óo]n|puntos?|scatter|points?)$/.test(tipo)) g.tipo = "dispersion";
+  else if(/^(torta|tarta|pastel|circular|pie|donut)$/.test(tipo)) g.tipo = "torta";
   else throw new Error(t("errTipo", g.tipo));
 
   for(const k of ["min", "max"]){
@@ -3154,6 +3385,27 @@ function leerGrafico(src){
     return n;
   }));
   if(!g.valores.some(f => f.some(v => v !== null))) throw new Error(t("errSinValores"));
+
+  /* La torta reparte un total entre categorías: una sola columna de valores,
+     un color por porción y nada que repartir si son negativos o suman cero. */
+  if(g.tipo === "torta"){
+    if(g.series.length > 1) throw new Error(t("errTortaSeries", g.series.length));
+    if(g.categorias.length > GRAF_MAX_SERIES){
+      throw new Error(t("errMuchasPorciones", g.categorias.length, GRAF_MAX_SERIES));
+    }
+    if(g.valores.some(f => f[0] < 0)) throw new Error(t("errTortaNegativo"));
+    g.total = g.valores.reduce((a, f) => a + (f[0] || 0), 0);
+    if(!g.total) throw new Error(t("errTortaCero"));
+  }
+
+  /* Dispersión: si todas las categorías son números, el eje horizontal es
+     numérico y cada punto va en su lugar, no repartido parejo. Si no lo son,
+     queda como en las líneas, una posición por categoría. */
+  if(g.tipo === "dispersion"){
+    const xs = g.categorias.map(c => leerNumero(c));
+    g.equis = xs.every(v => v !== null && !Number.isNaN(v)) ? xs : null;
+  }
+
   return g;
 }
 
@@ -3187,18 +3439,75 @@ function caminoBarra(x, w, yBase, yPunta){
   return `M${a},${yb}V${yr}Q${a},${yp} ${b},${yp}H${c}Q${d},${yp} ${d},${yr}V${yb}Z`;
 }
 
+/* porción de torta entre dos ángulos, en radianes y con el cero arriba */
+function caminoPorcion(cx, cy, r, a0, a1){
+  const p = a => [redondo(cx + r * Math.cos(a)), redondo(cy + r * Math.sin(a))];
+  // una sola porción es el círculo entero: con un solo arco el path se cierra sobre sí mismo
+  if(a1 - a0 >= Math.PI * 2 - 1e-9){
+    const [ix, iy] = p(a0), [dx, dy] = p(a0 + Math.PI);
+    return `M${ix},${iy}A${r},${r} 0 1 1 ${dx},${dy}A${r},${r} 0 1 1 ${ix},${iy}Z`;
+  }
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${redondo(cx)},${redondo(cy)}L${x0},${y0}` +
+         `A${r},${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1},${y1}Z`;
+}
+
+/* el cartel de valores: lo comparten todos los tipos de gráfico */
+function crearTip(lienzo){
+  const tip = document.createElement("div");
+  tip.className = "chart-tip";
+  tip.hidden = true;
+  lienzo.appendChild(tip);
+  return tip;
+}
+
+/* al lado del puntero, del lado donde entre */
+function ubicarTip(tip, lienzo, e){
+  const caja = lienzo.getBoundingClientRect();
+  const px = e.clientX - caja.left, py = e.clientY - caja.top;
+  let left = px + 14;
+  if(left + tip.offsetWidth > caja.width) left = px - 14 - tip.offsetWidth;
+  tip.style.left = Math.max(0, left) + "px";
+  tip.style.top = Math.max(0, Math.min(py - tip.offsetHeight / 2, caja.height - tip.offsetHeight)) + "px";
+}
+
+/* una fila del cartel: la clave de color, el valor resaltado y el nombre atrás */
+function filaTip(clase, valor, nombre){
+  const fila = document.createElement("div");
+  fila.className = "fila";
+  const clave = document.createElement("i");
+  clave.className = clase;
+  const v = document.createElement("b");
+  v.textContent = valor;
+  const n = document.createElement("span");
+  n.textContent = nombre;
+  fila.append(clave, v, n);
+  return fila;
+}
+
 /* arma el SVG y su capa de hover dentro de lienzo; se repite si cambia el ancho */
 function dibujarLienzo(lienzo, g){
   const ancho = Math.round(lienzo.clientWidth);
   if(ancho < 120) return;          // documento oculto o todavía sin layout
   lienzo.dataset.ancho = ancho;
   lienzo.textContent = "";
+  if(g.tipo === "torta") dibujarTorta(lienzo, g, ancho);
+  else dibujarCartesiano(lienzo, g, ancho);
+}
 
-  // rango: las barras siempre arrancan de cero; las líneas, sólo si los
-  // datos quedan cerca, para que una serie entre 980 y 1020 no se vea plana
+/* barras, líneas, área y dispersión: todos comparten ejes, grilla y hover */
+function dibujarCartesiano(lienzo, g, ancho){
+  const esBarras = g.tipo === "barras";
+  const esArea = g.tipo === "area";
+  const esDisp = g.tipo === "dispersion";
+  const traza = g.tipo === "lineas" || esArea;   // tipos que unen los puntos con una línea
+
+  // rango: las barras y el área siempre arrancan de cero, porque lo que se lee
+  // es la superficie; las líneas y los puntos, sólo si los datos quedan cerca,
+  // para que una serie entre 980 y 1020 no se vea plana
   const todos = g.valores.flat().filter(v => v !== null);
   let lo = Math.min(...todos), hi = Math.max(...todos);
-  if(g.tipo === "barras"){ lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+  if(esBarras || esArea){ lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
   else if(lo >= 0 && lo <= hi / 2) lo = 0;
   else if(hi <= 0 && hi >= lo / 2) hi = 0;
   if(g.min !== null) lo = Math.min(lo, g.min);
@@ -3215,7 +3524,7 @@ function dibujarLienzo(lienzo, g){
 
   const svg = svgNodo("svg", {
     viewBox: "0 0 " + ancho + " " + alto, width: ancho, height: alto, role: "img",
-    "aria-label": g.titulo || t(g.tipo === "barras" ? "graficoBarras" : "graficoLineas")
+    "aria-label": g.titulo || t(NOMBRE_GRAFICO[g.tipo])
   }, lienzo);
 
   /* grilla y eje vertical */
@@ -3228,30 +3537,50 @@ function dibujarLienzo(lienzo, g){
   });
   if(g.unidad) svgNodo("text", {x: 0, y: 11}, ejes).textContent = g.unidad;
 
-  /* posiciones horizontales: las barras ocupan una franja por categoría;
-     las líneas van de punta a punta */
+  /* posiciones horizontales: las barras ocupan una franja por categoría; las
+     líneas y el área van de punta a punta; la dispersión con categorías
+     numéricas usa su propia escala, así que un hueco en los datos se ve */
   const n = g.categorias.length;
   const banda = (x1 - x0) / n;
-  const hueco = g.tipo === "barras" ? banda : (n === 1 ? x1 - x0 : (x1 - x0 - 16) / (n - 1));
-  const xDe = g.tipo === "barras"
-    ? i => x0 + banda * (i + .5)
-    : i => n === 1 ? (x0 + x1) / 2 : x0 + 8 + i * hueco;
+  const hueco = esBarras ? banda : (n === 1 ? x1 - x0 : (x1 - x0 - 16) / (n - 1));
+  const escalaX = esDisp && g.equis ? escalaLinda(Math.min(...g.equis), Math.max(...g.equis)) : null;
+  const xDe = escalaX
+    ? i => x0 + (g.equis[i] - escalaX.lo) / (escalaX.hi - escalaX.lo) * (x1 - x0)
+    : esBarras
+      ? i => x0 + banda * (i + .5)
+      : i => n === 1 ? (x0 + x1) / 2 : x0 + 8 + i * hueco;
 
-  /* etiquetas de categorías: si no entran todas, una cada tantas */
+  /* etiquetas de abajo: si no entran todas, una cada tantas */
   const recorte = t => t.length > 16 ? t.slice(0, 15) + "…" : t;
-  const largo = Math.max(...g.categorias.map(c => recorte(c).length));
-  const cada = Math.max(1, Math.ceil((largo * GRAF_CARACTER + 8) / hueco));
-  g.categorias.forEach((c, i) => {
-    if(i % cada) return;
-    const w = recorte(c).length * GRAF_CARACTER;
-    const x = Math.min(Math.max(xDe(i), w / 2), ancho - w / 2);
-    svgNodo("text", {x: redondo(x), y: y1 + 17, "text-anchor": "middle"}, ejes).textContent = recorte(c);
-  });
+  const rotular = (txt, x) => {
+    const w = txt.length * GRAF_CARACTER;
+    const px = Math.min(Math.max(x, w / 2), ancho - w / 2);
+    svgNodo("text", {x: redondo(px), y: y1 + 17, "text-anchor": "middle"}, ejes).textContent = txt;
+  };
+  if(escalaX){
+    // eje numérico: valores redondos y una línea de grilla en cada uno
+    const decX = (String(+escalaX.paso.toPrecision(6)).split(".")[1] || "").length;
+    const etqX = escalaX.ticks.map(v => fmtNumero(v, decX));
+    const xTick = v => x0 + (v - escalaX.lo) / (escalaX.hi - escalaX.lo) * (x1 - x0);
+    const anchoX = Math.max(...etqX.map(e => e.length)) * GRAF_CARACTER + 12;
+    const cadaX = Math.max(1, Math.ceil(anchoX / ((x1 - x0) / Math.max(1, escalaX.ticks.length - 1))));
+    escalaX.ticks.forEach((v, k) => {
+      const x = Math.round(xTick(v)) + .5;
+      svgNodo("line", {x1: x, x2: x, y1: y0, y2: y1, class: "grid"}, ejes);
+      if(!(k % cadaX)) rotular(etqX[k], xTick(v));
+    });
+  } else {
+    const largo = Math.max(...g.categorias.map(c => recorte(c).length));
+    const cada = Math.max(1, Math.ceil((largo * GRAF_CARACTER + 8) / hueco));
+    g.categorias.forEach((c, i) => {
+      if(!(i % cada)) rotular(recorte(c), xDe(i));
+    });
+  }
 
   /* marcas */
   const S = g.series.length;
   const capa = svgNodo("g", {}, svg);
-  if(g.tipo === "barras"){
+  if(esBarras){
     const GAP = 2;
     const w = Math.max(1, Math.min(24, (banda * .8 - GAP * (S - 1)) / S));
     const yBase = yDe(0);
@@ -3264,7 +3593,29 @@ function dibujarLienzo(lienzo, g){
       });
     });
   } else {
-    g.series.forEach((nombre, k) => {
+    // el relleno del área va primero, para que ninguna serie tape la línea de otra
+    if(esArea){
+      const yBase = redondo(yDe(Math.min(Math.max(0, escala.lo), escala.hi)));
+      g.series.forEach((nombre, k) => {
+        let tramo = [];
+        const cerrar = () => {
+          // un punto suelto entre huecos no tiene superficie que pintar
+          if(tramo.length > 1){
+            const d = "M" + tramo[0][0] + "," + yBase +
+              tramo.map(p => "L" + p[0] + "," + p[1]).join("") +
+              "L" + tramo[tramo.length - 1][0] + "," + yBase + "Z";
+            svgNodo("path", {class: "area s" + (k + 1), d}, capa);
+          }
+          tramo = [];
+        };
+        g.valores.forEach((fila, i) => {
+          if(fila[k] === null) cerrar();
+          else tramo.push([redondo(xDe(i)), redondo(yDe(fila[k]))]);
+        });
+        cerrar();
+      });
+    }
+    if(traza) g.series.forEach((nombre, k) => {
       let d = "", seguido = false;
       g.valores.forEach((fila, i) => {
         if(fila[k] === null){ seguido = false; return; }
@@ -3273,32 +3624,36 @@ function dibujarLienzo(lienzo, g){
       });
       if(d) svgNodo("path", {class: "linea s" + (k + 1), d}, capa);
     });
-    // puntos: todos si son pocos; si no, sólo los que quedan sueltos entre huecos
+    // puntos: en la dispersión son el gráfico entero, así que van todos; en las
+    // líneas, todos si son pocos, si no sólo los que quedan sueltos entre huecos
     g.series.forEach((nombre, k) => {
       g.valores.forEach((fila, i) => {
         if(fila[k] === null) return;
         const suelto = (i === 0 || g.valores[i - 1][k] === null) && (i === n - 1 || g.valores[i + 1][k] === null);
-        if(n <= 24 || suelto){
+        if(esDisp || n <= 24 || suelto){
           svgNodo("circle", {class: "punto s" + (k + 1), cx: redondo(xDe(i)), cy: redondo(yDe(fila[k])), r: 4}, capa);
         }
       });
     });
   }
 
-  /* hover: una zona invisible por categoría, más ancha que la marca */
-  const cruz = g.tipo === "lineas" ? svgNodo("line", {class: "cruz", x1: 0, x2: 0, y1: y0, y2: y1}, svg) : null;
-  const resaltes = g.tipo === "lineas" ? svgNodo("g", {}, svg) : null;
+  /* hover: una franja invisible por categoría, más ancha que la marca. Las
+     barras ocupan su banda; el resto se reparte en la mitad hasta el vecino,
+     que con el eje numérico de la dispersión no siempre es el índice de al lado. */
+  const cruz = !esBarras ? svgNodo("line", {class: "cruz", x1: 0, x2: 0, y1: y0, y2: y1}, svg) : null;
+  const resaltes = !esBarras ? svgNodo("g", {}, svg) : null;
   const zonas = svgNodo("g", {}, svg);
-  for(let i = 0; i < n; i++){
-    const desde = g.tipo === "barras" ? x0 + banda * i : Math.max(x0, xDe(i) - hueco / 2);
-    const hasta = g.tipo === "barras" ? desde + banda : Math.min(x1, xDe(i) + hueco / 2);
-    svgNodo("rect", {class: "zona", "data-i": i, x: redondo(desde), y: 0, width: redondo(hasta - desde), height: alto}, zonas);
+  const orden = g.categorias.map((c, i) => i).sort((a, b) => xDe(a) - xDe(b));
+  for(let p = 0; p < n; p++){
+    const i = orden[p];
+    const desde = esBarras ? x0 + banda * i
+      : p === 0 ? x0 : (xDe(orden[p - 1]) + xDe(i)) / 2;
+    const hasta = esBarras ? desde + banda
+      : p === n - 1 ? x1 : (xDe(i) + xDe(orden[p + 1])) / 2;
+    svgNodo("rect", {class: "zona", "data-i": i, x: redondo(desde), y: 0, width: redondo(Math.max(0, hasta - desde)), height: alto}, zonas);
   }
 
-  const tip = document.createElement("div");
-  tip.className = "chart-tip";
-  tip.hidden = true;
-  lienzo.appendChild(tip);
+  const tip = crearTip(lienzo);
 
   const apagar = () => {
     tip.hidden = true;
@@ -3310,7 +3665,7 @@ function dibujarLienzo(lienzo, g){
 
   const mostrar = (i, e) => {
     svg.classList.add("hover");
-    if(g.tipo === "barras"){
+    if(esBarras){
       capa.querySelectorAll(".grupo").forEach(gr => gr.classList.toggle("activo", +gr.dataset.i === i));
     } else {
       const x = redondo(xDe(i));
@@ -3332,26 +3687,11 @@ function dibujarLienzo(lienzo, g){
     tip.appendChild(cat);
     g.series.forEach((nombre, k) => {
       const v = g.valores[i][k];
-      const fila = document.createElement("div");
-      fila.className = "fila";
-      const clave = document.createElement("i");
-      clave.className = "s" + (k + 1);
-      const valor = document.createElement("b");
-      valor.textContent = fmtNumero(v) + (g.unidad && v !== null ? " " + g.unidad : "");
-      const serie = document.createElement("span");
-      serie.textContent = nombre;
-      fila.append(clave, valor, serie);
-      tip.appendChild(fila);
+      const valor = fmtNumero(v) + (g.unidad && v !== null ? " " + g.unidad : "");
+      tip.appendChild(filaTip("s" + (k + 1), valor, nombre));
     });
     tip.hidden = false;
-
-    // al lado del puntero, del lado donde entre
-    const caja = lienzo.getBoundingClientRect();
-    const px = e.clientX - caja.left, py = e.clientY - caja.top;
-    let left = px + 14;
-    if(left + tip.offsetWidth > caja.width) left = px - 14 - tip.offsetWidth;
-    tip.style.left = Math.max(0, left) + "px";
-    tip.style.top = Math.max(0, Math.min(py - tip.offsetHeight / 2, caja.height - tip.offsetHeight)) + "px";
+    ubicarTip(tip, lienzo, e);
   };
 
   const alMover = e => {
@@ -3361,6 +3701,83 @@ function dibujarLienzo(lienzo, g){
   svg.addEventListener("pointermove", alMover);
   svg.addEventListener("pointerdown", alMover);
   // con el dedo no hay "salir": el cartel queda hasta que se toca otra cosa
+  svg.addEventListener("pointerleave", e => { if(e.pointerType !== "touch") apagar(); });
+  lienzo._apagar = apagar;
+}
+
+/* torta: una porción por categoría, con el porcentaje afuera de las más grandes */
+function dibujarTorta(lienzo, g, ancho){
+  const MARGEN = 58;                    // lugar a los costados para los porcentajes
+  const alto = GRAF_ALTO + 16;
+  const cx = ancho / 2, cy = alto / 2;
+  const r = Math.max(40, Math.min(GRAF_ALTO / 2, ancho / 2 - MARGEN));
+
+  const svg = svgNodo("svg", {
+    viewBox: "0 0 " + ancho + " " + alto, width: ancho, height: alto, role: "img",
+    "aria-label": g.titulo || t("graficoTorta")
+  }, lienzo);
+  const capa = svgNodo("g", {}, svg);
+  const etiquetas = svgNodo("g", {}, svg);
+  const parte = i => (g.valores[i][0] || 0) / g.total;
+  const pct = f => fmtNumero(f * 100, 1) + " %";
+
+  let a = -Math.PI / 2;                  // arranca arriba y va en el sentido del reloj
+  const ultima = {};                     // última etiqueta de cada lado, para no encimarlas
+  g.categorias.forEach((c, i) => {
+    const f = parte(i);
+    if(!f) return;                       // un cero no ocupa lugar
+    const a0 = a, a1 = a + f * Math.PI * 2;
+    a = a1;
+    svgNodo("path", {class: "porcion s" + (i + 1), "data-i": i, d: caminoPorcion(cx, cy, r, a0, a1)}, capa);
+
+    // el porcentaje sólo si la porción es lo bastante ancha para que se lea
+    if(f < .04) return;
+    const med = (a0 + a1) / 2, lado = Math.cos(med) >= 0 ? 1 : -1;
+    const y = cy + (r + 10) * Math.sin(med);
+    if(ultima[lado] !== undefined && Math.abs(y - ultima[lado]) < 13) return;
+    ultima[lado] = y;
+    // en una columna angosta el texto se corre para no salirse del recuadro
+    const txt = pct(f), w = txt.length * GRAF_CARACTER;
+    const x = cx + (r + 10) * Math.cos(med);
+    svgNodo("text", {
+      x: redondo(lado > 0 ? Math.min(x, ancho - w) : Math.max(x, w)),
+      y: redondo(y), dy: "0.32em", "text-anchor": lado > 0 ? "start" : "end"
+    }, etiquetas).textContent = txt;
+  });
+
+  const tip = crearTip(lienzo);
+  const apagar = () => {
+    tip.hidden = true;
+    svg.classList.remove("hover");
+    capa.querySelectorAll(".activo").forEach(e => e.classList.remove("activo"));
+  };
+
+  const mostrar = (i, e) => {
+    svg.classList.add("hover");
+    capa.querySelectorAll(".porcion").forEach(p => p.classList.toggle("activo", +p.dataset.i === i));
+
+    // Todo con textContent: las categorías vienen del archivo.
+    tip.textContent = "";
+    const cat = document.createElement("div");
+    cat.className = "cat";
+    cat.textContent = g.categorias[i];
+    tip.appendChild(cat);
+    const v = g.valores[i][0];
+    tip.appendChild(filaTip(
+      "s" + (i + 1),
+      fmtNumero(v) + (g.unidad && v !== null ? " " + g.unidad : ""),
+      pct(parte(i))
+    ));
+    tip.hidden = false;
+    ubicarTip(tip, lienzo, e);
+  };
+
+  const alMover = e => {
+    const p = e.target.closest && e.target.closest(".porcion");
+    if(p) mostrar(+p.dataset.i, e); else apagar();
+  };
+  svg.addEventListener("pointermove", alMover);
+  svg.addEventListener("pointerdown", alMover);
   svg.addEventListener("pointerleave", e => { if(e.pointerType !== "touch") apagar(); });
   lienzo._apagar = apagar;
 }
@@ -3380,11 +3797,13 @@ function armarGrafico(bloque){
     caja.appendChild(titulo);
   }
 
-  // con una sola serie el título ya dice qué se grafica
-  if(g.series.length > 1){
+  // en la torta el color es de cada porción, así que la leyenda lista las
+  // categorías; en el resto, las series, y con una sola el título ya lo dice
+  const rotulos = g.tipo === "torta" ? g.categorias : g.series.length > 1 ? g.series : [];
+  if(rotulos.length){
     const leyenda = document.createElement("div");
     leyenda.className = "chart-leyenda " + g.tipo;
-    g.series.forEach((nombre, k) => {
+    rotulos.forEach((nombre, k) => {
       const item = document.createElement("span");
       const clave = document.createElement("i");
       clave.className = "s" + (k + 1);

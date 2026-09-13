@@ -37,7 +37,7 @@ Instalado como app tiene dos cosas más:
 | **Fórmulas** | con KaTeX si hay conexión, en Unicode si no |
 | **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
 | **Código** | con colores para JavaScript, TypeScript, Python, HTML, CSS, Java, C y C# |
-| **Gráficos** | de barras y de líneas, a partir de una tabla de datos escrita en el archivo |
+| **Gráficos** | de barras, de líneas, de área, de dispersión y de torta, a partir de una tabla de datos escrita en el archivo |
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
@@ -347,10 +347,10 @@ se lee igual.
 
 ### Gráficos
 
-Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras o de
-líneas. Arriba van las opciones, una por línea; después, los datos. La primera
-fila de datos es el encabezado: la primera columna tiene las categorías y cada
-una de las siguientes es una serie.
+Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras, de
+líneas, de área, de dispersión o de torta. Arriba van las opciones, una por
+línea; después, los datos. La primera fila de datos es el encabezado: la
+primera columna tiene las categorías y cada una de las siguientes es una serie.
 
 ~~~markdown
 ```grafico
@@ -413,9 +413,104 @@ Usuarios; Con caché; Sin caché
 400; 25; 700
 ```
 
+El **área** es una línea con la superficie pintada hasta el cero. Va bien para
+un acumulado, donde lo que se mira es cuánto se juntó:
+
+~~~markdown
+```grafico
+tipo: area
+titulo: Páginas leídas en el mes
+unidad: pág.
+
+Semana, Leídas
+1, 40
+2, 95
+3, 130
+4, 210
+```
+~~~
+
+Se ve así:
+
+```grafico
+tipo: area
+titulo: Páginas leídas en el mes
+unidad: pág.
+
+Semana, Leídas
+1, 40
+2, 95
+3, 130
+4, 210
+```
+
+La **dispersión** no une los puntos. Si las categorías son números, el eje
+horizontal también lo es y cada punto cae en su lugar, así que un salto en los
+datos se ve como un hueco y no repartido parejo:
+
+~~~markdown
+```grafico
+tipo: dispersion
+titulo: Nota según las horas de estudio
+
+Horas, Nota
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+~~~
+
+Se ve así:
+
+```grafico
+tipo: dispersion
+titulo: Nota según las horas de estudio
+
+Horas, Nota
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+
+La **torta** reparte un total entre sus categorías, con el porcentaje de cada
+porción al costado. Lleva una sola columna de valores, sin negativos, y hasta
+ocho porciones:
+
+~~~markdown
+```grafico
+tipo: torta
+titulo: De dónde salen las visitas
+
+Origen, Visitas
+Buscadores, 540
+Directo, 260
+Redes, 150
+Enlaces, 50
+```
+~~~
+
+Se ve así:
+
+```grafico
+tipo: torta
+titulo: De dónde salen las visitas
+
+Origen, Visitas
+Buscadores, 540
+Directo, 260
+Redes, 150
+Enlaces, 50
+```
+
 | Opción | Qué hace | Si no la ponés |
 |---|---|---|
-| `tipo` | `barras` o `lineas` | barras |
+| `tipo` | `barras`, `lineas`, `area`, `dispersion` o `torta` | barras |
 | `titulo` | texto arriba del gráfico | sin título |
 | `unidad` | texto sobre el eje vertical y al lado de cada valor | nada |
 | `min`, `max` | un valor que el eje tiene que incluir, como `min: 0` | se calcula solo |
@@ -423,18 +518,21 @@ Usuarios; Con caché; Sin caché
 Algunos detalles:
 
 - Las opciones también se entienden en inglés: `type`, `title` y `unit`, con
-  `bar` o `line`.
+  `bar`, `line`, `area`, `scatter` o `pie`.
 - También sirven tabulaciones, que es lo que queda al copiar celdas de una
   planilla, y barras verticales: una tabla Markdown pegada adentro de la valla
   funciona tal cual.
 - Una celda vacía deja un hueco: la barra no aparece y la línea se corta.
 - Entran hasta 8 series, una por color. Con más, conviene partir el gráfico.
+  En la torta el límite son 8 porciones, por el mismo motivo.
+- Las barras y el área arrancan siempre del cero, porque lo que se lee es el
+  tamaño; las líneas y los puntos, sólo si los datos quedan cerca.
 - Los números van sin separador de miles: `1234`, no `1.234`.
 
 Al pasar el mouse, o al tocar con el dedo, se ven los valores de esa
-categoría. Abajo, **Ver datos** muestra la misma información como tabla. Si
-los datos tienen un error, el bloque se queda mostrando el texto de la valla,
-con un aviso de qué falló.
+categoría, y en la torta también el porcentaje. Abajo, **Ver datos** muestra la
+misma información como tabla. Si los datos tienen un error, el bloque se queda
+mostrando el texto de la valla, con un aviso de qué falló.
 
 A diferencia de los diagramas, los gráficos los dibuja el propio lector, sin
 bajar nada: funcionan sin conexión desde el primer momento.
@@ -623,7 +721,7 @@ exactamente esta sintaxis:
 - Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c o csharp
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
-- Un gráfico de barras y otro de líneas, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: barras" (o "tipo: lineas") y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías
+- Un gráfico de cada tipo, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: ..." (barras, lineas, area, dispersion o torta) y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías. En el de torta, una sola columna de valores, todos positivos, y hasta ocho filas; en el de dispersión conviene que las categorías sean números
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como

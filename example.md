@@ -37,7 +37,7 @@ Installed as an app, it does two more things:
 | **Formulas** | with KaTeX when online, in Unicode when not |
 | **Diagrams** | with Mermaid, downloaded only if the file has one |
 | **Code** | colored for JavaScript, TypeScript, Python, HTML, CSS, Java, C and C# |
-| **Charts** | bar and line charts, from a data table written in the file |
+| **Charts** | bar, line, area, scatter and pie charts, from a data table written in the file |
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
 | **Print** | or save as PDF, with a stylesheet made for paper |
@@ -346,10 +346,10 @@ still reads fine.
 
 ### Charts
 
-A fence with the language `chart` (or `grafico`) draws a bar or line chart.
-Options go first, one per line; then the data. The first data row is the
-header: the first column holds the categories and each of the following ones
-is a series.
+A fence with the language `chart` (or `grafico`) draws a bar, line, area,
+scatter or pie chart. Options go first, one per line; then the data. The first
+data row is the header: the first column holds the categories and each of the
+following ones is a series.
 
 ~~~markdown
 ```chart
@@ -411,9 +411,104 @@ Users, Cached, Uncached
 400, 25, 700
 ```
 
+An **area** chart is a line with the surface filled down to zero. It suits a
+running total, where what you read is how much has piled up:
+
+~~~markdown
+```chart
+type: area
+title: Pages read this month
+unit: pp.
+
+Week, Read
+1, 40
+2, 95
+3, 130
+4, 210
+```
+~~~
+
+It looks like this:
+
+```chart
+type: area
+title: Pages read this month
+unit: pp.
+
+Week, Read
+1, 40
+2, 95
+3, 130
+4, 210
+```
+
+A **scatter** chart doesn't join the points. If the categories are numbers the
+horizontal axis is numeric too and each point lands where it belongs, so a jump
+in the data shows up as a gap instead of being spread out evenly:
+
+~~~markdown
+```chart
+type: scatter
+title: Grade by hours of study
+
+Hours, Grade
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+~~~
+
+It looks like this:
+
+```chart
+type: scatter
+title: Grade by hours of study
+
+Hours, Grade
+2, 4
+3, 5
+5, 7
+6, 6
+9, 9
+12, 10
+```
+
+A **pie** chart splits a total between its categories, with each slice's share
+next to it. It takes a single value column, no negatives, and up to eight
+slices:
+
+~~~markdown
+```chart
+type: pie
+title: Where the visits come from
+
+Source, Visits
+Search, 540
+Direct, 260
+Social, 150
+Links, 50
+```
+~~~
+
+It looks like this:
+
+```chart
+type: pie
+title: Where the visits come from
+
+Source, Visits
+Search, 540
+Direct, 260
+Social, 150
+Links, 50
+```
+
 | Option | What it does | If you leave it out |
 |---|---|---|
-| `type` | `bar` or `line` | bar |
+| `type` | `bar`, `line`, `area`, `scatter` or `pie` | bar |
 | `title` | text above the chart | no title |
 | `unit` | text above the vertical axis and next to each value | nothing |
 | `min`, `max` | a value the axis must include, such as `min: 0` | worked out automatically |
@@ -421,19 +516,22 @@ Users, Cached, Uncached
 A few details:
 
 - The options are also understood in Spanish: `tipo`, `titulo` and `unidad`,
-  with `barras` or `lineas`.
+  with `barras`, `lineas`, `area`, `dispersion` or `torta`.
 - Columns are separated by commas. If your numbers use a **decimal comma**,
   separate the columns with semicolons instead.
 - Tabs work too, which is what you get when copying cells from a spreadsheet,
   and so do vertical bars: a Markdown table pasted inside the fence works as is.
 - An empty cell leaves a gap: the bar doesn't appear and the line breaks.
-- Up to 8 series fit, one per color. With more, split the chart.
+- Up to 8 series fit, one per color. With more, split the chart. A pie is
+  capped at 8 slices, for the same reason.
+- Bars and areas always start at zero, because what you read is the size; lines
+  and points do so only when the data lands near it.
 - Numbers go without thousands separators: `1234`, not `1,234`.
 
 Hovering with the mouse, or tapping with a finger, shows the values for that
-category. Below, **Show data** shows the same information as a table. If the
-data has an error, the block keeps showing the fence's text, with a note on
-what went wrong.
+category, and on a pie the share as well. Below, **Show data** shows the same
+information as a table. If the data has an error, the block keeps showing the
+fence's text, with a note on what went wrong.
 
 Unlike diagrams, charts are drawn by the reader itself, without downloading
 anything: they work offline from the very first moment.
@@ -623,7 +721,7 @@ exactly this syntax:
 - A code block with its language declared, one of: js, ts, python, html, css, java, c or csharp
 - An inline math formula and a block one, in LaTeX
 - A Mermaid flowchart and a sequence diagram
-- A bar chart and a line chart, each in a fence with the language chart: first the lines "type: bar" (or "type: line") and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories
+- One chart of each kind, each in a fence with the language chart: first the lines "type: ..." (bar, line, area, scatter or pie) and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories. The pie takes a single value column, all positive, and up to eight rows; on the scatter the categories should be numbers
 - A horizontal rule
 
 Don't use any of the following, because the reader doesn't interpret it and it
