@@ -10,6 +10,8 @@ justamente la gracia: descargalo y abrilo en el lector.
 ![Un pendrive del que sale una hoja escrita, y al lado una nube tachada: los
 archivos se leen desde donde estén, sin pasar por internet](ejemplo-portada.png)
 
+[TOC]
+
 ## Qué es esto
 
 Un lector de archivos Markdown que funciona **sin internet** y **sin subir nada
@@ -34,7 +36,9 @@ Instalado como app tiene dos cosas más:
 | **Markdown** | encabezados, listas anidadas, tablas, código, citas, énfasis, enlaces |
 | **Fórmulas** | con KaTeX si hay conexión, en Unicode si no |
 | **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
-| **Navegar** | índice automático de niveles 1 a 3, y `Alt`+`J` / `Alt`+`K` entre archivos |
+| **Código** | con colores para JavaScript, TypeScript, Python, HTML, CSS, Java, C y C# |
+| **Gráficos** | de barras y de líneas, a partir de una tabla de datos escrita en el archivo |
+| **Navegar** | índice automático de niveles 1 a 3, `[TOC]` para ponerlo dentro del documento, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
@@ -88,6 +92,14 @@ Para separar secciones, tres guiones:
 De `#` a `######`. Los de nivel 1 a 3 arman el índice **En este archivo** del
 panel lateral, que aparece sólo si hay más de dos.
 
+Para tener el índice **dentro** del documento, escribí `[TOC]` solo en una
+línea, donde quieras que aparezca. Ahí se arma la lista de encabezados de nivel
+1 a 3, con enlaces a cada sección: es el **Contenido** que está al principio de
+este archivo. Si el documento tiene un único `#`, se toma como el título y no
+se lista. También sirve `[[_TOC_]]`, como en GitLab.
+
+A diferencia del panel lateral, este índice sale impreso.
+
 ### Listas
 
 Las viñetas aceptan `-`, `*` o `+`:
@@ -118,10 +130,12 @@ encabezado. Las tablas anchas scrollean solas en horizontal.
 | Tabla | barras y guiones | no |
 | Fórmula | `$$` o valla `math` | no |
 | Diagrama | valla `mermaid` | no |
+| Gráfico | valla `grafico` | no |
 
 ### Código
 
-Con vallas de tres acentos graves, y le podés poner el lenguaje al lado:
+Con vallas de tres acentos graves. Si le ponés el lenguaje al lado, se
+resaltan las palabras clave, los textos, los números y los comentarios:
 
 ```js
 const lector = {
@@ -130,7 +144,34 @@ const lector = {
 };
 ```
 
-También sirve un bloque indentado con cuatro espacios:
+```python
+def promedio(valores):
+    """Devuelve el promedio, o None si la lista está vacía."""
+    if not valores:
+        return None
+    return sum(valores) / len(valores)
+```
+
+Estos son los lenguajes con colores y cómo se escribe cada uno:
+
+| Lenguaje | Al lado de la valla |
+|---|---|
+| JavaScript | `js`, `javascript`, `json` |
+| TypeScript | `ts`, `typescript` |
+| Python | `py`, `python` |
+| HTML y XML | `html`, `xml`, `svg` |
+| CSS | `css` |
+| Java | `java` |
+| C | `c`, `h` |
+| C# | `cs`, `csharp`, `c#` |
+
+Los colores los pone **Prism**, que pesa unos 33 KB y se baja la primera vez
+que abrís un archivo con código de alguno de estos lenguajes; después queda
+guardado. Siguen el tema del lector y al imprimir salen con los del tema
+claro. Sin conexión, o con cualquier otro lenguaje, el bloque se ve igual pero
+en un solo color.
+
+También sirve un bloque indentado con cuatro espacios, que queda sin colores:
 
     esto también es código
     por estar indentado
@@ -180,6 +221,65 @@ La librería de diagramas pesa unos 3 MB, así que **se baja recién cuando abr�
 un archivo que tiene alguno**. Después queda guardada y funciona sin conexión.
 Si no se puede bajar, el bloque se queda mostrando el código del diagrama, que
 se lee igual.
+
+### Gráficos
+
+Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras o de
+líneas. Arriba van las opciones, una por línea; después, los datos. La primera
+fila de datos es el encabezado: la primera columna tiene las categorías y cada
+una de las siguientes es una serie.
+
+```grafico
+tipo: barras
+titulo: Horas de estudio por semana
+unidad: h
+
+Semana, Análisis, Programación
+1, 6, 4
+2, 5, 7
+3, 8, 6
+4, 7, 9
+```
+
+Las columnas se separan con comas. Si los números llevan **coma decimal**,
+separá las columnas con punto y coma, como en este:
+
+```grafico
+tipo: lineas
+titulo: Tiempo de respuesta según la carga
+unidad: ms
+
+Usuarios; Con caché; Sin caché
+10; 12; 35
+50; 14; 80
+100; 15,5; 160
+200; 18; 340
+400; 25; 700
+```
+
+| Opción | Qué hace | Si no la ponés |
+|---|---|---|
+| `tipo` | `barras` o `lineas` | barras |
+| `titulo` | texto arriba del gráfico | sin título |
+| `unidad` | texto sobre el eje vertical y al lado de cada valor | nada |
+| `min`, `max` | un valor que el eje tiene que incluir, como `min: 0` | se calcula solo |
+
+Algunos detalles:
+
+- También sirven tabulaciones, que es lo que queda al copiar celdas de una
+  planilla, y barras verticales: una tabla Markdown pegada adentro de la valla
+  funciona tal cual.
+- Una celda vacía deja un hueco: la barra no aparece y la línea se corta.
+- Entran hasta 8 series, una por color. Con más, conviene partir el gráfico.
+- Los números van sin separador de miles: `1234`, no `1.234`.
+
+Al pasar el mouse, o al tocar con el dedo, se ven los valores de esa
+categoría. Abajo, **Ver datos** muestra la misma información como tabla. Si
+los datos tienen un error, el bloque se queda mostrando el texto de la valla,
+con un aviso de qué falló.
+
+A diferencia de los diagramas, los gráficos los dibuja el propio lector, sin
+bajar nada: funcionan sin conexión desde el primer momento.
 
 ### Enlaces e imágenes
 
@@ -236,7 +336,9 @@ desde dos caracteres en adelante. No busca en los otros archivos de la lista,
 sólo en el que estás leyendo.
 
 El texto de los diagramas queda afuera de la búsqueda: un diagrama dibujado es
-una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto.
+una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto. Por lo
+mismo, en los gráficos se buscan el título, la leyenda y la tabla de **Ver
+datos** cuando está abierta, pero no los números de los ejes.
 
 ### Cómodo o compacto
 
@@ -269,7 +371,8 @@ que en papel no salen ni el panel lateral ni la barra superior.
 
 Para que numere las hojas, en el diálogo abrí *Más opciones* y activá
 *Encabezados y pies de página*. Eso lo hace el navegador; no se puede pedir
-desde el documento.
+desde el documento. Por la misma razón, el índice de `[TOC]` sale impreso pero
+sin números de página.
 
 ### Atajos
 
@@ -310,9 +413,11 @@ exactamente esta sintaxis:
 - Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
 - Una cita, con algo en negrita adentro
 - Una tabla de tres columnas con encabezado
-- Un bloque de código con el lenguaje declarado
+- Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c o csharp
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
+- Un gráfico de barras y otro de líneas, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: barras" (o "tipo: lineas") y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías
+- La línea [TOC] sola, después del título, para que se arme un índice
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como

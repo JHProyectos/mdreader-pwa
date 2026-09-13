@@ -29,6 +29,31 @@
   --accent:#8F94F0; --accent-soft:#8F94F022; --warm:#E2907A; --good:#6FBF95;
 }
 
+/* colores del resaltado de código (--tk-*) y de las series de los gráficos.
+   Las series son una paleta categórica validada para daltonismo y contraste
+   contra --surface de cada tema; el orden es parte de esa validación, así
+   que no se reordena ni se agregan colores. */
+:root{
+  --tk-comment:#6B6F80; --tk-keyword:#34399B; --tk-string:#2F6B4F;
+  --tk-number:#B0452E;  --tk-function:#7A3E9D; --tk-type:#8A5A00;
+  --serie-1:#2a78d6; --serie-2:#eb6834; --serie-3:#1baf7a; --serie-4:#eda100;
+  --serie-5:#e87ba4; --serie-6:#008300; --serie-7:#4a3aa7; --serie-8:#e34948;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --tk-comment:#9498AC; --tk-keyword:#8F94F0; --tk-string:#6FBF95;
+    --tk-number:#E2907A;  --tk-function:#C99BE8; --tk-type:#E0B45C;
+    --serie-1:#3987e5; --serie-2:#d95926; --serie-3:#199e70; --serie-4:#c98500;
+    --serie-5:#d55181; --serie-6:#008300; --serie-7:#9085e9; --serie-8:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  --tk-comment:#9498AC; --tk-keyword:#8F94F0; --tk-string:#6FBF95;
+  --tk-number:#E2907A;  --tk-function:#C99BE8; --tk-type:#E0B45C;
+  --serie-1:#3987e5; --serie-2:#d95926; --serie-3:#199e70; --serie-4:#c98500;
+  --serie-5:#d55181; --serie-6:#008300; --serie-7:#9085e9; --serie-8:#e66767;
+}
+
 /* ================= densidad: cómodo (por defecto) / compacto ================= */
 :root{
   --lh-prose:1.6;
@@ -350,6 +375,86 @@ td{font-variant-numeric:tabular-nums}
 .diagram[data-diagram="listo"] svg{max-width:100%; height:auto; vertical-align:middle}
 .diagram-err{margin:0 0 var(--sp-blk); font-size:12.5px; line-height:1.4; color:var(--warm)}
 
+/* ---- resaltado de código (Prism) ---- */
+/* Prism sólo marca los fragmentos con clases: los colores los pone el lector,
+   así siguen el tema sin bajar una hoja de estilos de afuera. */
+.token.comment,.token.prolog,.token.doctype,.token.cdata{color:var(--tk-comment); font-style:italic}
+.token.punctuation{color:var(--muted)}
+.token.keyword,.token.atrule,.token.important,.token.tag,.token.selector{color:var(--tk-keyword)}
+.token.string,.token.char,.token.attr-value,.token.regex,.token.url{color:var(--tk-string)}
+.token.number,.token.boolean,.token.constant,.token.symbol,.token.entity{color:var(--tk-number)}
+.token.function{color:var(--tk-function)}
+.token.class-name,.token.builtin,.token.attr-name,.token.property{color:var(--tk-type)}
+.token.important{font-weight:600}
+.token.namespace{opacity:.75}
+
+/* ---- índice dentro del documento ([TOC]) ---- */
+.doctoc{
+  margin:0 0 var(--sp-blk); padding:10px 16px 10px 14px;
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  font-size:14px; line-height:1.45;
+}
+.doctoc-t{
+  margin:0 0 6px; font-family:var(--mono); font-size:10px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--muted);
+}
+article .doctoc ol{list-style:none; margin:0; padding:0}
+article .doctoc ol ol{padding-left:1.15em; margin:.1em 0 .25em}
+article .doctoc li{margin:.12em 0}
+article .doctoc a{text-decoration:none}
+article .doctoc a:hover{text-decoration:underline}
+article .doctoc > ol > li > a{font-weight:500}
+
+/* ---- gráficos de barras y líneas (los dibuja el lector, ver armarGrafico) ---- */
+/* Igual que los diagramas: hasta que se dibuja, o si los datos tienen un
+   error, el bloque muestra el texto de la valla con su propio marco. */
+.chart{margin:0}
+.chart[data-chart="listo"]{
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  padding:10px 14px 8px; margin:0 0 var(--sp-blk);
+}
+.chart-titulo{margin:0 0 4px; font-size:13.5px; font-weight:600; line-height:1.3; color:var(--ink)}
+.chart-leyenda{
+  display:flex; flex-wrap:wrap; gap:2px 14px; margin:0 0 6px;
+  font-size:12px; line-height:1.4; color:var(--muted);
+}
+.chart-leyenda span{display:inline-flex; align-items:center; gap:6px}
+/* el color va en la clave, nunca en el texto */
+.chart-leyenda i,.chart-tip i{flex:none; background:currentColor}
+.chart-leyenda i{width:10px; height:10px; border-radius:2px}
+.chart-leyenda.lineas i{width:14px; height:2px; border-radius:1px}
+.chart-lienzo{position:relative}
+.chart-lienzo svg{display:block; width:100%; height:auto; overflow:visible; touch-action:pan-y}
+.chart text{fill:var(--muted); font-family:var(--sans); font-size:11px; font-variant-numeric:tabular-nums}
+.chart .grid{stroke:var(--line); stroke-width:1}
+.chart .base{stroke:var(--muted); stroke-opacity:.6; stroke-width:1}
+.chart .barra{fill:currentColor; transition:opacity .12s}
+.chart svg.hover .grupo:not(.activo) .barra{opacity:.4}
+.chart .linea{fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
+.chart .punto{fill:currentColor; stroke:var(--surface); stroke-width:2}
+.chart .cruz{stroke:var(--muted); stroke-width:1; visibility:hidden}
+.chart .cruz.ver{visibility:visible}
+.chart .zona{fill:transparent}
+.chart .s1{color:var(--serie-1)} .chart .s2{color:var(--serie-2)}
+.chart .s3{color:var(--serie-3)} .chart .s4{color:var(--serie-4)}
+.chart .s5{color:var(--serie-5)} .chart .s6{color:var(--serie-6)}
+.chart .s7{color:var(--serie-7)} .chart .s8{color:var(--serie-8)}
+.chart-tip{
+  position:absolute; z-index:2; pointer-events:none; max-width:min(260px,100%);
+  background:var(--surface); border:1px solid var(--line); border-radius:4px;
+  box-shadow:0 2px 10px #0003; padding:6px 9px; font-size:12px; line-height:1.4;
+}
+.chart-tip .cat{color:var(--muted); margin-bottom:2px}
+.chart-tip .fila{display:flex; align-items:center; gap:6px}
+.chart-tip i{width:10px; height:2px; border-radius:1px}
+.chart-tip b{font-weight:600; font-variant-numeric:tabular-nums; color:var(--ink)}
+.chart-tip span{color:var(--muted)}
+.chart-datos{margin:4px 0 0; font-size:12.5px}
+.chart-datos > summary{cursor:pointer; width:fit-content; font-size:11.5px; color:var(--muted)}
+.chart-datos > summary:hover{color:var(--accent)}
+.chart-datos .tablewrap{margin:6px 0 2px}
+.chart-datos td.num{text-align:right}
+
 mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 @media print{
@@ -376,7 +481,23 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
      así que el marco del bloque no debe aportar el fondo oscuro del tema */
   .diagram[data-diagram="listo"]{background:none; border-color:#bbb}
   article h1,article h2,article h3,article h4{break-after:avoid}
-  pre,.mathblock,.diagram,table,blockquote{break-inside:avoid}
+  pre,.mathblock,.diagram,.chart,table,blockquote{break-inside:avoid}
+
+  /* Los colores del código y de las series del tema oscuro están pensados
+     para fondo oscuro: en papel van los del claro. Gana por orden: este
+     bloque tiene la misma especificidad que los del tema y va después. */
+  :root:not([data-theme="light"]){
+    --tk-comment:#6B6F80; --tk-keyword:#34399B; --tk-string:#2F6B4F;
+    --tk-number:#B0452E;  --tk-function:#7A3E9D; --tk-type:#8A5A00;
+    --serie-1:#2a78d6; --serie-2:#eb6834; --serie-3:#1baf7a; --serie-4:#eda100;
+    --serie-5:#e87ba4; --serie-6:#008300; --serie-7:#4a3aa7; --serie-8:#e34948;
+  }
+  /* el anillo de los puntos y la grilla son del color del papel */
+  .chart{--surface:#fff; --line:#ddd; --muted:#555}
+  .chart[data-chart="listo"],.doctoc{background:none; border-color:#bbb}
+  .chart-tip{display:none!important}
+  .chart-datos:not([open]){display:none}
+  .doctoc a{color:#000}
 }
 /* aviso de versión nueva disponible */
 #updBar{
@@ -528,6 +649,8 @@ justamente la gracia: descargalo y abrilo en el lector.
 ![Un pendrive del que sale una hoja escrita, y al lado una nube tachada: los
 archivos se leen desde donde estén, sin pasar por internet](ejemplo-portada.png)
 
+[TOC]
+
 ## Qué es esto
 
 Un lector de archivos Markdown que funciona **sin internet** y **sin subir nada
@@ -552,7 +675,9 @@ Instalado como app tiene dos cosas más:
 | **Markdown** | encabezados, listas anidadas, tablas, código, citas, énfasis, enlaces |
 | **Fórmulas** | con KaTeX si hay conexión, en Unicode si no |
 | **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
-| **Navegar** | índice automático de niveles 1 a 3, y `Alt`+`J` / `Alt`+`K` entre archivos |
+| **Código** | con colores para JavaScript, TypeScript, Python, HTML, CSS, Java, C y C# |
+| **Gráficos** | de barras y de líneas, a partir de una tabla de datos escrita en el archivo |
+| **Navegar** | índice automático de niveles 1 a 3, `[TOC]` para ponerlo dentro del documento, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
@@ -606,6 +731,14 @@ Para separar secciones, tres guiones:
 De `#` a `######`. Los de nivel 1 a 3 arman el índice **En este archivo** del
 panel lateral, que aparece sólo si hay más de dos.
 
+Para tener el índice **dentro** del documento, escribí `[TOC]` solo en una
+línea, donde quieras que aparezca. Ahí se arma la lista de encabezados de nivel
+1 a 3, con enlaces a cada sección: es el **Contenido** que está al principio de
+este archivo. Si el documento tiene un único `#`, se toma como el título y no
+se lista. También sirve `[[_TOC_]]`, como en GitLab.
+
+A diferencia del panel lateral, este índice sale impreso.
+
 ### Listas
 
 Las viñetas aceptan `-`, `*` o `+`:
@@ -636,10 +769,12 @@ encabezado. Las tablas anchas scrollean solas en horizontal.
 | Tabla | barras y guiones | no |
 | Fórmula | `$$` o valla `math` | no |
 | Diagrama | valla `mermaid` | no |
+| Gráfico | valla `grafico` | no |
 
 ### Código
 
-Con vallas de tres acentos graves, y le podés poner el lenguaje al lado:
+Con vallas de tres acentos graves. Si le ponés el lenguaje al lado, se
+resaltan las palabras clave, los textos, los números y los comentarios:
 
 ```js
 const lector = {
@@ -648,7 +783,34 @@ const lector = {
 };
 ```
 
-También sirve un bloque indentado con cuatro espacios:
+```python
+def promedio(valores):
+    """Devuelve el promedio, o None si la lista está vacía."""
+    if not valores:
+        return None
+    return sum(valores) / len(valores)
+```
+
+Estos son los lenguajes con colores y cómo se escribe cada uno:
+
+| Lenguaje | Al lado de la valla |
+|---|---|
+| JavaScript | `js`, `javascript`, `json` |
+| TypeScript | `ts`, `typescript` |
+| Python | `py`, `python` |
+| HTML y XML | `html`, `xml`, `svg` |
+| CSS | `css` |
+| Java | `java` |
+| C | `c`, `h` |
+| C# | `cs`, `csharp`, `c#` |
+
+Los colores los pone **Prism**, que pesa unos 33 KB y se baja la primera vez
+que abrís un archivo con código de alguno de estos lenguajes; después queda
+guardado. Siguen el tema del lector y al imprimir salen con los del tema
+claro. Sin conexión, o con cualquier otro lenguaje, el bloque se ve igual pero
+en un solo color.
+
+También sirve un bloque indentado con cuatro espacios, que queda sin colores:
 
     esto también es código
     por estar indentado
@@ -698,6 +860,65 @@ La librería de diagramas pesa unos 3 MB, así que **se baja recién cuando abr�
 un archivo que tiene alguno**. Después queda guardada y funciona sin conexión.
 Si no se puede bajar, el bloque se queda mostrando el código del diagrama, que
 se lee igual.
+
+### Gráficos
+
+Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras o de
+líneas. Arriba van las opciones, una por línea; después, los datos. La primera
+fila de datos es el encabezado: la primera columna tiene las categorías y cada
+una de las siguientes es una serie.
+
+```grafico
+tipo: barras
+titulo: Horas de estudio por semana
+unidad: h
+
+Semana, Análisis, Programación
+1, 6, 4
+2, 5, 7
+3, 8, 6
+4, 7, 9
+```
+
+Las columnas se separan con comas. Si los números llevan **coma decimal**,
+separá las columnas con punto y coma, como en este:
+
+```grafico
+tipo: lineas
+titulo: Tiempo de respuesta según la carga
+unidad: ms
+
+Usuarios; Con caché; Sin caché
+10; 12; 35
+50; 14; 80
+100; 15,5; 160
+200; 18; 340
+400; 25; 700
+```
+
+| Opción | Qué hace | Si no la ponés |
+|---|---|---|
+| `tipo` | `barras` o `lineas` | barras |
+| `titulo` | texto arriba del gráfico | sin título |
+| `unidad` | texto sobre el eje vertical y al lado de cada valor | nada |
+| `min`, `max` | un valor que el eje tiene que incluir, como `min: 0` | se calcula solo |
+
+Algunos detalles:
+
+- También sirven tabulaciones, que es lo que queda al copiar celdas de una
+  planilla, y barras verticales: una tabla Markdown pegada adentro de la valla
+  funciona tal cual.
+- Una celda vacía deja un hueco: la barra no aparece y la línea se corta.
+- Entran hasta 8 series, una por color. Con más, conviene partir el gráfico.
+- Los números van sin separador de miles: `1234`, no `1.234`.
+
+Al pasar el mouse, o al tocar con el dedo, se ven los valores de esa
+categoría. Abajo, **Ver datos** muestra la misma información como tabla. Si
+los datos tienen un error, el bloque se queda mostrando el texto de la valla,
+con un aviso de qué falló.
+
+A diferencia de los diagramas, los gráficos los dibuja el propio lector, sin
+bajar nada: funcionan sin conexión desde el primer momento.
 
 ### Enlaces e imágenes
 
@@ -754,7 +975,9 @@ desde dos caracteres en adelante. No busca en los otros archivos de la lista,
 sólo en el que estás leyendo.
 
 El texto de los diagramas queda afuera de la búsqueda: un diagrama dibujado es
-una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto.
+una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto. Por lo
+mismo, en los gráficos se buscan el título, la leyenda y la tabla de **Ver
+datos** cuando está abierta, pero no los números de los ejes.
 
 ### Cómodo o compacto
 
@@ -787,7 +1010,8 @@ que en papel no salen ni el panel lateral ni la barra superior.
 
 Para que numere las hojas, en el diálogo abrí *Más opciones* y activá
 *Encabezados y pies de página*. Eso lo hace el navegador; no se puede pedir
-desde el documento.
+desde el documento. Por la misma razón, el índice de `[TOC]` sale impreso pero
+sin números de página.
 
 ### Atajos
 
@@ -828,9 +1052,11 @@ exactamente esta sintaxis:
 - Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
 - Una cita, con algo en negrita adentro
 - Una tabla de tres columnas con encabezado
-- Un bloque de código con el lenguaje declarado
+- Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c o csharp
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
+- Un gráfico de barras y otro de líneas, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: barras" (o "tipo: lineas") y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías
+- La línea [TOC] sola, después del título, para que se arme un índice
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como
@@ -1269,7 +1495,8 @@ function render(md){
     const ln = L[i];
 
     /* ---- código cercado ---- */
-    const fence = ln.match(/^\s*(```+|~~~+)\s*([\w+-]*)\s*$/);
+    // el # y el punto entran para que ```c# no deje de ser una valla
+    const fence = ln.match(/^\s*(```+|~~~+)\s*([\w+#.-]*)\s*$/);
     if(fence){
       flushPara(para);
       const mark = fence[1][0].repeat(3);
@@ -1283,10 +1510,21 @@ function render(md){
         out.push(renderMath(body.join(" "), true));
       } else if(/^mermaid$/i.test(lang)){
         out.push(renderDiagram(body.join("\n")));
+      } else if(/^(grafico|chart)$/i.test(lang)){
+        out.push(renderGrafico(body.join("\n")));
       } else {
-        out.push("<pre><code>"+esc(body.join("\n"))+"</code></pre>");
+        out.push(renderCodigo(body.join("\n"), lang));
       }
       continue;
+    }
+
+    /* ---- índice dentro del documento: [TOC] solo en su línea ---- */
+    // Se deja una marca y se reemplaza al final, cuando ya se conocen todos
+    // los encabezados: el [TOC] suele ir arriba, antes de los que lista.
+    if(/^\s*(\[toc\]|\[\[_toc_\]\])\s*$/i.test(ln)){
+      flushPara(para);
+      out.push(MARCA_INDICE);
+      i++; continue;
     }
 
     /* ---- matemática en bloque \[ ... \]  ó  $$ ... $$ ---- */
@@ -1404,7 +1642,75 @@ function render(md){
     i++;
   }
   flushPara(para);
-  return {html: out.join("\n"), heads};
+  let html = out.join("\n");
+  if(html.includes(MARCA_INDICE)) html = html.split(MARCA_INDICE).join(indiceHTML(heads));
+  return {html, heads};
+}
+
+/* La marca no puede aparecer en el texto del usuario: todo pasa por esc(),
+   que convierte el < en &lt;. */
+const MARCA_INDICE = "<!--indice-->";
+
+/* lista anidada de encabezados para [TOC] */
+function indiceHTML(heads){
+  // un único # es el título del documento: no se lista a sí mismo
+  const lista = heads.filter(h => h.lv === 1).length === 1
+    ? heads.filter(h => h.lv > 1)
+    : heads;
+  if(!lista.length) return "";
+
+  const base = Math.min(...lista.map(h => h.lv));
+  let html = '<nav class="doctoc" aria-label="Índice"><p class="doctoc-t">Contenido</p><ol>';
+  let prof = -1;
+  for(const h of lista){
+    // un salto de nivel (## seguido de ####) baja de a un escalón
+    const nivel = Math.min(h.lv - base, prof + 1);
+    if(prof < 0){ /* primer ítem */ }
+    else if(nivel > prof) html += "<ol>";
+    else {
+      html += "</li>";
+      for(let k = prof; k > nivel; k--) html += "</ol></li>";
+    }
+    prof = nivel;
+    html += '<li><a href="#'+h.id+'">'+esc(h.txt)+"</a>";
+  }
+  html += "</li>";
+  for(let k = prof; k > 0; k--) html += "</ol></li>";
+  return html + "</ol></nav>";
+}
+
+/* ------------------------------------------------------------
+   renderCodigo: el resaltado lo hace Prism, que se carga aparte
+   (ver pintarCodigo). El parser sólo anota la gramática; un
+   lenguaje que no está en la lista queda como código sin color.
+   ------------------------------------------------------------ */
+const LENGUAJES = {
+  js:"javascript", javascript:"javascript", mjs:"javascript", cjs:"javascript", json:"javascript",
+  ts:"typescript", typescript:"typescript",
+  py:"python", python:"python",
+  html:"markup", htm:"markup", xml:"markup", svg:"markup",
+  css:"css",
+  java:"java",
+  c:"c", h:"c",
+  cs:"csharp", csharp:"csharp", "c#":"csharp"
+};
+
+function renderCodigo(src, lang){
+  const gramatica = LENGUAJES[lang.toLowerCase()];
+  return gramatica
+    ? '<pre data-lang="'+gramatica+'"><code>'+esc(src)+"</code></pre>"
+    : "<pre><code>"+esc(src)+"</code></pre>";
+}
+
+/* ------------------------------------------------------------
+   renderGrafico: igual que los diagramas, el parser deja el texto
+   de la valla y el dibujo se hace ya montado (ver armarGrafico),
+   porque necesita el ancho real de la columna.
+   ------------------------------------------------------------ */
+function renderGrafico(src){
+  return '<figure class="chart" data-chart="pendiente">'
+       +   '<pre class="chart-src"><code>'+esc(src)+'</code></pre>'
+       + '</figure>';
 }
 
 /* ============================================================
@@ -1561,6 +1867,477 @@ function redibujarDiagramas(){
 }
 
 /* ============================================================
+   resaltado de código (Prism)
+
+   Como Mermaid, se baja del CDN recién cuando el archivo abierto
+   tiene código en alguno de los lenguajes de LENGUAJES, y después
+   queda en el caché del service worker. Sin librería el bloque se
+   ve igual, en un solo color.
+   ============================================================ */
+const PRISM_VER = "1.30.0";
+let PRISM = false;
+let prismCarga = null;
+
+function cargarScript(src){
+  return new Promise((resolve, reject) => {
+    const js = document.createElement("script");
+    js.src = src;
+    js.onload = () => resolve();
+    js.onerror = () => { js.remove(); reject(new Error("No se pudo cargar " + src)); };
+    document.head.appendChild(js);
+  });
+}
+
+function asegurarPrism(){
+  if(prismCarga) return prismCarga;
+  const BASE = "https://cdnjs.cloudflare.com/ajax/libs/prism/" + PRISM_VER + "/";
+  // Sin esto, Prism resalta por su cuenta todo lo que encuentra al cargar.
+  window.Prism = window.Prism || {};
+  window.Prism.manual = true;
+
+  // prism.min.js ya trae markup, css, clike y javascript; los demás se
+  // apoyan en esos, así que van después y entre ellos en paralelo.
+  prismCarga = cargarScript(BASE + "prism.min.js")
+    .then(() => Promise.all(["typescript", "python", "java", "c", "csharp"]
+      .map(l => cargarScript(BASE + "components/prism-" + l + ".min.js"))))
+    .then(() => (PRISM = !!(window.Prism && Prism.highlight)))
+    .catch(() => { prismCarga = null; return false; });   // se reintenta al abrir otro archivo
+  return prismCarga;
+}
+
+/* Con Prism ya cargado corre de un tirón, sin await: el código aparece
+   coloreado en el mismo cuadro, sin un parpadeo en gris. */
+async function pintarCodigo(){
+  const pendientes = () => [...$("doc").querySelectorAll("pre[data-lang]:not([data-resaltado])")];
+  if(!pendientes().length) return;
+
+  if(!PRISM){
+    const gen = generacionDoc;
+    if(!await asegurarPrism() || gen !== generacionDoc) return;
+  }
+
+  for(const pre of pendientes()){
+    const code = pre.firstElementChild;
+    const lang = pre.dataset.lang;
+    const gramatica = Prism.languages[lang];
+    if(!code || !gramatica) continue;
+    // Prism escapa el texto que recibe: el resultado es HTML seguro
+    code.innerHTML = Prism.highlight(code.textContent, gramatica, lang);
+    pre.dataset.resaltado = "";
+  }
+}
+
+/* ============================================================
+   gráficos de barras y de líneas
+
+   Los dibuja el propio lector en SVG, sin librerías, así funcionan
+   también desde un pendrive sin conexión. Los colores son variables
+   CSS (--serie-N, --line, --muted) y no quedan horneados como en
+   Mermaid: cambiar de tema o imprimir no obliga a redibujar. Sólo
+   el ancho dispara un redibujado, porque el SVG se arma a tamaño
+   real para que la letra de los ejes no se achique en el celular.
+   ============================================================ */
+const SVG_NS = "http://www.w3.org/2000/svg";
+const GRAF_MAX_SERIES = 8;     // una por color de la paleta: no se inventan colores
+const GRAF_ALTO = 220;         // alto del área de datos, en px
+const GRAF_CARACTER = 6.4;     // ancho medio de un carácter a 11px, para reservar lugar sin medir
+
+const GRAF_CLAVES = {
+  tipo:"tipo", type:"tipo",
+  titulo:"titulo", "título":"titulo", title:"titulo",
+  unidad:"unidad", unit:"unidad",
+  min:"min", max:"max"
+};
+
+const redondo = v => Math.round(v * 10) / 10;
+const fmtNumero = (v, decimales = 6) =>
+  v === null ? "—" : v.toLocaleString("es-AR", {maximumFractionDigits: decimales});
+
+/* "1.234,5", "1234.5", "12%" → número; vacío o "-" → null (hueco); otra cosa → NaN */
+function leerNumero(txt){
+  let s = String(txt || "").replace(/\s/g, "").replace(/%$/, "");
+  if(s === "" || s === "-") return null;
+  if(s.includes(",") && s.includes(".")){
+    // con los dos separadores, el que aparece último es el decimal
+    s = s.lastIndexOf(",") > s.lastIndexOf(".")
+      ? s.replace(/\./g, "").replace(",", ".")
+      : s.replace(/,/g, "");
+  } else {
+    s = s.replace(",", ".");
+  }
+  const n = Number(s);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+/* texto de la valla → {tipo, titulo, unidad, min, max, ejeX, series, categorias, valores}.
+   Los errores salen como Error con un mensaje para mostrarle al usuario. */
+function leerGrafico(src){
+  const g = {tipo:"barras", titulo:"", unidad:"", min:null, max:null};
+  const filas = [];
+  let sep = null;
+
+  for(const crudo of src.split("\n")){
+    const ln = crudo.trim();
+    if(!ln) continue;
+
+    // opciones "clave: valor", sólo antes de la primera fila de datos
+    if(!filas.length){
+      const op = ln.match(/^([a-záéíóú]+)\s*:\s*(.*)$/i);
+      const clave = op && GRAF_CLAVES[op[1].toLowerCase()];
+      if(clave){ g[clave] = op[2].trim(); continue; }
+    }
+    // la línea de guiones de una tabla Markdown pegada tal cual
+    if(/^\|?[\s:|-]+\|?$/.test(ln) && ln.includes("-")) continue;
+
+    // Sólo se recortan espacios: con tabulaciones, la celda vacía de la
+    // esquina (típica al copiar de una planilla) tiene que seguir ahí.
+    let fila = crudo.replace(/^ +| +$/g, "");
+    if(sep === null){
+      sep = fila.includes("\t") ? "\t" : fila.includes("|") ? "|" : fila.includes(";") ? ";" : ",";
+    }
+    if(sep === "|") fila = fila.trim().replace(/^\|/, "").replace(/\|$/, "");
+    filas.push(fila.split(sep).map(c => c.trim()));
+  }
+
+  const tipo = String(g.tipo).toLowerCase();
+  if(/^(barras?|columnas?|bars?)$/.test(tipo)) g.tipo = "barras";
+  else if(/^(l[ií]neas?|lines?)$/.test(tipo)) g.tipo = "lineas";
+  else throw new Error('el tipo "' + g.tipo + '" no existe: tiene que ser barras o lineas');
+
+  for(const k of ["min", "max"]){
+    if(g[k] === null || g[k] === ""){ g[k] = null; continue; }
+    const n = leerNumero(g[k]);
+    if(n === null || Number.isNaN(n)) throw new Error(k + ' tiene que ser un número, no "' + g[k] + '"');
+    g[k] = n;
+  }
+
+  if(filas.length < 2) throw new Error("faltan datos: hace falta una fila de encabezado y al menos una de valores");
+  const [encabezado, ...resto] = filas;
+  g.ejeX = encabezado[0] || "";
+  g.series = encabezado.slice(1).map((s, k) => s || "Serie " + (k + 1));
+  if(!g.series.length) throw new Error("el encabezado necesita al menos una columna de valores después de la de categorías");
+  if(g.series.length > GRAF_MAX_SERIES){
+    throw new Error("hay " + g.series.length + " series y el máximo es " + GRAF_MAX_SERIES);
+  }
+
+  g.categorias = resto.map(f => f[0] || "");
+  g.valores = resto.map((f, r) => g.series.map((nombre, k) => {
+    const n = leerNumero(f[k + 1]);
+    if(Number.isNaN(n)) throw new Error('"' + f[k + 1] + '" no es un número (fila ' + (r + 1) + ", " + nombre + ")");
+    return n;
+  }));
+  if(!g.valores.some(f => f.some(v => v !== null))) throw new Error("no hay ningún valor numérico");
+  return g;
+}
+
+/* eje con valores redondos: pasos de 1, 2, 2,5 o 5 por potencia de 10 */
+function escalaLinda(lo, hi){
+  if(lo === hi){ const d = Math.abs(lo) / 2 || 1; lo -= d; hi += d; }
+  const bruto = (hi - lo) / 5;
+  const mag = Math.pow(10, Math.floor(Math.log10(bruto)));
+  const r = bruto / mag;
+  const paso = (r <= 1 ? 1 : r <= 2 ? 2 : r <= 2.5 ? 2.5 : r <= 5 ? 5 : 10) * mag;
+  const ini = Math.floor(lo / paso + 1e-9) * paso;
+  const fin = Math.ceil(hi / paso - 1e-9) * paso;
+  const ticks = [];
+  for(let k = 0; ini + k * paso <= fin + paso / 2; k++) ticks.push(+(ini + k * paso).toPrecision(12));
+  return {lo: ini, hi: fin, paso, ticks};
+}
+
+function svgNodo(tag, attrs, padre){
+  const n = document.createElementNS(SVG_NS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(padre) padre.appendChild(n);
+  return n;
+}
+
+/* barra con la punta redondeada y la base recta, hacia arriba o hacia abajo */
+function caminoBarra(x, w, yBase, yPunta){
+  const r = Math.min(4, w / 2, Math.abs(yBase - yPunta));
+  const s = yPunta < yBase ? 1 : -1;
+  const [a, b, c, d] = [x, x + r, x + w - r, x + w].map(redondo);
+  const [yb, yp, yr] = [yBase, yPunta, yPunta + s * r].map(redondo);
+  return `M${a},${yb}V${yr}Q${a},${yp} ${b},${yp}H${c}Q${d},${yp} ${d},${yr}V${yb}Z`;
+}
+
+/* arma el SVG y su capa de hover dentro de lienzo; se repite si cambia el ancho */
+function dibujarLienzo(lienzo, g){
+  const ancho = Math.round(lienzo.clientWidth);
+  if(ancho < 120) return;          // documento oculto o todavía sin layout
+  lienzo.dataset.ancho = ancho;
+  lienzo.textContent = "";
+
+  // rango: las barras siempre arrancan de cero; las líneas, sólo si los
+  // datos quedan cerca, para que una serie entre 980 y 1020 no se vea plana
+  const todos = g.valores.flat().filter(v => v !== null);
+  let lo = Math.min(...todos), hi = Math.max(...todos);
+  if(g.tipo === "barras"){ lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+  else if(lo >= 0 && lo <= hi / 2) lo = 0;
+  else if(hi <= 0 && hi >= lo / 2) hi = 0;
+  if(g.min !== null) lo = Math.min(lo, g.min);
+  if(g.max !== null) hi = Math.max(hi, g.max);
+  const escala = escalaLinda(lo, hi);
+  const decimales = (String(+escala.paso.toPrecision(6)).split(".")[1] || "").length;
+  const etiquetasY = escala.ticks.map(t => fmtNumero(t, decimales));
+
+  const izq = Math.ceil(Math.max(...etiquetasY.map(t => t.length)) * GRAF_CARACTER) + 10;
+  const der = 12, arriba = g.unidad ? 24 : 10, abajo = 26;
+  const alto = arriba + GRAF_ALTO + abajo;
+  const x0 = izq, x1 = ancho - der, y0 = arriba, y1 = arriba + GRAF_ALTO;
+  const yDe = v => y1 - (v - escala.lo) / (escala.hi - escala.lo) * GRAF_ALTO;
+
+  const svg = svgNodo("svg", {
+    viewBox: "0 0 " + ancho + " " + alto, width: ancho, height: alto, role: "img",
+    "aria-label": g.titulo || (g.tipo === "barras" ? "Gráfico de barras" : "Gráfico de líneas")
+  }, lienzo);
+
+  /* grilla y eje vertical */
+  const ejes = svgNodo("g", {}, svg);
+  const hayCero = escala.ticks.includes(0);
+  escala.ticks.forEach((t, k) => {
+    const y = Math.round(yDe(t)) + .5;
+    svgNodo("line", {x1: x0, x2: x1, y1: y, y2: y, class: t === 0 || (!hayCero && k === 0) ? "base" : "grid"}, ejes);
+    svgNodo("text", {x: x0 - 8, y, dy: "0.32em", "text-anchor": "end"}, ejes).textContent = etiquetasY[k];
+  });
+  if(g.unidad) svgNodo("text", {x: 0, y: 11}, ejes).textContent = g.unidad;
+
+  /* posiciones horizontales: las barras ocupan una franja por categoría;
+     las líneas van de punta a punta */
+  const n = g.categorias.length;
+  const banda = (x1 - x0) / n;
+  const hueco = g.tipo === "barras" ? banda : (n === 1 ? x1 - x0 : (x1 - x0 - 16) / (n - 1));
+  const xDe = g.tipo === "barras"
+    ? i => x0 + banda * (i + .5)
+    : i => n === 1 ? (x0 + x1) / 2 : x0 + 8 + i * hueco;
+
+  /* etiquetas de categorías: si no entran todas, una cada tantas */
+  const recorte = t => t.length > 16 ? t.slice(0, 15) + "…" : t;
+  const largo = Math.max(...g.categorias.map(c => recorte(c).length));
+  const cada = Math.max(1, Math.ceil((largo * GRAF_CARACTER + 8) / hueco));
+  g.categorias.forEach((c, i) => {
+    if(i % cada) return;
+    const w = recorte(c).length * GRAF_CARACTER;
+    const x = Math.min(Math.max(xDe(i), w / 2), ancho - w / 2);
+    svgNodo("text", {x: redondo(x), y: y1 + 17, "text-anchor": "middle"}, ejes).textContent = recorte(c);
+  });
+
+  /* marcas */
+  const S = g.series.length;
+  const capa = svgNodo("g", {}, svg);
+  if(g.tipo === "barras"){
+    const GAP = 2;
+    const w = Math.max(1, Math.min(24, (banda * .8 - GAP * (S - 1)) / S));
+    const yBase = yDe(0);
+    g.valores.forEach((fila, i) => {
+      const grupo = svgNodo("g", {class: "grupo", "data-i": i}, capa);
+      const inicio = xDe(i) - (w * S + GAP * (S - 1)) / 2;
+      fila.forEach((v, k) => {
+        if(v === null || v === 0) return;
+        svgNodo("path", {class: "barra s" + (k + 1), d: caminoBarra(inicio + k * (w + GAP), w, yBase, yDe(v))}, grupo);
+      });
+    });
+  } else {
+    g.series.forEach((nombre, k) => {
+      let d = "", seguido = false;
+      g.valores.forEach((fila, i) => {
+        if(fila[k] === null){ seguido = false; return; }
+        d += (seguido ? "L" : "M") + redondo(xDe(i)) + "," + redondo(yDe(fila[k]));
+        seguido = true;
+      });
+      if(d) svgNodo("path", {class: "linea s" + (k + 1), d}, capa);
+    });
+    // puntos: todos si son pocos; si no, sólo los que quedan sueltos entre huecos
+    g.series.forEach((nombre, k) => {
+      g.valores.forEach((fila, i) => {
+        if(fila[k] === null) return;
+        const suelto = (i === 0 || g.valores[i - 1][k] === null) && (i === n - 1 || g.valores[i + 1][k] === null);
+        if(n <= 24 || suelto){
+          svgNodo("circle", {class: "punto s" + (k + 1), cx: redondo(xDe(i)), cy: redondo(yDe(fila[k])), r: 4}, capa);
+        }
+      });
+    });
+  }
+
+  /* hover: una zona invisible por categoría, más ancha que la marca */
+  const cruz = g.tipo === "lineas" ? svgNodo("line", {class: "cruz", x1: 0, x2: 0, y1: y0, y2: y1}, svg) : null;
+  const resaltes = g.tipo === "lineas" ? svgNodo("g", {}, svg) : null;
+  const zonas = svgNodo("g", {}, svg);
+  for(let i = 0; i < n; i++){
+    const desde = g.tipo === "barras" ? x0 + banda * i : Math.max(x0, xDe(i) - hueco / 2);
+    const hasta = g.tipo === "barras" ? desde + banda : Math.min(x1, xDe(i) + hueco / 2);
+    svgNodo("rect", {class: "zona", "data-i": i, x: redondo(desde), y: 0, width: redondo(hasta - desde), height: alto}, zonas);
+  }
+
+  const tip = document.createElement("div");
+  tip.className = "chart-tip";
+  tip.hidden = true;
+  lienzo.appendChild(tip);
+
+  const apagar = () => {
+    tip.hidden = true;
+    svg.classList.remove("hover");
+    capa.querySelectorAll(".activo").forEach(e => e.classList.remove("activo"));
+    if(cruz) cruz.classList.remove("ver");
+    if(resaltes) resaltes.textContent = "";
+  };
+
+  const mostrar = (i, e) => {
+    svg.classList.add("hover");
+    if(g.tipo === "barras"){
+      capa.querySelectorAll(".grupo").forEach(gr => gr.classList.toggle("activo", +gr.dataset.i === i));
+    } else {
+      const x = redondo(xDe(i));
+      cruz.setAttribute("x1", x);
+      cruz.setAttribute("x2", x);
+      cruz.classList.add("ver");
+      resaltes.textContent = "";
+      g.valores[i].forEach((v, k) => {
+        if(v !== null) svgNodo("circle", {class: "punto s" + (k + 1), cx: x, cy: redondo(yDe(v)), r: 5}, resaltes);
+      });
+    }
+
+    // Todo con textContent: categorías y series vienen del archivo.
+    // El valor va primero y resaltado; el nombre de la serie, atrás.
+    tip.textContent = "";
+    const cat = document.createElement("div");
+    cat.className = "cat";
+    cat.textContent = g.categorias[i];
+    tip.appendChild(cat);
+    g.series.forEach((nombre, k) => {
+      const v = g.valores[i][k];
+      const fila = document.createElement("div");
+      fila.className = "fila";
+      const clave = document.createElement("i");
+      clave.className = "s" + (k + 1);
+      const valor = document.createElement("b");
+      valor.textContent = fmtNumero(v) + (g.unidad && v !== null ? " " + g.unidad : "");
+      const serie = document.createElement("span");
+      serie.textContent = nombre;
+      fila.append(clave, valor, serie);
+      tip.appendChild(fila);
+    });
+    tip.hidden = false;
+
+    // al lado del puntero, del lado donde entre
+    const caja = lienzo.getBoundingClientRect();
+    const px = e.clientX - caja.left, py = e.clientY - caja.top;
+    let left = px + 14;
+    if(left + tip.offsetWidth > caja.width) left = px - 14 - tip.offsetWidth;
+    tip.style.left = Math.max(0, left) + "px";
+    tip.style.top = Math.max(0, Math.min(py - tip.offsetHeight / 2, caja.height - tip.offsetHeight)) + "px";
+  };
+
+  const alMover = e => {
+    const zona = e.target.closest && e.target.closest(".zona");
+    if(zona) mostrar(+zona.dataset.i, e); else apagar();
+  };
+  svg.addEventListener("pointermove", alMover);
+  svg.addEventListener("pointerdown", alMover);
+  // con el dedo no hay "salir": el cartel queda hasta que se toca otra cosa
+  svg.addEventListener("pointerleave", e => { if(e.pointerType !== "touch") apagar(); });
+  lienzo._apagar = apagar;
+}
+
+/* título, leyenda, lienzo y tabla de datos; el lienzo es lo único que se redibuja */
+function armarGrafico(bloque){
+  const fuente = bloque.querySelector(".chart-src");
+  const g = leerGrafico(fuente.textContent);
+
+  const caja = document.createElement("div");
+  caja.className = "chart-dibujo";
+
+  if(g.titulo){
+    const titulo = document.createElement("p");
+    titulo.className = "chart-titulo";
+    titulo.textContent = g.titulo;
+    caja.appendChild(titulo);
+  }
+
+  // con una sola serie el título ya dice qué se grafica
+  if(g.series.length > 1){
+    const leyenda = document.createElement("div");
+    leyenda.className = "chart-leyenda " + g.tipo;
+    g.series.forEach((nombre, k) => {
+      const item = document.createElement("span");
+      const clave = document.createElement("i");
+      clave.className = "s" + (k + 1);
+      item.append(clave, document.createTextNode(nombre));
+      leyenda.appendChild(item);
+    });
+    caja.appendChild(leyenda);
+  }
+
+  const lienzo = document.createElement("div");
+  lienzo.className = "chart-lienzo";
+  caja.appendChild(lienzo);
+
+  // los mismos valores en una tabla: no dependen del color ni del puntero
+  const datos = document.createElement("details");
+  datos.className = "chart-datos";
+  const resumen = document.createElement("summary");
+  resumen.textContent = "Ver datos";
+  const envoltura = document.createElement("div");
+  envoltura.className = "tablewrap";
+  const tabla = document.createElement("table");
+  const cabecera = tabla.createTHead().insertRow();
+  [g.ejeX, ...g.series].forEach(t => {
+    const th = document.createElement("th");
+    th.textContent = t;
+    cabecera.appendChild(th);
+  });
+  const cuerpo = tabla.createTBody();
+  g.categorias.forEach((c, i) => {
+    const fila = cuerpo.insertRow();
+    fila.insertCell().textContent = c;
+    g.valores[i].forEach(v => {
+      const td = fila.insertCell();
+      td.className = "num";
+      td.textContent = fmtNumero(v);
+    });
+  });
+  envoltura.appendChild(tabla);
+  datos.append(resumen, envoltura);
+  caja.appendChild(datos);
+
+  bloque.appendChild(caja);
+  fuente.hidden = true;
+  bloque.dataset.chart = "listo";
+  bloque._grafico = g;
+  dibujarLienzo(lienzo, g);
+}
+
+/* síncrono: necesita el documento ya visible para medir el ancho */
+function pintarGraficos(){
+  $("doc").querySelectorAll('.chart[data-chart="pendiente"]').forEach(bloque => {
+    try{
+      armarGrafico(bloque);
+    }catch(error){
+      const armado = bloque.querySelector(".chart-dibujo");
+      if(armado) armado.remove();
+      const fuente = bloque.querySelector(".chart-src");
+      if(fuente) fuente.hidden = false;
+      bloque.dataset.chart = "error";
+      const nota = document.createElement("p");
+      nota.className = "diagram-err";
+      nota.textContent = "No se pudo dibujar este gráfico: " +
+        String((error && error.message) || error || "error desconocido");
+      bloque.appendChild(nota);
+    }
+  });
+}
+
+/* monta el HTML ya parseado y completa lo que se dibuja después */
+function mostrarDocumento(html){
+  generacionDoc++;              // corta el pintado que hubiera en curso del documento anterior
+  $("doc").innerHTML = html;
+  $("doc").hidden = false;
+  $("drop").hidden = true;
+  pintarGraficos();
+  void pintarCodigo();
+  void pintarDiagramas();
+}
+
+/* ============================================================
    interfaz
    ============================================================ */
 function leerArchivoComoTexto(file){
@@ -1694,6 +2471,13 @@ function resetWorkspace(persistir = true){
   if(persistir) void vaciarWorkspacePersistido();
 }
 
+/* lleva a un encabezado sin que lo tape la barra superior */
+function irAEncabezado(id){
+  const t = document.getElementById(id);
+  if(t) $("main").scrollTo({top: t.offsetTop - 52, behavior:"smooth"});
+  return !!t;
+}
+
 /* el índice lateral: lo arman por igual un archivo y la ayuda */
 function dibujarIndice(heads){
   const toc = $("toc");
@@ -1703,8 +2487,7 @@ function dibujarIndice(heads){
     $("tocWrap").hidden = false;
     toc.querySelectorAll("a").forEach(a => a.onclick = e => {
       e.preventDefault();
-      const t = document.getElementById(a.getAttribute("href").slice(1));
-      if(t) $("main").scrollTo({top: t.offsetTop - 52, behavior:"smooth"});
+      irAEncabezado(a.getAttribute("href").slice(1));
     });
   } else { $("tocWrap").hidden = true; toc.innerHTML = ""; }
 }
@@ -1734,11 +2517,7 @@ function open(i, opciones = {}){
   current = i;
   const d = DOCS[i];
   const {html, heads} = render(d.text);
-  generacionDoc++;                  // corta el pintado de diagramas del archivo anterior
-  $("doc").innerHTML = html;
-  $("doc").hidden = false;
-  $("drop").hidden = true;
-  void pintarDiagramas();
+  mostrarDocumento(html);
   $("docname").textContent = d.path;
   // el navegador usa document.title en el encabezado impreso, así que le ponemos
   // el nombre real del archivo en vez del nombre del lector
@@ -1790,11 +2569,7 @@ function alternarAyuda(){
 
   // .trim() saca el salto de línea que el HTML deja pegado a la etiqueta
   const {html, heads} = render($("ayudaSrc").textContent.trim());
-  generacionDoc++;
-  $("doc").innerHTML = html;
-  $("doc").hidden = false;
-  $("drop").hidden = true;
-  void pintarDiagramas();
+  mostrarDocumento(html);
 
   $("docname").textContent = "ayuda · ejemplo.md";
   document.title = "Lector MD — ejemplo";
@@ -1835,12 +2610,14 @@ function search(q){
   if(!q || q.length < 2){ $("hits").textContent = ""; return; }
   const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "gi");
   let n = 0, first = null;
-  // Dos cosas quedan fuera de la búsqueda: los diagramas ya dibujados, porque
-  // son SVG y un <mark> de HTML adentro no se dibuja -haría desaparecer el
-  // texto-, y lo que está oculto, como el código fuente de esos diagramas:
-  // no tiene sentido contar un resultado que no se puede mostrar.
+  // Dos cosas quedan fuera de la búsqueda: lo que es SVG (diagramas y ejes de
+  // gráficos), porque un <mark> de HTML adentro no se dibuja -haría desaparecer
+  // el texto-, y lo que no se ve, como el código fuente detrás de un diagrama o
+  // la tabla de un gráfico con "Ver datos" cerrado: no tiene sentido contar un
+  // resultado que no se puede mostrar.
   const walk = document.createTreeWalker(art, NodeFilter.SHOW_TEXT, {
-    acceptNode: node => node.parentElement && node.parentElement.closest("svg,[hidden]")
+    acceptNode: node => node.parentElement &&
+      node.parentElement.closest("svg,[hidden],details:not([open]) > :not(summary)")
       ? NodeFilter.FILTER_REJECT
       : NodeFilter.FILTER_ACCEPT
   });
@@ -1887,6 +2664,37 @@ $("inFiles").onchange = e => {
 $("clearAll").onclick   = () => resetWorkspace();
 $("help").onclick       = () => alternarAyuda();
 $("help2").onclick      = () => alternarAyuda();
+
+// Enlaces internos -el índice de [TOC] o un [texto](#id) escrito a mano-:
+// el mismo desplazamiento que el índice lateral, sin tocar la URL.
+$("doc").addEventListener("click", e => {
+  const a = e.target.closest('a[href^="#"]');
+  if(!a) return;
+  let id = a.getAttribute("href").slice(1);
+  try{ id = decodeURIComponent(id); }catch(error){ /* se usa tal cual */ }
+  if(irAEncabezado(id)) e.preventDefault();
+});
+
+/* gráficos: el cartel tocado con el dedo se cierra al tocar cualquier otra cosa */
+document.addEventListener("pointerdown", e => {
+  document.querySelectorAll(".chart-lienzo").forEach(l => {
+    if(l._apagar && !l.contains(e.target)) l._apagar();
+  });
+});
+
+/* gráficos: se redibujan si cambia el ancho de la columna (ventana, densidad) */
+if("ResizeObserver" in window){
+  let cuadroGraficos = 0;
+  new ResizeObserver(() => {
+    cancelAnimationFrame(cuadroGraficos);
+    cuadroGraficos = requestAnimationFrame(() => {
+      $("doc").querySelectorAll('.chart[data-chart="listo"] .chart-lienzo').forEach(lienzo => {
+        const g = lienzo.closest(".chart")._grafico;
+        if(g && lienzo.dataset.ancho !== String(Math.round(lienzo.clientWidth))) dibujarLienzo(lienzo, g);
+      });
+    });
+  }).observe($("doc"));
+}
 
 /* ---------- sidebar en mobile ---------- */
 function closeSide(){
