@@ -27,7 +27,8 @@ A standalone, offline-first Markdown reader, installable as a PWA. Single HTML f
 - **Keeps your workspace.** Loaded documents, the selected file, and the reading position are stored locally and restored after closing, restarting, or updating the app. A document stays loaded until you remove it explicitly.
 - **Updates itself.** New deploys reach installed copies automatically — no cache clearing, no reinstalling. See [Updates](#updates).
 - **Dedicated print styles.** A separate `@media print` stylesheet so what you read on screen prints cleanly.
-- **Built-in help.** A **? Ayuda** button opens a sample document that explains what the reader does and which Markdown it understands, written in the very syntax it describes. It travels inside `index.html`, so it is there on a first run and on a USB copy with no connection.
+- **Built-in help.** A **? Help** button opens a sample document that explains what the reader does and which Markdown it understands. Every feature is shown twice: first the source exactly as it goes in the file, then the rendered result. It travels inside `index.html`, so it is there on a first run and on a USB copy with no connection.
+- **English and Spanish.** The interface and the help follow the browser's language, and an **EN** / **ES** button in the side panel switches between them. The choice is remembered. Documents themselves are never translated or altered.
 
 ## Why this exists
 
@@ -41,7 +42,7 @@ Try it right now at **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyectos
 - **Open individual files** — select one or several specific files.
 - **Drag and drop** — drop files anywhere on the reading pane.
 
-On narrow screens the side panel collapses; the **☰** button in the top bar opens it, and the same pickers are also available on the empty state, next to **Ver un ejemplo**, which opens the built-in help.
+On narrow screens the side panel collapses; the **☰** button in the top bar opens it, and the same pickers are also available on the empty state, next to **See an example**, which opens the built-in help.
 
 This mode requires no hosting and no internet connection, and is the simplest option if you only need to read files you pick yourself from within the app.
 
@@ -94,7 +95,7 @@ Installed copies update on their own without interrupting an open document. The 
 Bump `VERSION` at the top of `sw.js` and deploy. The new version is installed in the background and remains waiting while the app is in use. Once activated, its `activate` handler deletes older `lector-md-*` shell caches automatically:
 
 ```js
-const VERSION = "v0.9.0";
+const VERSION = "v0.10.0";
 ```
 
 The share-target cache and the IndexedDB workspace are excluded from that cleanup. Therefore, deleting an old application cache never removes a loaded document. The workspace is cleared only with **Clear all**, by removing documents individually, or by clearing the site's browser data.
@@ -103,7 +104,8 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 
 ```
 ├── index.html                # The full app: HTML + CSS + JS in a single file
-├── ejemplo.md                # Sample document: manual and live demo of the supported syntax
+├── ejemplo.md                # Sample document in Spanish: manual and live demo of the supported syntax
+├── example.md                # The same sample document in English
 ├── ejemplo-portada.png       # Illustration shown at the top of that document
 ├── manifest.json             # PWA metadata, file_handlers and share_target
 ├── sw.js                     # Service worker: caching, updates, share-target handling
@@ -126,7 +128,8 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 - **Prism is loaded on demand, in manual mode.** The core bundle plus the five extra grammars weigh about 33 KB, requested only when the open document has a code block in a supported language. Prism only tags tokens with classes; the colors are the reader's own CSS variables, so highlighting follows the theme without a third-party stylesheet and prints in light colors. Once highlighted, a search can't match across two differently colored tokens, the same way it can't across bold and plain text.
 - **Charts are drawn by the reader, not by a library.** Bars and lines are simple enough that a charting library would cost more than it gives, and an in-house renderer keeps the offline, single-file case working. The SVG takes its colors from CSS variables instead of baking them in, so switching theme or printing needs no redraw; it is redrawn only when the column width changes, because it is built at real pixel size to keep axis text legible on a phone. The series palette is a categorical order checked for color-vision deficiency and contrast against both surfaces; since three light-mode hues fall below 3:1, every chart ships a table view.
 - **Diagram text is excluded from the in-document search.** A rendered diagram is SVG, and an HTML `<mark>` inside it would not paint — it would make the matched text disappear. Hidden nodes (the diagram source behind a drawn SVG) are skipped for the same reason: a hit that can't be shown shouldn't be counted.
-- **The help document is embedded, not fetched.** It lives in a `<script type="text/markdown">` block, where the Markdown stays raw and readable without escaping the backticks of its own code fences. Fetching `ejemplo.md` instead would break the portable case: opened over `file://`, the browser refuses to read the file next to it, which is exactly the situation where built-in help matters most. The help is a separate view — it never enters the file list or IndexedDB, since that list means *your* files. `ejemplo.md` at the repo root is the same text, kept for reading on GitHub; edit both when it changes.
+- **The help document is embedded, not fetched.** There is one `<script type="text/markdown">` block per language, where the Markdown stays raw and readable without escaping the backticks of its own code fences. Fetching `ejemplo.md` instead would break the portable case: opened over `file://`, the browser refuses to read the file next to it, which is exactly the situation where built-in help matters most. The help is a separate view — it never enters the file list or IndexedDB, since that list means *your* files. `ejemplo.md` and `example.md` at the repo root are copies of those two blocks, kept for reading on GitHub. The embedded blocks are the source: edit them and copy the text over.
+- **Every visible string lives in one table.** `TEXTOS` holds a Spanish and an English entry per key. Static elements carry `data-t`, `data-t-title`, `data-t-placeholder` or `data-t-aria`, and a small script placed before the help blocks fills them in before the first paint. The language is the first entry of `navigator.languages` that is Spanish or English (English if none is) unless the user picked one. Only user-facing text is translated; code comments and identifiers stay in Spanish. A web app manifest can't vary by language, so the installed app keeps the name *Lector MD* and its Spanish description.
 - **Diagrams are redrawn in light colors for printing.** Mermaid bakes colors into the SVG, so a diagram rendered in dark theme would print as pale strokes on white paper. The ⎙ PDF button redraws them light, prints, and restores the screen theme. Pressing Ctrl+P directly bypasses this and prints with the current theme.
 
 ## License
@@ -157,7 +160,8 @@ Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un 
 - **Conserva el área de trabajo.** Los documentos cargados, el archivo seleccionado y la posición de lectura se guardan localmente y se restauran después de cerrar, reiniciar o actualizar la app. Un documento permanece cargado hasta que lo quitás explícitamente.
 - **Se actualiza sola.** Los deploys nuevos llegan solos a las copias instaladas, sin limpiar caché ni reinstalar. Ver [Actualizaciones](#actualizaciones).
 - **Impresión con estilos dedicados.** Hoja de estilos `@media print` propia para que lo que se lee en pantalla se imprima limpio.
-- **Ayuda incorporada.** El botón **? Ayuda** abre un documento de ejemplo que cuenta qué hace el lector y qué Markdown entiende, escrito con la misma sintaxis que describe. Viaja adentro de `index.html`, así que está desde el primer arranque y también en una copia en pendrive sin conexión.
+- **Ayuda incorporada.** El botón **? Ayuda** abre un documento de ejemplo que cuenta qué hace el lector y qué Markdown entiende. Cada función aparece dos veces: primero el texto tal como va en el archivo y después el resultado. Viaja adentro de `index.html`, así que está desde el primer arranque y también en una copia en pendrive sin conexión.
+- **Español e inglés.** La interfaz y la ayuda siguen el idioma del navegador, y un botón **EN** / **ES** en el panel lateral cambia entre los dos. La elección queda guardada. Los documentos nunca se traducen ni se modifican.
 
 ## Por qué existe
 
@@ -224,7 +228,7 @@ Las copias instaladas se actualizan solas sin interrumpir un documento abierto. 
 Subí `VERSION` arriba de todo en `sw.js` y desplegá. La versión nueva se instala en segundo plano y queda en espera mientras la app esté en uso. Una vez activada, su handler de `activate` elimina automáticamente los cachés de shell `lector-md-*` anteriores:
 
 ```js
-const VERSION = "v0.9.0";
+const VERSION = "v0.10.0";
 ```
 
 El caché del share target y el área de trabajo guardada en IndexedDB quedan fuera de esa limpieza. Por eso borrar un caché viejo de la aplicación nunca elimina un documento cargado. El área de trabajo sólo se vacía con **Limpiar todo**, quitando cada documento o borrando los datos del sitio desde el navegador.
@@ -233,7 +237,8 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 
 ```
 ├── index.html                # La app completa: HTML + CSS + JS en un solo archivo
-├── ejemplo.md                # Documento de muestra: manual y demo viva de la sintaxis soportada
+├── ejemplo.md                # Documento de muestra en español: manual y demo viva de la sintaxis soportada
+├── example.md                # El mismo documento de muestra, en inglés
 ├── ejemplo-portada.png       # Ilustración que encabeza ese documento
 ├── manifest.json             # Metadata de PWA, file_handlers y share_target
 ├── sw.js                     # Service worker: caché, actualizaciones y share target
@@ -256,7 +261,8 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 - **Prism se carga a demanda y en modo manual.** El paquete base más las cinco gramáticas extra pesan unos 33 KB, y se piden sólo si el documento abierto tiene un bloque de código en un lenguaje soportado. Prism sólo marca los fragmentos con clases; los colores son variables CSS del propio lector, así el resaltado sigue el tema sin una hoja de estilos de terceros y se imprime en claro. Una vez resaltado, la búsqueda no encuentra un texto que cruce dos fragmentos de distinto color, igual que no lo encuentra entre negrita y texto normal.
 - **Los gráficos los dibuja el lector, no una librería.** Barras y líneas son lo bastante simples como para que una librería de gráficos cueste más de lo que aporta, y un dibujo propio mantiene funcionando el caso de un solo archivo sin conexión. El SVG toma los colores de variables CSS en vez de hornearlos, así que cambiar de tema o imprimir no obliga a redibujar; sólo se redibuja si cambia el ancho de la columna, porque se arma a tamaño real para que el texto de los ejes se lea en el celular. La paleta de series es un orden categórico verificado para daltonismo y contraste contra los dos fondos; como tres tonos del tema claro quedan por debajo de 3:1, cada gráfico trae una vista de tabla.
 - **El texto de los diagramas queda fuera de la búsqueda.** Un diagrama dibujado es SVG, y un `<mark>` de HTML adentro no se pinta: haría desaparecer el texto encontrado. Lo oculto (el código fuente detrás de un SVG ya dibujado) se saltea por lo mismo: no tiene sentido contar un resultado que no se puede mostrar.
-- **El documento de ayuda va embebido, no se baja.** Vive en un bloque `<script type="text/markdown">`, donde el Markdown queda crudo y legible sin tener que escapar los acentos graves de sus propios bloques de código. Bajar `ejemplo.md` rompería el caso portátil: abierto con `file://` el navegador no deja leer el archivo de al lado, que es justo la situación donde una ayuda incorporada más sirve. La ayuda es una vista aparte: nunca entra en la lista de archivos ni en IndexedDB, porque esa lista es de *tus* archivos. El `ejemplo.md` de la raíz es el mismo texto, para poder leerlo en GitHub; cuando cambie hay que tocar los dos.
+- **El documento de ayuda va embebido, no se baja.** Hay un bloque `<script type="text/markdown">` por idioma, donde el Markdown queda crudo y legible sin tener que escapar los acentos graves de sus propios bloques de código. Bajar `ejemplo.md` rompería el caso portátil: abierto con `file://` el navegador no deja leer el archivo de al lado, que es justo la situación donde una ayuda incorporada más sirve. La ayuda es una vista aparte: nunca entra en la lista de archivos ni en IndexedDB, porque esa lista es de *tus* archivos. `ejemplo.md` y `example.md`, en la raíz, son copias de esos dos bloques para poder leerlos en GitHub. El original son los bloques embebidos: se editan ahí y se copia el texto.
+- **Todos los textos visibles están en una tabla.** `TEXTOS` tiene una entrada en español y otra en inglés por clave. Los elementos fijos llevan `data-t`, `data-t-title`, `data-t-placeholder` o `data-t-aria`, y un script chico ubicado antes de los bloques de ayuda los completa antes del primer cuadro. El idioma es el primero de `navigator.languages` que sea español o inglés (inglés si no hay ninguno), salvo que el usuario haya elegido otro. Sólo se traduce lo que ve el usuario; los comentarios y los nombres del código siguen en español. El manifest de una PWA no puede variar según el idioma, así que la app instalada conserva el nombre *Lector MD* y su descripción en español.
 - **Los diagramas se redibujan en claro para imprimir.** Mermaid hornea los colores dentro del SVG, así que un diagrama renderizado en tema oscuro saldría con trazos pálidos sobre papel blanco. El botón ⎙ PDF los redibuja en claro, imprime y restaura el tema de pantalla. Con Ctrl+P directo eso no se puede interceptar y sale con el tema actual.
 
 ## Licencia

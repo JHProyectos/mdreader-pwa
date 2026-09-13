@@ -1,11 +1,11 @@
 # Lector MD — documento de ejemplo
 
-Este archivo es el manual y la demostración al mismo tiempo: cada sección usa
-la sintaxis que está explicando. Si lo estás leyendo **dentro del lector**, lo
-que ves es exactamente lo que el lector entiende.
+Este archivo es el manual y la demostración al mismo tiempo. En cada sección
+aparece primero **cómo se escribe** algo, en un recuadro con el texto tal cual
+va en el archivo, y después **cómo se ve** en el lector.
 
-Si lo estás leyendo en GitHub, algunas cosas se van a ver distinto. Esa es
-justamente la gracia: descargalo y abrilo en el lector.
+Si lo estás leyendo en GitHub, algunos resultados se van a ver distinto: esa es
+justamente la gracia. Descargalo y abrilo en el lector.
 
 ![Un pendrive del que sale una hoja escrita, y al lado una nube tachada: los
 archivos se leen desde donde estén, sin pasar por internet](ejemplo-portada.png)
@@ -38,10 +38,11 @@ Instalado como app tiene dos cosas más:
 | **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
 | **Código** | con colores para JavaScript, TypeScript, Python, HTML, CSS, Java, C y C# |
 | **Gráficos** | de barras y de líneas, a partir de una tabla de datos escrita en el archivo |
-| **Navegar** | índice automático de niveles 1 a 3, `[TOC]` para ponerlo dentro del documento, y `Alt`+`J` / `Alt`+`K` entre archivos |
+| **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
+| **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
 | **Recordar** | qué archivos cargaste, cuál leías y en qué parte de cada uno |
 | **Funcionar** | sin conexión, sin servidor, con un solo archivo que podés llevar a cualquier lado |
 | **Actualizarse** | sola, sin perder lo que tenías abierto |
@@ -70,39 +71,93 @@ elegí **Lector MD** en la lista.
 
 ## Qué entiende del Markdown
 
+Cada ejemplo tiene dos partes: el recuadro con el texto tal como se escribe en
+el archivo y, debajo de **Se ve así**, el resultado.
+
 ### Texto
+
+~~~markdown
+Se puede poner *cursiva* con asteriscos o _con guiones bajos_, **negrita**,
+***negrita y cursiva*** juntas, ~~texto tachado~~ y `código en línea`.
+~~~
+
+Se ve así:
 
 Se puede poner *cursiva* con asteriscos o _con guiones bajos_, **negrita**,
 ***negrita y cursiva*** juntas, ~~texto tachado~~ y `código en línea`.
 
 Los párrafos se separan con una línea en blanco. Un salto de línea suelto
-**no** corta el párrafo: las líneas se unen, como en el Markdown clásico.
+**no** corta el párrafo: las líneas se unen, como en el Markdown clásico. Por
+eso las dos líneas del ejemplo se ven como una sola.
 
-Las citas llevan un signo mayor adelante:
+### Citas
+
+~~~markdown
+> Una cita ocupa su propio bloque y puede tener **formato adentro**.
+~~~
+
+Se ve así:
 
 > Una cita ocupa su propio bloque y puede tener **formato adentro**.
-> Incluso listas, tablas o código.
 
-Para separar secciones, tres guiones:
+### Separadores
+
+Tres guiones solos en una línea dibujan una raya horizontal:
+
+~~~markdown
+---
+~~~
+
+Se ve así:
 
 ---
 
 ### Encabezados
 
-De `#` a `######`. Los de nivel 1 a 3 arman el índice **En este archivo** del
-panel lateral, que aparece sólo si hay más de dos.
+~~~markdown
+# Título del documento
+## Sección
+### Subsección
+~~~
 
-Para tener el índice **dentro** del documento, escribí `[TOC]` solo en una
-línea, donde quieras que aparezca. Ahí se arma la lista de encabezados de nivel
-1 a 3, con enlaces a cada sección: es el **Contenido** que está al principio de
-este archivo. Si el documento tiene un único `#`, se toma como el título y no
-se lista. También sirve `[[_TOC_]]`, como en GitLab.
+Van de `#` a `######`: cuantos más numerales, más chico el título. No hay un
+resultado aparte porque los títulos de este mismo documento están escritos
+así; este, por ejemplo, lleva `###`.
 
-A diferencia del panel lateral, este índice sale impreso.
+Los de nivel 1 a 3 arman el índice **En este archivo** del panel lateral y la
+tabla de contenidos que se explica a continuación.
+
+### Tabla de contenidos
+
+~~~markdown
+[TOC]
+~~~
+
+Escribí `[TOC]` solo en una línea, donde quieras que aparezca. Ahí se arma la
+lista de encabezados de nivel 1 a 3, con un enlace a cada sección. El resultado
+es el **Contenido** que está al principio de este archivo.
+
+Si el documento tiene un único `#`, se toma como el título y no se lista.
+También sirve `[[_TOC_]]`, como en GitLab. A diferencia del índice del panel
+lateral, la tabla de contenidos sale impresa.
 
 ### Listas
 
-Las viñetas aceptan `-`, `*` o `+`:
+~~~markdown
+- Un ítem
+- Otro ítem
+  - Anidado un nivel
+  - Otro anidado
+- Vuelta al primer nivel
+
+1. Primer paso
+2. Segundo paso
+   1. Subpaso
+   2. Otro subpaso
+3. Tercer paso
+~~~
+
+Se ve así:
 
 - Un ítem
 - Otro ítem
@@ -110,39 +165,51 @@ Las viñetas aceptan `-`, `*` o `+`:
   - Otro anidado
 - Vuelta al primer nivel
 
-Las numeradas aceptan `1.` o `1)`:
-
 1. Primer paso
 2. Segundo paso
    1. Subpaso
    2. Otro subpaso
 3. Tercer paso
 
+Las viñetas aceptan `-`, `*` o `+`, y las numeradas `1.` o `1)`.
+
 ### Tablas
 
-Se escriben con barras verticales y una línea de guiones debajo del
-encabezado. Las tablas anchas scrollean solas en horizontal.
+~~~markdown
+| Elemento | Sintaxis | Aparece en el índice |
+|---|---|---|
+| Encabezado | `#` a `######` | niveles 1 a 3 |
+| Cita | signo mayor | no |
+| Fórmula | `$$` o valla `math` | no |
+~~~
+
+Se ve así:
 
 | Elemento | Sintaxis | Aparece en el índice |
 |---|---|---|
 | Encabezado | `#` a `######` | niveles 1 a 3 |
 | Cita | signo mayor | no |
-| Tabla | barras y guiones | no |
 | Fórmula | `$$` o valla `math` | no |
-| Diagrama | valla `mermaid` | no |
-| Gráfico | valla `grafico` | no |
+
+La fila de guiones debajo del encabezado es obligatoria. Las tablas anchas
+scrollean solas en horizontal.
 
 ### Código
 
 Con vallas de tres acentos graves. Si le ponés el lenguaje al lado, se
 resaltan las palabras clave, los textos, los números y los comentarios:
 
-```js
-const lector = {
-  archivos: [],
-  offline: true
-};
+~~~markdown
+```python
+def promedio(valores):
+    """Devuelve el promedio, o None si la lista está vacía."""
+    if not valores:
+        return None
+    return sum(valores) / len(valores)
 ```
+~~~
+
+Se ve así:
 
 ```python
 def promedio(valores):
@@ -173,18 +240,48 @@ en un solo color.
 
 También sirve un bloque indentado con cuatro espacios, que queda sin colores:
 
+~~~markdown
+    esto también es código
+    por estar indentado
+~~~
+
+Se ve así:
+
     esto también es código
     por estar indentado
 
 ### Fórmulas
 
-Las fórmulas en línea van entre signos pesos, como $E = mc^2$. Las de bloque
-van entre doble signo pesos:
+Las fórmulas **en línea** van entre signos pesos, dentro de una oración:
+
+~~~markdown
+La energía en reposo es $E = mc^2$.
+~~~
+
+Se ve así:
+
+La energía en reposo es $E = mc^2$.
+
+Las fórmulas **de bloque** van solas en su línea, entre doble signo pesos:
+
+~~~markdown
+$$\int_0^1 x^2\,dx = \frac{1}{3}$$
+~~~
+
+Se ve así:
 
 $$\int_0^1 x^2\,dx = \frac{1}{3}$$
 
 También funciona una valla con lenguaje `math`, `latex` o `tex`, al estilo de
 GitHub:
+
+~~~markdown
+```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```
+~~~
+
+Se ve así:
 
 ```math
 \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
@@ -197,6 +294,18 @@ no, caen a una aproximación en Unicode que se lee bien igual.
 
 Una valla con lenguaje `mermaid` se dibuja como diagrama:
 
+~~~markdown
+```mermaid
+flowchart LR
+  W[WhatsApp] -->|compartir| SW[Service worker]
+  SW --> C[(Cache)]
+  C --> APP[Lector MD]
+  APP --> IDB[(IndexedDB)]
+```
+~~~
+
+Se ve así:
+
 ```mermaid
 flowchart LR
   W[WhatsApp] -->|compartir| SW[Service worker]
@@ -206,8 +315,19 @@ flowchart LR
 ```
 
 Sirven los tipos de **Mermaid**: flujos, secuencias, clases, estados, Gantt.
-Los diagramas siguen el tema del lector, y al imprimir se redibujan en claro
-para que salgan legibles en papel.
+Por ejemplo, uno de estados:
+
+~~~markdown
+```mermaid
+stateDiagram-v2
+  [*] --> Vacio
+  Vacio --> Leyendo: abrir carpeta
+  Leyendo --> Imprimiendo: boton PDF
+  Imprimiendo --> Leyendo
+```
+~~~
+
+Se ve así:
 
 ```mermaid
 stateDiagram-v2
@@ -216,6 +336,9 @@ stateDiagram-v2
   Leyendo --> Imprimiendo: boton PDF
   Imprimiendo --> Leyendo
 ```
+
+Los diagramas siguen el tema del lector, y al imprimir se redibujan en claro
+para que salgan legibles en papel.
 
 La librería de diagramas pesa unos 3 MB, así que **se baja recién cuando abrís
 un archivo que tiene alguno**. Después queda guardada y funciona sin conexión.
@@ -228,6 +351,22 @@ Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras o de
 líneas. Arriba van las opciones, una por línea; después, los datos. La primera
 fila de datos es el encabezado: la primera columna tiene las categorías y cada
 una de las siguientes es una serie.
+
+~~~markdown
+```grafico
+tipo: barras
+titulo: Horas de estudio por semana
+unidad: h
+
+Semana, Análisis, Programación
+1, 6, 4
+2, 5, 7
+3, 8, 6
+4, 7, 9
+```
+~~~
+
+Se ve así:
 
 ```grafico
 tipo: barras
@@ -242,7 +381,24 @@ Semana, Análisis, Programación
 ```
 
 Las columnas se separan con comas. Si los números llevan **coma decimal**,
-separá las columnas con punto y coma, como en este:
+separá las columnas con punto y coma:
+
+~~~markdown
+```grafico
+tipo: lineas
+titulo: Tiempo de respuesta según la carga
+unidad: ms
+
+Usuarios; Con caché; Sin caché
+10; 12; 35
+50; 14; 80
+100; 15,5; 160
+200; 18; 340
+400; 25; 700
+```
+~~~
+
+Se ve así:
 
 ```grafico
 tipo: lineas
@@ -266,6 +422,8 @@ Usuarios; Con caché; Sin caché
 
 Algunos detalles:
 
+- Las opciones también se entienden en inglés: `type`, `title` y `unit`, con
+  `bar` o `line`.
 - También sirven tabulaciones, que es lo que queda al copiar celdas de una
   planilla, y barras verticales: una tabla Markdown pegada adentro de la valla
   funciona tal cual.
@@ -283,21 +441,44 @@ bajar nada: funcionan sin conexión desde el primer momento.
 
 ### Enlaces e imágenes
 
+~~~markdown
+Un [enlace común](https://mdreader.jhproyectos.com.ar), y una dirección suelta
+que se convierte sola: https://github.com/JHProyectos/mdreader-pwa
+~~~
+
+Se ve así:
+
 Un [enlace común](https://mdreader.jhproyectos.com.ar), y una dirección suelta
 que se convierte sola: https://github.com/JHProyectos/mdreader-pwa
 
-Las imágenes van con la sintaxis de admiración y se achican para entrar en la
-columna. Ojo: una imagen con ruta relativa sólo se ve si esa ruta existe donde
-estás abriendo el archivo. El lector recibe el texto del `.md`, no la carpeta.
+Las imágenes llevan un signo de admiración adelante, y lo que va entre
+corchetes es el texto alternativo. La ilustración del principio está escrita
+así:
 
-Los wiki-links `[[nombre]]` se muestran como código, no como enlace: el lector
-no tiene forma de saber a qué archivo apuntan.
+~~~markdown
+![Un pendrive del que sale una hoja escrita](ejemplo-portada.png)
+~~~
+
+Se achican para entrar en la columna. Ojo: una imagen con ruta relativa sólo se
+ve si esa ruta existe donde estás abriendo el archivo. El lector recibe el
+texto del `.md`, no la carpeta.
+
+Los wiki-links se muestran como código, no como enlace, porque el lector no
+tiene forma de saber a qué archivo apuntan:
+
+~~~markdown
+Ver también [[otra nota]].
+~~~
+
+Se ve así:
+
+Ver también [[otra nota]].
 
 ## Codificación de los archivos
 
 Esta es la parte que más problemas suele dar, así que conviene ser preciso.
 
-### Texto
+### Texto de los archivos
 
 Los archivos se leen **siempre como UTF-8**. No hay detección automática de
 codificación ni forma de elegir otra.
@@ -327,7 +508,23 @@ lector filtra por esas extensiones e ignora todo lo demás.
 Un `.txt` se procesa como Markdown igual que los otros. Si adentro no tiene
 sintaxis de Markdown, simplemente se ve como texto.
 
-## Leer, buscar e imprimir
+## Leer, navegar, buscar e imprimir
+
+### Navegar
+
+Para moverte dentro de un documento largo hay dos índices:
+
+- **En este archivo**, en el panel lateral, lista los encabezados de nivel 1
+  a 3. Tocás uno y el documento salta a esa sección. Aparece cuando hay más de
+  dos encabezados; en el celular está adentro del panel que abre **☰**.
+- **La tabla de contenidos** va dentro del propio documento, donde se escriba
+  `[TOC]`. Es el **Contenido** del principio de este archivo, y sus enlaces
+  también llevan a cada sección. A diferencia del panel, sale impresa. Cómo se
+  escribe está en *Tabla de contenidos*, más arriba.
+
+Para pasar de un archivo a otro, tocás su nombre en la lista o usás `Alt` + `J`
+para el siguiente y `Alt` + `K` para el anterior. Cada archivo recuerda hasta
+dónde leíste, así que al volver seguís en el mismo lugar.
 
 ### Buscar
 
@@ -363,6 +560,15 @@ propósito: en papel el aire de más se traduce en hojas de más.
 El botón **◐** de al lado hace lo mismo con el tema, entre claro y oscuro, y
 también se acuerda de tu elección.
 
+### Idioma
+
+La interfaz y esta ayuda están en español y en inglés. De entrada se usa el
+idioma del navegador; el botón **EN** del panel pasa a inglés y, una vez ahí,
+**ES** vuelve a español. La elección queda guardada.
+
+El idioma no toca tus archivos: cada documento se muestra tal como está
+escrito.
+
 ### Imprimir o guardar en PDF
 
 El botón **⎙ PDF** abre el diálogo de impresión del navegador, que también
@@ -371,8 +577,8 @@ que en papel no salen ni el panel lateral ni la barra superior.
 
 Para que numere las hojas, en el diálogo abrí *Más opciones* y activá
 *Encabezados y pies de página*. Eso lo hace el navegador; no se puede pedir
-desde el documento. Por la misma razón, el índice de `[TOC]` sale impreso pero
-sin números de página.
+desde el documento. Por la misma razón, la tabla de contenidos sale impresa
+pero sin números de página.
 
 ### Atajos
 
@@ -409,6 +615,7 @@ Tiene que usar todo lo siguiente, porque lo voy a abrir en un lector que soporta
 exactamente esta sintaxis:
 
 - Encabezados de nivel 1 a 3, al menos cinco en total, para que se arme un índice
+- La línea [TOC] sola, justo después del título, para la tabla de contenidos
 - Párrafos normales, con negrita, cursiva, tachado y código en línea
 - Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
 - Una cita, con algo en negrita adentro
@@ -417,7 +624,6 @@ exactamente esta sintaxis:
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
 - Un gráfico de barras y otro de líneas, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: barras" (o "tipo: lineas") y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías
-- La línea [TOC] sola, después del título, para que se arme un índice
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como

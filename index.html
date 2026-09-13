@@ -527,102 +527,88 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   <aside id="side">
     <div class="brand">
       <h1>Lector MD</h1>
-      <p>Portátil · funciona sin internet</p>
+      <p data-t="lema"></p>
     </div>
 
     <div class="actions">
-      <button class="btn primary" id="pickFolder">Abrir carpeta<kbd>recomendado</kbd></button>
-      <button class="btn" id="pickFiles">Abrir archivos sueltos</button>
+      <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec"></button>
+      <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
       <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
       <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
     </div>
 
     <div class="listhd" id="listHd" hidden>
       <span id="fileCount"></span>
-      <button class="link" id="clearAll"
-              title="Vacía la lista del lector. No borra ningún archivo del disco.">Limpiar todo</button>
+      <button class="link" id="clearAll" data-t="limpiarTodo" data-t-title="limpiarTodoTitle"></button>
     </div>
 
     <div class="files" id="files">
-      <p class="empty">Todavía no cargaste nada.<br><br>
-      Usá <b>Abrir carpeta</b> y elegí la carpeta que quieras leer: aparecen todos los
-      <code>.md</code> que haya adentro, incluidos los de subcarpetas.</p>
+      <p class="empty" data-t="vacioInicial"></p>
     </div>
 
     <details class="fold toc" id="tocWrap" hidden open>
-      <summary>En este archivo</summary>
+      <summary data-t="enEsteArchivo"></summary>
       <nav id="toc"></nav>
     </details>
 
+    <!-- los textos de estos dos los pone pintarEstados: dependen de si la librería cargó -->
     <details class="fold" id="mathWrap">
-      <summary><span class="dot" id="mathDot"></span><span id="mathSum">fórmulas</span></summary>
-      <div class="body" id="mathTxt">modo simple: aproximación en Unicode</div>
+      <summary><span class="dot" id="mathDot"></span><span id="mathSum"></span></summary>
+      <div class="body" id="mathTxt"></div>
     </details>
 
     <details class="fold" id="diagWrap">
-      <summary><span class="dot" id="diagDot"></span><span id="diagSum">diagramas</span></summary>
-      <div class="body" id="diagTxt">Los bloques <code>```mermaid</code> se dibujan como
-        diagrama. La librería se baja del CDN recién cuando abrís un archivo que tenga
-        alguno, así el lector no pesa más de lo necesario.</div>
+      <summary><span class="dot" id="diagDot"></span><span id="diagSum"></span></summary>
+      <div class="body" id="diagTxt"></div>
     </details>
 
     <div class="foot">
-      <button class="icon" id="theme" title="Cambiar tema">◐ Tema</button>
-      <button class="icon" id="print"
-              title="Imprimir o guardar como PDF. Activá &quot;Encabezados y pies de página&quot; en el diálogo para que numere las hojas">⎙ PDF</button>
-      <button class="icon" id="density"
-              title="Interlineado compacto, para que entre más por hoja">⇕ Compacto</button>
-      <button class="icon" id="help"
-              title="Documento de ejemplo: qué hace el lector y qué Markdown entiende">? Ayuda</button>
+      <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle"></button>
+      <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
+      <button class="icon" id="density"></button>
+      <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle"></button>
+      <button class="icon" id="lang" data-t="idiomaBoton" data-t-title="idiomaTitle"></button>
     </div>
 
     <details class="fold" id="printWrap">
-      <summary>Numerar las hojas al imprimir</summary>
-      <div class="body">
-        En el diálogo de impresión abrí <span class="k">Más opciones</span> y activá
-        <span class="k">Encabezados y pies de página</span>. El navegador agrega el número
-        de página y el nombre del archivo. No se puede numerar desde la hoja de estilos:
-        ningún navegador implementa esa parte de CSS.
-      </div>
+      <summary data-t="numerarSum"></summary>
+      <div class="body" data-t="numerarTxt"></div>
     </details>
   </aside>
 
   <main id="main">
     <div class="topbar">
-      <button class="menubtn" id="menu" aria-label="Abrir panel de archivos" title="Archivos">☰</button>
-      <span class="name" id="docname">ningún archivo abierto</span>
-      <input type="search" id="search" placeholder="Buscar en el documento…" disabled>
+      <button class="menubtn" id="menu" data-t-aria="menuAria" data-t-title="menuTitle">☰</button>
+      <span class="name" id="docname"></span>
+      <input type="search" id="search" data-t-placeholder="buscarPlaceholder" disabled>
       <span class="hits" id="hits"></span>
     </div>
 
     <div class="drop" id="drop">
-      <p class="big">Arrastrá tus archivos acá</p>
-      <p>O elegilos directamente. Nada sale de tu máquina:
-         el archivo se lee y se muestra localmente, sin subir nada a ningún lado.</p>
+      <p class="big" data-t="dropBig"></p>
+      <p data-t="dropTxt"></p>
       <div class="dropactions">
-        <button class="btn primary" id="pickFolder2">Abrir carpeta</button>
-        <button class="btn" id="pickFiles2">Abrir archivos sueltos</button>
-        <button class="btn" id="help2">Ver un ejemplo</button>
+        <button class="btn primary" id="pickFolder2" data-t="abrirCarpeta"></button>
+        <button class="btn" id="pickFiles2" data-t="abrirSueltos"></button>
+        <button class="btn" id="help2" data-t="verEjemplo"></button>
       </div>
 
       <div class="tip tip-movil">
-        <h3>¿Te mandaron un <code>.md</code> por WhatsApp?</h3>
+        <h3 data-t="tipMovilTitulo"></h3>
         <ol>
-          <li>En el chat, tocá el archivo para descargarlo.</li>
-          <li>Tocá el ícono de <b>compartir</b> <span class="k">⤴</span> del archivo
-              (no "Abrir con").</li>
-          <li>Elegí <b>Lector MD</b> en la lista de apps. El archivo se abre acá.</li>
+          <li data-t="tipMovil1"></li>
+          <li data-t="tipMovil2"></li>
+          <li data-t="tipMovil3"></li>
         </ol>
-        <p class="fine">Funciona igual desde Drive, Telegram, Gmail o el explorador
-           de archivos: siempre por <b>compartir</b>.</p>
+        <p class="fine" data-t="tipMovilFine"></p>
       </div>
 
       <div class="tip tip-escritorio">
-        <h3>Para usarlo sin internet, en cualquier PC</h3>
+        <h3 data-t="tipEscTitulo"></h3>
         <ol>
-          <li>Copiá este <code>index.html</code> a un USB junto a tus archivos.</li>
-          <li>Doble clic: se abre en cualquier navegador, en cualquier PC.</li>
-          <li>Abrí la carpeta y leé. Con <b>⎙ PDF</b> lo imprimís o lo guardás en PDF.</li>
+          <li data-t="tipEsc1"></li>
+          <li data-t="tipEsc2"></li>
+          <li data-t="tipEsc3"></li>
         </ol>
       </div>
     </div>
@@ -631,20 +617,279 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   </main>
 </div>
 
-<!-- Documento de ayuda. Va embebido y no se baja porque el lector tiene que
-     funcionar copiando sólo este archivo a un pendrive: abierto con file://
-     el navegador no deja leer el .md de al lado. El tipo text/markdown hace
-     que el navegador no lo ejecute y deja el texto crudo, sin escapar nada.
+<script>
+"use strict";
+/* ============================================================
+   idioma
+
+   La interfaz y la ayuda están en español y en inglés. De entrada
+   manda el idioma del navegador; el botón del panel lo cambia y la
+   elección queda guardada. Este script va antes que los bloques de
+   ayuda para que los textos ya estén puestos en el primer cuadro.
+
+   Los elementos fijos llevan la clave de TEXTOS en data-t (contenido,
+   puede traer HTML propio), data-t-title, data-t-placeholder o
+   data-t-aria. Lo que arma el script principal usa t() directo.
+   ============================================================ */
+const TEXTOS = {
+  es: {
+    lema: "Portátil · funciona sin internet",
+    abrirCarpetaRec: "Abrir carpeta<kbd>recomendado</kbd>",
+    abrirCarpeta: "Abrir carpeta",
+    abrirSueltos: "Abrir archivos sueltos",
+    verEjemplo: "Ver un ejemplo",
+    limpiarTodo: "Limpiar todo",
+    limpiarTodoTitle: "Vacía la lista del lector. No borra ningún archivo del disco.",
+    vacioInicial: "Todavía no cargaste nada.<br><br>Usá <b>Abrir carpeta</b> y elegí la carpeta que " +
+      "quieras leer: aparecen todos los <code>.md</code> que haya adentro, incluidos los de subcarpetas.",
+    vacioReset: "Área de trabajo vacía.<br><br>Volvé a usar <b>Abrir carpeta</b> cuando quieras. " +
+      "Nada de esto borra archivos del disco.",
+    enEsteArchivo: "En este archivo",
+    katexSum: (estado, ver) => ({
+      espera: "fórmulas", on: "fórmulas: KaTeX " + ver, off: "fórmulas: modo simple"
+    })[estado],
+    katexTxt: estado => ({
+      espera: "modo simple: aproximación en Unicode",
+      on: "Tipografía matemática real, cargada desde CDN. Fracciones apiladas, radicales y " +
+        "recuadros se dibujan como en un libro.",
+      off: "No se pudo cargar KaTeX (sin conexión). Las fórmulas se dibujan con la aproximación " +
+        "en Unicode: se leen bien, pero no es tipografía matemática real."
+    })[estado],
+    mmdSum: (estado, ver) => ({
+      espera: "diagramas", cargando: "diagramas: cargando Mermaid…",
+      on: "diagramas: Mermaid " + ver, off: "diagramas: modo código"
+    })[estado],
+    mmdTxt: estado => ({
+      on: "Diagramas dibujados de verdad: flujos, secuencias, clases, estados, Gantt. Siguen el " +
+        "tema del lector y al imprimir salen en claro.",
+      off: "No se pudo cargar Mermaid (sin conexión). Los bloques <code>```mermaid</code> se " +
+        "muestran como código: se leen igual, pero no se dibujan. Con conexión se reintenta."
+    })[estado] || "Los bloques <code>```mermaid</code> se dibujan como diagrama. La librería se " +
+      "baja del CDN recién cuando abrís un archivo que tenga alguno, así el lector no pesa más de " +
+      "lo necesario.",
+    tema: "◐ Tema",
+    temaTitle: "Cambiar tema",
+    pdfTitle: "Imprimir o guardar como PDF. Activá \"Encabezados y pies de página\" en el diálogo " +
+      "para que numere las hojas",
+    compacto: "⇕ Compacto",
+    compactoTitle: "Interlineado compacto, para que entre más por hoja",
+    comodo: "⇕ Cómodo",
+    comodoTitle: "Volver al interlineado cómodo para leer en pantalla",
+    ayuda: "? Ayuda",
+    ayudaTitle: "Documento de ejemplo: qué hace el lector y qué Markdown entiende",
+    idiomaBoton: "EN",
+    idiomaTitle: "Switch to English",
+    numerarSum: "Numerar las hojas al imprimir",
+    numerarTxt: "En el diálogo de impresión abrí <span class=\"k\">Más opciones</span> y activá " +
+      "<span class=\"k\">Encabezados y pies de página</span>. El navegador agrega el número de " +
+      "página y el nombre del archivo. No se puede numerar desde la hoja de estilos: ningún " +
+      "navegador implementa esa parte de CSS.",
+    menuAria: "Abrir panel de archivos",
+    menuTitle: "Archivos",
+    ningunArchivo: "ningún archivo abierto",
+    buscarPlaceholder: "Buscar en el documento…",
+    dropBig: "Arrastrá tus archivos acá",
+    dropTxt: "O elegilos directamente. Nada sale de tu máquina: el archivo se lee y se muestra " +
+      "localmente, sin subir nada a ningún lado.",
+    tipMovilTitulo: "¿Te mandaron un <code>.md</code> por WhatsApp?",
+    tipMovil1: "En el chat, tocá el archivo para descargarlo.",
+    tipMovil2: "Tocá el ícono de <b>compartir</b> <span class=\"k\">⤴</span> del archivo (no \"Abrir con\").",
+    tipMovil3: "Elegí <b>Lector MD</b> en la lista de apps. El archivo se abre acá.",
+    tipMovilFine: "Funciona igual desde Drive, Telegram, Gmail o el explorador de archivos: siempre " +
+      "por <b>compartir</b>.",
+    tipEscTitulo: "Para usarlo sin internet, en cualquier PC",
+    tipEsc1: "Copiá este <code>index.html</code> a un USB junto a tus archivos.",
+    tipEsc2: "Doble clic: se abre en cualquier navegador, en cualquier PC.",
+    tipEsc3: "Abrí la carpeta y leé. Con <b>⎙ PDF</b> lo imprimís o lo guardás en PDF.",
+    raizCarpeta: "raíz de la carpeta",
+    archivos: n => n + (n === 1 ? " archivo" : " archivos"),
+    quitarAria: nombre => "Quitar " + nombre + " de la lista",
+    quitarTitle: "Quitar de la lista (no borra el archivo)",
+    resultados: n => n ? n + (n === 1 ? " resultado" : " resultados") : "sin resultados",
+    alertSinMd: "No encontré archivos .md en lo que elegiste.",
+    alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
+    alertPersistencia: "Los archivos se abrieron, pero el navegador no pudo guardar la sesión " +
+      "local. La app no aplicará una actualización mientras haya documentos abiertos.",
+    ayudaDocname: "ayuda · ejemplo.md",
+    ayudaTitulo: "Lector MD — ejemplo",
+    indiceAria: "Tabla de contenidos",
+    indiceTitulo: "Contenido",
+    diagramaError: detalle => "No se pudo dibujar este diagrama" + (detalle ? ": " + detalle : "."),
+    verDatos: "Ver datos",
+    graficoBarras: "Gráfico de barras",
+    graficoLineas: "Gráfico de líneas",
+    graficoError: detalle => "No se pudo dibujar este gráfico" + (detalle ? ": " + detalle : "."),
+    serie: n => "Serie " + n,
+    errTipo: tipo => "el tipo \"" + tipo + "\" no existe: tiene que ser barras o lineas",
+    errMinMax: (clave, valor) => clave + " tiene que ser un número, no \"" + valor + "\"",
+    errFaltanDatos: "faltan datos: hace falta una fila de encabezado y al menos una de valores",
+    errSinSeries: "el encabezado necesita al menos una columna de valores después de la de categorías",
+    errMuchasSeries: (n, max) => "hay " + n + " series y el máximo es " + max,
+    errNoNumero: (celda, fila, serie) =>
+      "\"" + celda + "\" no es un número (fila " + fila + ", " + serie + ")",
+    errSinValores: "no hay ningún valor numérico",
+    updLista: "Nueva versión lista. Se aplicará al cerrar la app.",
+    updBoton: "Actualizar ahora",
+    updGuardando: "Guardando los documentos abiertos…",
+    updFallo: "No se pudo guardar la sesión. La actualización quedó en espera.",
+    updProxima: "La actualización se aplicará la próxima vez que abras la app.",
+    updActualizando: "Actualizando… tus documentos se restaurarán enseguida."
+  },
+
+  en: {
+    lema: "Portable · works offline",
+    abrirCarpetaRec: "Open folder<kbd>recommended</kbd>",
+    abrirCarpeta: "Open folder",
+    abrirSueltos: "Open individual files",
+    verEjemplo: "See an example",
+    limpiarTodo: "Clear all",
+    limpiarTodoTitle: "Empties the reader's list. It doesn't delete any file from disk.",
+    vacioInicial: "Nothing loaded yet.<br><br>Use <b>Open folder</b> and pick the folder you want " +
+      "to read: every <code>.md</code> inside it shows up, including those in subfolders.",
+    vacioReset: "Workspace cleared.<br><br>Use <b>Open folder</b> again whenever you like. " +
+      "None of this deletes files from disk.",
+    enEsteArchivo: "In this file",
+    katexSum: (estado, ver) => ({
+      espera: "formulas", on: "formulas: KaTeX " + ver, off: "formulas: simple mode"
+    })[estado],
+    katexTxt: estado => ({
+      espera: "simple mode: Unicode approximation",
+      on: "Real math typesetting, loaded from a CDN. Stacked fractions, radicals and boxes are " +
+        "drawn like in a book.",
+      off: "KaTeX could not be loaded (offline). Formulas are drawn with the Unicode " +
+        "approximation: they read fine, but it isn't real math typesetting."
+    })[estado],
+    mmdSum: (estado, ver) => ({
+      espera: "diagrams", cargando: "diagrams: loading Mermaid…",
+      on: "diagrams: Mermaid " + ver, off: "diagrams: code mode"
+    })[estado],
+    mmdTxt: estado => ({
+      on: "Fully drawn diagrams: flowcharts, sequence, class, state, Gantt. They follow the " +
+        "reader's theme and print in light colors.",
+      off: "Mermaid could not be loaded (offline). <code>```mermaid</code> blocks are shown as " +
+        "code: still readable, but not drawn. It retries once you're back online."
+    })[estado] || "<code>```mermaid</code> blocks are drawn as diagrams. The library is downloaded " +
+      "from the CDN only when you open a file that has one, so the reader weighs no more than it " +
+      "needs to.",
+    tema: "◐ Theme",
+    temaTitle: "Switch theme",
+    pdfTitle: "Print or save as PDF. Turn on \"Headers and footers\" in the dialog to number the pages",
+    compacto: "⇕ Compact",
+    compactoTitle: "Compact line spacing, to fit more on each page",
+    comodo: "⇕ Comfortable",
+    comodoTitle: "Back to comfortable line spacing for reading on screen",
+    ayuda: "? Help",
+    ayudaTitle: "Sample document: what the reader does and which Markdown it understands",
+    idiomaBoton: "ES",
+    idiomaTitle: "Cambiar a español",
+    numerarSum: "Numbering pages when printing",
+    numerarTxt: "In the print dialog open <span class=\"k\">More settings</span> and turn on " +
+      "<span class=\"k\">Headers and footers</span>. The browser adds the page number and the " +
+      "file name. Pages can't be numbered from the stylesheet: no browser implements that part of CSS.",
+    menuAria: "Open file panel",
+    menuTitle: "Files",
+    ningunArchivo: "no file open",
+    buscarPlaceholder: "Search in document…",
+    dropBig: "Drop your files here",
+    dropTxt: "Or pick them directly. Nothing leaves your machine: the file is read and shown " +
+      "locally, without uploading anything anywhere.",
+    tipMovilTitulo: "Got a <code>.md</code> on WhatsApp?",
+    tipMovil1: "In the chat, tap the file to download it.",
+    tipMovil2: "Tap the file's <b>share</b> icon <span class=\"k\">⤴</span> (not \"Open with\").",
+    tipMovil3: "Choose <b>Lector MD</b> from the list of apps. The file opens here.",
+    tipMovilFine: "It works the same from Drive, Telegram, Gmail or the file manager: always " +
+      "through <b>share</b>.",
+    tipEscTitulo: "To use it offline, on any computer",
+    tipEsc1: "Copy this <code>index.html</code> to a USB stick along with your files.",
+    tipEsc2: "Double-click it: it opens in any browser, on any computer.",
+    tipEsc3: "Open the folder and read. <b>⎙ PDF</b> prints it or saves it as a PDF.",
+    raizCarpeta: "folder root",
+    archivos: n => n + (n === 1 ? " file" : " files"),
+    quitarAria: nombre => "Remove " + nombre + " from the list",
+    quitarTitle: "Remove from the list (doesn't delete the file)",
+    resultados: n => n ? n + (n === 1 ? " result" : " results") : "no results",
+    alertSinMd: "No .md files found in what you picked.",
+    alertNoLeidos: "None of the selected files could be read.",
+    alertPersistencia: "The files were opened, but the browser couldn't save the local session. " +
+      "The app won't apply an update while documents are open.",
+    ayudaDocname: "help · example.md",
+    ayudaTitulo: "Lector MD — example",
+    indiceAria: "Table of contents",
+    indiceTitulo: "Contents",
+    diagramaError: detalle => "This diagram could not be drawn" + (detalle ? ": " + detalle : "."),
+    verDatos: "Show data",
+    graficoBarras: "Bar chart",
+    graficoLineas: "Line chart",
+    graficoError: detalle => "This chart could not be drawn" + (detalle ? ": " + detalle : "."),
+    serie: n => "Series " + n,
+    errTipo: tipo => "there is no type \"" + tipo + "\": it must be bar or line",
+    errMinMax: (clave, valor) => clave + " must be a number, not \"" + valor + "\"",
+    errFaltanDatos: "missing data: it needs a header row and at least one row of values",
+    errSinSeries: "the header needs at least one value column after the category column",
+    errMuchasSeries: (n, max) => "there are " + n + " series and the maximum is " + max,
+    errNoNumero: (celda, fila, serie) =>
+      "\"" + celda + "\" is not a number (row " + fila + ", " + serie + ")",
+    errSinValores: "there are no numeric values",
+    updLista: "New version ready. It will apply when you close the app.",
+    updBoton: "Update now",
+    updGuardando: "Saving open documents…",
+    updFallo: "Couldn't save the session. The update is on hold.",
+    updProxima: "The update will apply the next time you open the app.",
+    updActualizando: "Updating… your documents will be restored right away."
+  }
+};
+
+function idiomaInicial(){
+  try{
+    const guardado = localStorage.getItem("lectormd-lang");
+    if(guardado === "es" || guardado === "en") return guardado;
+  }catch(e){}
+  const lista = navigator.languages && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language || ""];
+  // manda el primero de la lista que sea uno de los dos; si ninguno lo es, inglés
+  for(const l of lista){
+    const base = String(l).slice(0, 2).toLowerCase();
+    if(base === "es" || base === "en") return base;
+  }
+  return "en";
+}
+
+let IDIOMA = idiomaInicial();
+
+const t = (clave, ...args) => {
+  const v = TEXTOS[IDIOMA][clave];
+  return typeof v === "function" ? v(...args) : v;
+};
+
+/* Los textos son nuestros, no del archivo: por eso data-t va con innerHTML. */
+function traducirPagina(){
+  document.documentElement.lang = IDIOMA;
+  document.querySelectorAll("[data-t]").forEach(el => { el.innerHTML = t(el.dataset.t); });
+  document.querySelectorAll("[data-t-title]").forEach(el => { el.title = t(el.dataset.tTitle); });
+  document.querySelectorAll("[data-t-placeholder]").forEach(el => { el.placeholder = t(el.dataset.tPlaceholder); });
+  document.querySelectorAll("[data-t-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.tAria)); });
+}
+
+traducirPagina();
+</script>
+
+<!-- Documentos de ayuda, uno por idioma. Van embebidos y no se bajan porque
+     el lector tiene que funcionar copiando sólo este archivo a un pendrive:
+     abierto con file:// el navegador no deja leer el .md de al lado. El tipo
+     text/markdown hace que el navegador no los ejecute y deja el texto crudo,
+     sin escapar nada. Estos bloques son el original: ejemplo.md y example.md,
+     en la raíz del repo, son copias para leer en GitHub.
      Ojo: no indentar el contenido, cuatro espacios lo volverían código. -->
-<script type="text/markdown" id="ayudaSrc">
+<script type="text/markdown" id="ayudaSrc-es" lang="es">
 # Lector MD — documento de ejemplo
 
-Este archivo es el manual y la demostración al mismo tiempo: cada sección usa
-la sintaxis que está explicando. Si lo estás leyendo **dentro del lector**, lo
-que ves es exactamente lo que el lector entiende.
+Este archivo es el manual y la demostración al mismo tiempo. En cada sección
+aparece primero **cómo se escribe** algo, en un recuadro con el texto tal cual
+va en el archivo, y después **cómo se ve** en el lector.
 
-Si lo estás leyendo en GitHub, algunas cosas se van a ver distinto. Esa es
-justamente la gracia: descargalo y abrilo en el lector.
+Si lo estás leyendo en GitHub, algunos resultados se van a ver distinto: esa es
+justamente la gracia. Descargalo y abrilo en el lector.
 
 ![Un pendrive del que sale una hoja escrita, y al lado una nube tachada: los
 archivos se leen desde donde estén, sin pasar por internet](ejemplo-portada.png)
@@ -677,10 +922,11 @@ Instalado como app tiene dos cosas más:
 | **Diagramas** | con Mermaid, que se baja sólo si el archivo tiene alguno |
 | **Código** | con colores para JavaScript, TypeScript, Python, HTML, CSS, Java, C y C# |
 | **Gráficos** | de barras y de líneas, a partir de una tabla de datos escrita en el archivo |
-| **Navegar** | índice automático de niveles 1 a 3, `[TOC]` para ponerlo dentro del documento, y `Alt`+`J` / `Alt`+`K` entre archivos |
+| **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
+| **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
 | **Recordar** | qué archivos cargaste, cuál leías y en qué parte de cada uno |
 | **Funcionar** | sin conexión, sin servidor, con un solo archivo que podés llevar a cualquier lado |
 | **Actualizarse** | sola, sin perder lo que tenías abierto |
@@ -709,39 +955,93 @@ elegí **Lector MD** en la lista.
 
 ## Qué entiende del Markdown
 
+Cada ejemplo tiene dos partes: el recuadro con el texto tal como se escribe en
+el archivo y, debajo de **Se ve así**, el resultado.
+
 ### Texto
+
+~~~markdown
+Se puede poner *cursiva* con asteriscos o _con guiones bajos_, **negrita**,
+***negrita y cursiva*** juntas, ~~texto tachado~~ y `código en línea`.
+~~~
+
+Se ve así:
 
 Se puede poner *cursiva* con asteriscos o _con guiones bajos_, **negrita**,
 ***negrita y cursiva*** juntas, ~~texto tachado~~ y `código en línea`.
 
 Los párrafos se separan con una línea en blanco. Un salto de línea suelto
-**no** corta el párrafo: las líneas se unen, como en el Markdown clásico.
+**no** corta el párrafo: las líneas se unen, como en el Markdown clásico. Por
+eso las dos líneas del ejemplo se ven como una sola.
 
-Las citas llevan un signo mayor adelante:
+### Citas
+
+~~~markdown
+> Una cita ocupa su propio bloque y puede tener **formato adentro**.
+~~~
+
+Se ve así:
 
 > Una cita ocupa su propio bloque y puede tener **formato adentro**.
-> Incluso listas, tablas o código.
 
-Para separar secciones, tres guiones:
+### Separadores
+
+Tres guiones solos en una línea dibujan una raya horizontal:
+
+~~~markdown
+---
+~~~
+
+Se ve así:
 
 ---
 
 ### Encabezados
 
-De `#` a `######`. Los de nivel 1 a 3 arman el índice **En este archivo** del
-panel lateral, que aparece sólo si hay más de dos.
+~~~markdown
+# Título del documento
+## Sección
+### Subsección
+~~~
 
-Para tener el índice **dentro** del documento, escribí `[TOC]` solo en una
-línea, donde quieras que aparezca. Ahí se arma la lista de encabezados de nivel
-1 a 3, con enlaces a cada sección: es el **Contenido** que está al principio de
-este archivo. Si el documento tiene un único `#`, se toma como el título y no
-se lista. También sirve `[[_TOC_]]`, como en GitLab.
+Van de `#` a `######`: cuantos más numerales, más chico el título. No hay un
+resultado aparte porque los títulos de este mismo documento están escritos
+así; este, por ejemplo, lleva `###`.
 
-A diferencia del panel lateral, este índice sale impreso.
+Los de nivel 1 a 3 arman el índice **En este archivo** del panel lateral y la
+tabla de contenidos que se explica a continuación.
+
+### Tabla de contenidos
+
+~~~markdown
+[TOC]
+~~~
+
+Escribí `[TOC]` solo en una línea, donde quieras que aparezca. Ahí se arma la
+lista de encabezados de nivel 1 a 3, con un enlace a cada sección. El resultado
+es el **Contenido** que está al principio de este archivo.
+
+Si el documento tiene un único `#`, se toma como el título y no se lista.
+También sirve `[[_TOC_]]`, como en GitLab. A diferencia del índice del panel
+lateral, la tabla de contenidos sale impresa.
 
 ### Listas
 
-Las viñetas aceptan `-`, `*` o `+`:
+~~~markdown
+- Un ítem
+- Otro ítem
+  - Anidado un nivel
+  - Otro anidado
+- Vuelta al primer nivel
+
+1. Primer paso
+2. Segundo paso
+   1. Subpaso
+   2. Otro subpaso
+3. Tercer paso
+~~~
+
+Se ve así:
 
 - Un ítem
 - Otro ítem
@@ -749,39 +1049,51 @@ Las viñetas aceptan `-`, `*` o `+`:
   - Otro anidado
 - Vuelta al primer nivel
 
-Las numeradas aceptan `1.` o `1)`:
-
 1. Primer paso
 2. Segundo paso
    1. Subpaso
    2. Otro subpaso
 3. Tercer paso
 
+Las viñetas aceptan `-`, `*` o `+`, y las numeradas `1.` o `1)`.
+
 ### Tablas
 
-Se escriben con barras verticales y una línea de guiones debajo del
-encabezado. Las tablas anchas scrollean solas en horizontal.
+~~~markdown
+| Elemento | Sintaxis | Aparece en el índice |
+|---|---|---|
+| Encabezado | `#` a `######` | niveles 1 a 3 |
+| Cita | signo mayor | no |
+| Fórmula | `$$` o valla `math` | no |
+~~~
+
+Se ve así:
 
 | Elemento | Sintaxis | Aparece en el índice |
 |---|---|---|
 | Encabezado | `#` a `######` | niveles 1 a 3 |
 | Cita | signo mayor | no |
-| Tabla | barras y guiones | no |
 | Fórmula | `$$` o valla `math` | no |
-| Diagrama | valla `mermaid` | no |
-| Gráfico | valla `grafico` | no |
+
+La fila de guiones debajo del encabezado es obligatoria. Las tablas anchas
+scrollean solas en horizontal.
 
 ### Código
 
 Con vallas de tres acentos graves. Si le ponés el lenguaje al lado, se
 resaltan las palabras clave, los textos, los números y los comentarios:
 
-```js
-const lector = {
-  archivos: [],
-  offline: true
-};
+~~~markdown
+```python
+def promedio(valores):
+    """Devuelve el promedio, o None si la lista está vacía."""
+    if not valores:
+        return None
+    return sum(valores) / len(valores)
 ```
+~~~
+
+Se ve así:
 
 ```python
 def promedio(valores):
@@ -812,18 +1124,48 @@ en un solo color.
 
 También sirve un bloque indentado con cuatro espacios, que queda sin colores:
 
+~~~markdown
+    esto también es código
+    por estar indentado
+~~~
+
+Se ve así:
+
     esto también es código
     por estar indentado
 
 ### Fórmulas
 
-Las fórmulas en línea van entre signos pesos, como $E = mc^2$. Las de bloque
-van entre doble signo pesos:
+Las fórmulas **en línea** van entre signos pesos, dentro de una oración:
+
+~~~markdown
+La energía en reposo es $E = mc^2$.
+~~~
+
+Se ve así:
+
+La energía en reposo es $E = mc^2$.
+
+Las fórmulas **de bloque** van solas en su línea, entre doble signo pesos:
+
+~~~markdown
+$$\int_0^1 x^2\,dx = \frac{1}{3}$$
+~~~
+
+Se ve así:
 
 $$\int_0^1 x^2\,dx = \frac{1}{3}$$
 
 También funciona una valla con lenguaje `math`, `latex` o `tex`, al estilo de
 GitHub:
+
+~~~markdown
+```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```
+~~~
+
+Se ve así:
 
 ```math
 \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
@@ -836,6 +1178,18 @@ no, caen a una aproximación en Unicode que se lee bien igual.
 
 Una valla con lenguaje `mermaid` se dibuja como diagrama:
 
+~~~markdown
+```mermaid
+flowchart LR
+  W[WhatsApp] -->|compartir| SW[Service worker]
+  SW --> C[(Cache)]
+  C --> APP[Lector MD]
+  APP --> IDB[(IndexedDB)]
+```
+~~~
+
+Se ve así:
+
 ```mermaid
 flowchart LR
   W[WhatsApp] -->|compartir| SW[Service worker]
@@ -845,8 +1199,19 @@ flowchart LR
 ```
 
 Sirven los tipos de **Mermaid**: flujos, secuencias, clases, estados, Gantt.
-Los diagramas siguen el tema del lector, y al imprimir se redibujan en claro
-para que salgan legibles en papel.
+Por ejemplo, uno de estados:
+
+~~~markdown
+```mermaid
+stateDiagram-v2
+  [*] --> Vacio
+  Vacio --> Leyendo: abrir carpeta
+  Leyendo --> Imprimiendo: boton PDF
+  Imprimiendo --> Leyendo
+```
+~~~
+
+Se ve así:
 
 ```mermaid
 stateDiagram-v2
@@ -855,6 +1220,9 @@ stateDiagram-v2
   Leyendo --> Imprimiendo: boton PDF
   Imprimiendo --> Leyendo
 ```
+
+Los diagramas siguen el tema del lector, y al imprimir se redibujan en claro
+para que salgan legibles en papel.
 
 La librería de diagramas pesa unos 3 MB, así que **se baja recién cuando abrís
 un archivo que tiene alguno**. Después queda guardada y funciona sin conexión.
@@ -867,6 +1235,22 @@ Una valla con lenguaje `grafico` (o `chart`) dibuja un gráfico de barras o de
 líneas. Arriba van las opciones, una por línea; después, los datos. La primera
 fila de datos es el encabezado: la primera columna tiene las categorías y cada
 una de las siguientes es una serie.
+
+~~~markdown
+```grafico
+tipo: barras
+titulo: Horas de estudio por semana
+unidad: h
+
+Semana, Análisis, Programación
+1, 6, 4
+2, 5, 7
+3, 8, 6
+4, 7, 9
+```
+~~~
+
+Se ve así:
 
 ```grafico
 tipo: barras
@@ -881,7 +1265,24 @@ Semana, Análisis, Programación
 ```
 
 Las columnas se separan con comas. Si los números llevan **coma decimal**,
-separá las columnas con punto y coma, como en este:
+separá las columnas con punto y coma:
+
+~~~markdown
+```grafico
+tipo: lineas
+titulo: Tiempo de respuesta según la carga
+unidad: ms
+
+Usuarios; Con caché; Sin caché
+10; 12; 35
+50; 14; 80
+100; 15,5; 160
+200; 18; 340
+400; 25; 700
+```
+~~~
+
+Se ve así:
 
 ```grafico
 tipo: lineas
@@ -905,6 +1306,8 @@ Usuarios; Con caché; Sin caché
 
 Algunos detalles:
 
+- Las opciones también se entienden en inglés: `type`, `title` y `unit`, con
+  `bar` o `line`.
 - También sirven tabulaciones, que es lo que queda al copiar celdas de una
   planilla, y barras verticales: una tabla Markdown pegada adentro de la valla
   funciona tal cual.
@@ -922,21 +1325,44 @@ bajar nada: funcionan sin conexión desde el primer momento.
 
 ### Enlaces e imágenes
 
+~~~markdown
+Un [enlace común](https://mdreader.jhproyectos.com.ar), y una dirección suelta
+que se convierte sola: https://github.com/JHProyectos/mdreader-pwa
+~~~
+
+Se ve así:
+
 Un [enlace común](https://mdreader.jhproyectos.com.ar), y una dirección suelta
 que se convierte sola: https://github.com/JHProyectos/mdreader-pwa
 
-Las imágenes van con la sintaxis de admiración y se achican para entrar en la
-columna. Ojo: una imagen con ruta relativa sólo se ve si esa ruta existe donde
-estás abriendo el archivo. El lector recibe el texto del `.md`, no la carpeta.
+Las imágenes llevan un signo de admiración adelante, y lo que va entre
+corchetes es el texto alternativo. La ilustración del principio está escrita
+así:
 
-Los wiki-links `[[nombre]]` se muestran como código, no como enlace: el lector
-no tiene forma de saber a qué archivo apuntan.
+~~~markdown
+![Un pendrive del que sale una hoja escrita](ejemplo-portada.png)
+~~~
+
+Se achican para entrar en la columna. Ojo: una imagen con ruta relativa sólo se
+ve si esa ruta existe donde estás abriendo el archivo. El lector recibe el
+texto del `.md`, no la carpeta.
+
+Los wiki-links se muestran como código, no como enlace, porque el lector no
+tiene forma de saber a qué archivo apuntan:
+
+~~~markdown
+Ver también [[otra nota]].
+~~~
+
+Se ve así:
+
+Ver también [[otra nota]].
 
 ## Codificación de los archivos
 
 Esta es la parte que más problemas suele dar, así que conviene ser preciso.
 
-### Texto
+### Texto de los archivos
 
 Los archivos se leen **siempre como UTF-8**. No hay detección automática de
 codificación ni forma de elegir otra.
@@ -966,7 +1392,23 @@ lector filtra por esas extensiones e ignora todo lo demás.
 Un `.txt` se procesa como Markdown igual que los otros. Si adentro no tiene
 sintaxis de Markdown, simplemente se ve como texto.
 
-## Leer, buscar e imprimir
+## Leer, navegar, buscar e imprimir
+
+### Navegar
+
+Para moverte dentro de un documento largo hay dos índices:
+
+- **En este archivo**, en el panel lateral, lista los encabezados de nivel 1
+  a 3. Tocás uno y el documento salta a esa sección. Aparece cuando hay más de
+  dos encabezados; en el celular está adentro del panel que abre **☰**.
+- **La tabla de contenidos** va dentro del propio documento, donde se escriba
+  `[TOC]`. Es el **Contenido** del principio de este archivo, y sus enlaces
+  también llevan a cada sección. A diferencia del panel, sale impresa. Cómo se
+  escribe está en *Tabla de contenidos*, más arriba.
+
+Para pasar de un archivo a otro, tocás su nombre en la lista o usás `Alt` + `J`
+para el siguiente y `Alt` + `K` para el anterior. Cada archivo recuerda hasta
+dónde leíste, así que al volver seguís en el mismo lugar.
 
 ### Buscar
 
@@ -1002,6 +1444,15 @@ propósito: en papel el aire de más se traduce en hojas de más.
 El botón **◐** de al lado hace lo mismo con el tema, entre claro y oscuro, y
 también se acuerda de tu elección.
 
+### Idioma
+
+La interfaz y esta ayuda están en español y en inglés. De entrada se usa el
+idioma del navegador; el botón **EN** del panel pasa a inglés y, una vez ahí,
+**ES** vuelve a español. La elección queda guardada.
+
+El idioma no toca tus archivos: cada documento se muestra tal como está
+escrito.
+
 ### Imprimir o guardar en PDF
 
 El botón **⎙ PDF** abre el diálogo de impresión del navegador, que también
@@ -1010,8 +1461,8 @@ que en papel no salen ni el panel lateral ni la barra superior.
 
 Para que numere las hojas, en el diálogo abrí *Más opciones* y activá
 *Encabezados y pies de página*. Eso lo hace el navegador; no se puede pedir
-desde el documento. Por la misma razón, el índice de `[TOC]` sale impreso pero
-sin números de página.
+desde el documento. Por la misma razón, la tabla de contenidos sale impresa
+pero sin números de página.
 
 ### Atajos
 
@@ -1048,6 +1499,7 @@ Tiene que usar todo lo siguiente, porque lo voy a abrir en un lector que soporta
 exactamente esta sintaxis:
 
 - Encabezados de nivel 1 a 3, al menos cinco en total, para que se arme un índice
+- La línea [TOC] sola, justo después del título, para la tabla de contenidos
 - Párrafos normales, con negrita, cursiva, tachado y código en línea
 - Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
 - Una cita, con algo en negrita adentro
@@ -1056,7 +1508,6 @@ exactamente esta sintaxis:
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
 - Un gráfico de barras y otro de líneas, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: barras" (o "tipo: lineas") y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías
-- La línea [TOC] sola, después del título, para que se arme un índice
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como
@@ -1089,6 +1540,667 @@ Markdown no están:
 ---
 
 Si algo de acá no se ve como esperabas, el lugar para contarlo es
+https://github.com/JHProyectos/mdreader-pwa
+</script>
+<script type="text/markdown" id="ayudaSrc-en" lang="en">
+# Lector MD — sample document
+
+This file is the manual and the demo at the same time. Each section first
+shows **how something is written**, in a box with the text exactly as it goes
+in the file, and then **how it looks** in the reader.
+
+If you're reading this on GitHub, some results will look different: that's
+the whole point. Download it and open it in the reader.
+
+![A USB stick with a written page coming out of it, next to a crossed-out
+cloud: files are read from wherever they are, without going online](ejemplo-portada.png)
+
+[TOC]
+
+## What this is
+
+A Markdown file reader that works **offline** and **without uploading anything
+anywhere**. The file is read on your own machine and shown right there.
+
+It's a single `index.html`. There's no server processing your documents, no
+account, no sync. You can copy that one file to a USB stick and read your `.md`
+files on any computer with a browser.
+
+Installed as an app, it does two more things:
+
+- On **Android** it shows up in the *Share* menu: send a `.md` from WhatsApp,
+  Drive or the file manager and it opens here.
+- On **desktop** it shows up in *Open with*.
+
+## Everything it does, at a glance
+
+| | |
+|---|---|
+| **Open** | a whole folder with its subfolders, individual files, or by dragging and dropping |
+| **From other apps** | on Android through the *Share* menu; on desktop, through *Open with* |
+| **Markdown** | headings, nested lists, tables, code, quotes, emphasis, links |
+| **Formulas** | with KaTeX when online, in Unicode when not |
+| **Diagrams** | with Mermaid, downloaded only if the file has one |
+| **Code** | colored for JavaScript, TypeScript, Python, HTML, CSS, Java, C and C# |
+| **Charts** | bar and line charts, from a data table written in the file |
+| **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
+| **Search** | inside the open document, from two characters, with highlighting |
+| **Print** | or save as PDF, with a stylesheet made for paper |
+| **View** | light or dark theme, comfortable or compact line spacing |
+| **Language** | English or Spanish, following the browser, with a button to switch |
+| **Remember** | which files you loaded, which one you were reading and where you were in each |
+| **Work** | offline, serverless, from a single file you can take anywhere |
+| **Update** | on its own, without losing what you had open |
+
+## How to open files
+
+### From the app
+
+There are three ways, all equivalent:
+
+1. **Open folder** — pick a whole folder and it lists every `.md` inside it,
+   including those in subfolders. This is the recommended option.
+2. **Open individual files** — pick one or more specific files.
+3. **Drag and drop** — drop the files onto the reading area.
+
+On small screens the side panel is hidden; the **☰** button in the top bar
+opens it.
+
+### From another app, on your phone
+
+In the chat or the file manager, tap the file's **share** icon and choose
+**Lector MD** from the list.
+
+> It's **share**, not *open with*. On Android, Chrome doesn't implement the API
+> needed to appear in *open with*, so this is the way in.
+
+## What Markdown it understands
+
+Each example has two parts: the box with the text as it's written in the file
+and, under **It looks like this**, the result.
+
+### Text
+
+~~~markdown
+You can write *italics* with asterisks or _with underscores_, **bold**,
+***bold and italics*** together, ~~strikethrough~~ and `inline code`.
+~~~
+
+It looks like this:
+
+You can write *italics* with asterisks or _with underscores_, **bold**,
+***bold and italics*** together, ~~strikethrough~~ and `inline code`.
+
+Paragraphs are separated by a blank line. A single line break does **not**
+end the paragraph: the lines are joined, as in classic Markdown. That's why
+the two lines of the example show up as one.
+
+### Quotes
+
+~~~markdown
+> A quote is a block of its own and can have **formatting inside**.
+~~~
+
+It looks like this:
+
+> A quote is a block of its own and can have **formatting inside**.
+
+### Separators
+
+Three dashes alone on a line draw a horizontal rule:
+
+~~~markdown
+---
+~~~
+
+It looks like this:
+
+---
+
+### Headings
+
+~~~markdown
+# Document title
+## Section
+### Subsection
+~~~
+
+They go from `#` to `######`: the more hashes, the smaller the heading. There's
+no separate result because the headings of this very document are written this
+way; this one, for example, uses `###`.
+
+Levels 1 to 3 build the **In this file** index in the side panel and the table
+of contents explained next.
+
+### Table of contents
+
+~~~markdown
+[TOC]
+~~~
+
+Write `[TOC]` alone on a line, wherever you want it to appear. The list of
+level 1 to 3 headings is built there, with a link to each section. The result
+is the **Contents** box at the top of this file.
+
+If the document has a single `#`, it's taken as the title and not listed.
+`[[_TOC_]]` works too, as in GitLab. Unlike the index in the side panel, the
+table of contents is printed.
+
+### Lists
+
+~~~markdown
+- An item
+- Another item
+  - Nested one level
+  - Another nested one
+- Back to the first level
+
+1. First step
+2. Second step
+   1. Substep
+   2. Another substep
+3. Third step
+~~~
+
+It looks like this:
+
+- An item
+- Another item
+  - Nested one level
+  - Another nested one
+- Back to the first level
+
+1. First step
+2. Second step
+   1. Substep
+   2. Another substep
+3. Third step
+
+Bullets accept `-`, `*` or `+`, and numbered items `1.` or `1)`.
+
+### Tables
+
+~~~markdown
+| Element | Syntax | Shows in the index |
+|---|---|---|
+| Heading | `#` to `######` | levels 1 to 3 |
+| Quote | greater-than sign | no |
+| Formula | `$$` or a `math` fence | no |
+~~~
+
+It looks like this:
+
+| Element | Syntax | Shows in the index |
+|---|---|---|
+| Heading | `#` to `######` | levels 1 to 3 |
+| Quote | greater-than sign | no |
+| Formula | `$$` or a `math` fence | no |
+
+The row of dashes under the header is required. Wide tables scroll
+horizontally on their own.
+
+### Code
+
+With fences of three backticks. If you put the language next to the opening
+fence, keywords, strings, numbers and comments are highlighted:
+
+~~~markdown
+```python
+def average(values):
+    """Return the average, or None if the list is empty."""
+    if not values:
+        return None
+    return sum(values) / len(values)
+```
+~~~
+
+It looks like this:
+
+```python
+def average(values):
+    """Return the average, or None if the list is empty."""
+    if not values:
+        return None
+    return sum(values) / len(values)
+```
+
+These are the highlighted languages and how to write each one:
+
+| Language | Next to the fence |
+|---|---|
+| JavaScript | `js`, `javascript`, `json` |
+| TypeScript | `ts`, `typescript` |
+| Python | `py`, `python` |
+| HTML and XML | `html`, `xml`, `svg` |
+| CSS | `css` |
+| Java | `java` |
+| C | `c`, `h` |
+| C# | `cs`, `csharp`, `c#` |
+
+The colors come from **Prism**, which weighs about 33 KB and is downloaded the
+first time you open a file with code in one of these languages; after that it
+stays cached. They follow the reader's theme and print with the light theme's
+colors. Offline, or with any other language, the block looks the same but in a
+single color.
+
+A block indented with four spaces also works, and stays uncolored:
+
+~~~markdown
+    this is code too
+    because it's indented
+~~~
+
+It looks like this:
+
+    this is code too
+    because it's indented
+
+### Formulas
+
+**Inline** formulas go between dollar signs, inside a sentence:
+
+~~~markdown
+The rest energy is $E = mc^2$.
+~~~
+
+It looks like this:
+
+The rest energy is $E = mc^2$.
+
+**Block** formulas go on their own line, between double dollar signs:
+
+~~~markdown
+$$\int_0^1 x^2\,dx = \frac{1}{3}$$
+~~~
+
+It looks like this:
+
+$$\int_0^1 x^2\,dx = \frac{1}{3}$$
+
+A fence with the language `math`, `latex` or `tex` works too, GitHub style:
+
+~~~markdown
+```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```
+~~~
+
+It looks like this:
+
+```math
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+```
+
+When online they're drawn with **KaTeX**: real math typesetting. When not,
+they fall back to a Unicode approximation that still reads well.
+
+### Diagrams
+
+A fence with the language `mermaid` is drawn as a diagram:
+
+~~~markdown
+```mermaid
+flowchart LR
+  W[WhatsApp] -->|share| SW[Service worker]
+  SW --> C[(Cache)]
+  C --> APP[Lector MD]
+  APP --> IDB[(IndexedDB)]
+```
+~~~
+
+It looks like this:
+
+```mermaid
+flowchart LR
+  W[WhatsApp] -->|share| SW[Service worker]
+  SW --> C[(Cache)]
+  C --> APP[Lector MD]
+  APP --> IDB[(IndexedDB)]
+```
+
+Every **Mermaid** type works: flowcharts, sequence, class, state, Gantt. For
+example, a state diagram:
+
+~~~markdown
+```mermaid
+stateDiagram-v2
+  [*] --> Empty
+  Empty --> Reading: open folder
+  Reading --> Printing: PDF button
+  Printing --> Reading
+```
+~~~
+
+It looks like this:
+
+```mermaid
+stateDiagram-v2
+  [*] --> Empty
+  Empty --> Reading: open folder
+  Reading --> Printing: PDF button
+  Printing --> Reading
+```
+
+Diagrams follow the reader's theme, and are redrawn in light colors when
+printing so they stay legible on paper.
+
+The diagram library weighs about 3 MB, so **it's only downloaded when you open
+a file that has a diagram**. After that it stays cached and works offline. If
+it can't be downloaded, the block keeps showing the diagram's source, which
+still reads fine.
+
+### Charts
+
+A fence with the language `chart` (or `grafico`) draws a bar or line chart.
+Options go first, one per line; then the data. The first data row is the
+header: the first column holds the categories and each of the following ones
+is a series.
+
+~~~markdown
+```chart
+type: bar
+title: Study hours per week
+unit: h
+
+Week, Calculus, Programming
+1, 6, 4
+2, 5, 7
+3, 8, 6
+4, 7, 9
+```
+~~~
+
+It looks like this:
+
+```chart
+type: bar
+title: Study hours per week
+unit: h
+
+Week, Calculus, Programming
+1, 6, 4
+2, 5, 7
+3, 8, 6
+4, 7, 9
+```
+
+A line chart is written the same way, with `type: line`:
+
+~~~markdown
+```chart
+type: line
+title: Response time under load
+unit: ms
+
+Users, Cached, Uncached
+10, 12, 35
+50, 14, 80
+100, 15.5, 160
+200, 18, 340
+400, 25, 700
+```
+~~~
+
+It looks like this:
+
+```chart
+type: line
+title: Response time under load
+unit: ms
+
+Users, Cached, Uncached
+10, 12, 35
+50, 14, 80
+100, 15.5, 160
+200, 18, 340
+400, 25, 700
+```
+
+| Option | What it does | If you leave it out |
+|---|---|---|
+| `type` | `bar` or `line` | bar |
+| `title` | text above the chart | no title |
+| `unit` | text above the vertical axis and next to each value | nothing |
+| `min`, `max` | a value the axis must include, such as `min: 0` | worked out automatically |
+
+A few details:
+
+- The options are also understood in Spanish: `tipo`, `titulo` and `unidad`,
+  with `barras` or `lineas`.
+- Columns are separated by commas. If your numbers use a **decimal comma**,
+  separate the columns with semicolons instead.
+- Tabs work too, which is what you get when copying cells from a spreadsheet,
+  and so do vertical bars: a Markdown table pasted inside the fence works as is.
+- An empty cell leaves a gap: the bar doesn't appear and the line breaks.
+- Up to 8 series fit, one per color. With more, split the chart.
+- Numbers go without thousands separators: `1234`, not `1,234`.
+
+Hovering with the mouse, or tapping with a finger, shows the values for that
+category. Below, **Show data** shows the same information as a table. If the
+data has an error, the block keeps showing the fence's text, with a note on
+what went wrong.
+
+Unlike diagrams, charts are drawn by the reader itself, without downloading
+anything: they work offline from the very first moment.
+
+### Links and images
+
+~~~markdown
+A [regular link](https://mdreader.jhproyectos.com.ar), and a bare address
+that turns into a link on its own: https://github.com/JHProyectos/mdreader-pwa
+~~~
+
+It looks like this:
+
+A [regular link](https://mdreader.jhproyectos.com.ar), and a bare address
+that turns into a link on its own: https://github.com/JHProyectos/mdreader-pwa
+
+Images start with an exclamation mark, and the text in square brackets is the
+alternative text. The illustration at the top is written like this:
+
+~~~markdown
+![A USB stick with a written page coming out of it](ejemplo-portada.png)
+~~~
+
+They shrink to fit the column. Note: an image with a relative path only shows
+up if that path exists where you're opening the file. The reader receives the
+text of the `.md`, not its folder.
+
+Wiki-links are shown as code, not as links, because the reader has no way of
+knowing which file they point to:
+
+~~~markdown
+See also [[another note]].
+~~~
+
+It looks like this:
+
+See also [[another note]].
+
+## File encoding
+
+This is the part that usually causes the most trouble, so it pays to be
+precise.
+
+### File text
+
+Files are **always read as UTF-8**. There's no automatic encoding detection
+and no way to choose another one.
+
+In practice you won't notice, because UTF-8 is what every editor uses today.
+But if an old file was saved as *Latin-1* or *Windows-1252*, accented letters
+will show up broken.
+
+The fix is on the file's side, not the reader's: open it in any editor and save
+it again as UTF-8.
+
+### Line endings
+
+It doesn't matter how they were saved. The reader normalizes all three styles:
+
+| Style | Where it comes from |
+|---|---|
+| `LF` | Linux, macOS |
+| `CRLF` | Windows |
+| `CR` | classic Mac |
+
+### Extensions
+
+Three are accepted: `.md`, `.markdown` and `.txt`. When you open a folder, the
+reader filters by those extensions and ignores everything else.
+
+A `.txt` is processed as Markdown just like the others. If there's no Markdown
+syntax inside, it simply shows as text.
+
+## Reading, navigating, searching and printing
+
+### Navigating
+
+To move around a long document there are two indexes:
+
+- **In this file**, in the side panel, lists the level 1 to 3 headings. Tap
+  one and the document jumps to that section. It shows up when there are more
+  than two headings; on a phone it's inside the panel that **☰** opens.
+- **The table of contents** goes inside the document itself, wherever `[TOC]`
+  is written. It's the **Contents** box at the top of this file, and its links
+  also take you to each section. Unlike the panel, it's printed. How to write
+  it is under *Table of contents*, above.
+
+To go from one file to another, tap its name in the list or use `Alt` + `J`
+for the next one and `Alt` + `K` for the previous one. Each file remembers how
+far you read, so when you come back you're in the same place.
+
+### Searching
+
+The field at the top searches the open document and highlights the matches,
+from two characters on. It doesn't search the other files in the list, only
+the one you're reading.
+
+Diagram text is left out of the search: a drawn diagram is a vector image, and
+highlighting inside it would make the text disappear. For the same reason, in
+charts the title, the legend and the **Show data** table (when open) are
+searched, but not the axis numbers.
+
+### Comfortable or compact
+
+The **⇕** button in the panel switches between two reading densities. It
+doesn't change the font size: it changes the spacing, meaning the line height
+and the space between paragraphs, headings and blocks.
+
+| | Comfortable | Compact |
+|---|---|---|
+| Line height | 1.6 | 1.38 |
+| Between paragraphs | generous | minimal |
+| Page margin | generous | tight |
+
+**Comfortable** is the default and is meant for reading on screen without
+getting tired. **Compact** tightens everything so more content fits at once:
+it's useful for skimming a long document. The choice is remembered, so next
+time it opens the way you left it.
+
+**Printing is always compact**, whatever you use on screen. That's on purpose:
+on paper, extra spacing turns into extra pages.
+
+The **◐** button next to it does the same for the theme, between light and
+dark, and also remembers your choice.
+
+### Language
+
+The interface and this help come in English and Spanish. By default the
+browser's language is used; the **ES** button in the panel switches to
+Spanish and, from there, **EN** switches back to English. The choice is
+remembered.
+
+The language doesn't touch your files: each document is shown exactly as it's
+written.
+
+### Printing or saving as PDF
+
+The **⎙ PDF** button opens the browser's print dialog, which also lets you save
+as PDF. There's a separate stylesheet for printing, so neither the side panel
+nor the top bar end up on paper.
+
+To number the pages, open *More settings* in the dialog and turn on *Headers
+and footers*. The browser does that; it can't be requested from the document.
+For the same reason, the table of contents is printed but without page
+numbers.
+
+### Shortcuts
+
+| Shortcut | What it does |
+|---|---|
+| `Ctrl` + `F` | go to the search field |
+| `Esc` | clear the search |
+| `Alt` + `J` | next file |
+| `Alt` + `K` | previous file |
+
+### What gets remembered
+
+The files you loaded, which one you were reading and how far along you were in
+each: all of that is stored in your browser and comes back as it was next time,
+even after an app update.
+
+It's stored on your machine, not on a server. **Clear all** empties the
+reader's list, and never deletes files from your disk.
+
+## Asking an AI for a file that uses everything
+
+If you want to try the reader with something of your own, the quickest way is
+to ask ChatGPT, Claude or whichever you use to generate a `.md` that exercises
+every feature. The problem with asking loosely is that models write
+"GitHub-flavored" Markdown, with things this reader doesn't interpret, and the
+result only half renders.
+
+Copy this request, change the topic to whatever you want and paste it as is:
+
+```
+I need a sample Markdown file, in English, about CHANGE THIS TO YOUR TOPIC.
+
+It must use everything below, because I'll open it in a reader that supports
+exactly this syntax:
+
+- Level 1 to 3 headings, at least five in total, so an index gets built
+- A line with just [TOC] right after the title, for the table of contents
+- Regular paragraphs with bold, italics, strikethrough and inline code
+- A bulleted list with one level of nesting, and a numbered list
+- A blockquote with something in bold inside
+- A three-column table with a header
+- A code block with its language declared, one of: js, ts, python, html, css, java, c or csharp
+- An inline math formula and a block one, in LaTeX
+- A Mermaid flowchart and a sequence diagram
+- A bar chart and a line chart, each in a fence with the language chart: first the lines "type: bar" (or "type: line") and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories
+- A horizontal rule
+
+Don't use any of the following, because the reader doesn't interpret it and it
+shows up as raw text: task lists with checkboxes, footnotes, raw HTML tags,
+reference-style links with the definition at the end, or underlined headings
+instead of headings with hashes.
+
+Give it back to me as a single block of raw Markdown, ready to save as a UTF-8
+.md file.
+```
+
+Save the answer as `test.md` and open it with **Open individual files**. If
+something shows as raw text instead of rendered, the model almost certainly
+slipped in one of the things from the list below.
+
+## What it doesn't do
+
+It's a deliberately small reader, with its own parser. These Markdown features
+aren't there:
+
+- **Task lists.** Checkboxes show up as text.
+- **Footnotes.** They stay as written.
+- **HTML inside Markdown.** It's shown as text, not interpreted. That's on
+  purpose: files come from outside, and nothing they carry gets executed.
+- **Reference-style links**, with the definition separately at the end.
+- **Underlined headings**, the ones marked with dashes or equals signs under
+  the text. Use `#`.
+- **Editing.** It's a reader: it shows files, it doesn't change them.
+
+---
+
+If something here doesn't look the way you expected, the place to report it is
 https://github.com/JHProyectos/mdreader-pwa
 </script>
 <script>
@@ -1152,10 +2264,7 @@ function avisarErrorPersistencia(error){
   console.error("No se pudo guardar el área de trabajo:", error);
   if(avisoPersistenciaMostrado || !DOCS.length) return;
   avisoPersistenciaMostrado = true;
-  alert(
-    "Los archivos se abrieron, pero el navegador no pudo guardar la sesión local. " +
-    "La app no aplicará una actualización mientras haya documentos abiertos."
-  );
+  alert(t("alertPersistencia"));
 }
 
 function esperarTransaccion(tx){
@@ -1660,7 +2769,8 @@ function indiceHTML(heads){
   if(!lista.length) return "";
 
   const base = Math.min(...lista.map(h => h.lv));
-  let html = '<nav class="doctoc" aria-label="Índice"><p class="doctoc-t">Contenido</p><ol>';
+  let html = '<nav class="doctoc" aria-label="'+t("indiceAria")+'"><p class="doctoc-t">'
+           + t("indiceTitulo")+'</p><ol>';
   let prof = -1;
   for(const h of lista){
     // un salto de nivel (## seguido de ####) baja de a un escalón
@@ -1728,6 +2838,21 @@ let mmdSeq = 0;             // ids únicos para mermaid.render
 let mmdClaro = null;        // con qué tema se configuró la última vez
 let generacionDoc = 0;      // cambia al abrir otro archivo: corta pintados en curso
 
+/* Los plegables de fórmulas y de diagramas cuentan si la librería cargó.
+   Se guarda el estado y no el texto, para poder repintarlo en otro idioma. */
+const KATEX_VER = "0.16.9";
+let estadoKatex = "espera";     // espera | on | off
+let estadoMermaid = "espera";   // espera | cargando | on | off
+
+function pintarEstados(){
+  $("mathWrap").classList.toggle("on", estadoKatex === "on");
+  $("mathSum").textContent = t("katexSum", estadoKatex, KATEX_VER);
+  $("mathTxt").innerHTML = t("katexTxt", estadoKatex);
+  $("diagWrap").classList.toggle("on", estadoMermaid === "on");
+  $("diagSum").textContent = t("mmdSum", estadoMermaid, MERMAID_VER);
+  $("diagTxt").innerHTML = t("mmdTxt", estadoMermaid);
+}
+
 function esTemaOscuro(){
   const tema = document.documentElement.getAttribute("data-theme");
   return tema === "dark" ||
@@ -1737,7 +2862,8 @@ function esTemaOscuro(){
 function asegurarMermaid(){
   if(mmdCarga) return mmdCarga;
 
-  $("diagSum").textContent = "diagramas: cargando Mermaid…";
+  estadoMermaid = "cargando";
+  pintarEstados();
 
   mmdCarga = new Promise(resolve => {
     const js = document.createElement("script");
@@ -1745,22 +2871,16 @@ function asegurarMermaid(){
 
     const fallo = () => {
       js.remove();
-      $("diagWrap").classList.remove("on");
-      $("diagSum").textContent = "diagramas: modo código";
-      $("diagTxt").textContent =
-        "No se pudo cargar Mermaid (sin conexión). Los bloques ```mermaid se muestran " +
-        "como código: se leen igual, pero no se dibujan. Con conexión se reintenta.";
+      estadoMermaid = "off";
+      pintarEstados();
       resolve(false);
     };
 
     js.onload = () => {
       if(!window.mermaid){ fallo(); return; }
       MERMAID = true;
-      $("diagWrap").classList.add("on");
-      $("diagSum").textContent = "diagramas: Mermaid " + MERMAID_VER;
-      $("diagTxt").textContent =
-        "Diagramas dibujados de verdad: flujos, secuencias, clases, estados, Gantt. " +
-        "Siguen el tema del lector y al imprimir salen en claro.";
+      estadoMermaid = "on";
+      pintarEstados();
       resolve(true);
     };
     js.onerror = fallo;
@@ -1807,7 +2927,7 @@ function marcarDiagramaConError(bloque, error){
   const detalle = String((error && error.message) || error || "").split("\n")[0].trim();
   const nota = document.createElement("p");
   nota.className = "diagram-err";
-  nota.textContent = "No se pudo dibujar este diagrama" + (detalle ? ": " + detalle : ".");
+  nota.textContent = t("diagramaError", detalle);
   bloque.appendChild(nota);
 }
 
@@ -1950,8 +3070,15 @@ const GRAF_CLAVES = {
 };
 
 const redondo = v => Math.round(v * 10) / 10;
+
+/* Los valores se muestran con la puntuación del idioma de la interfaz: la
+   variante del navegador si coincide (es-MX usa punto decimal), si no una fija. */
+function localeNumeros(){
+  const nav = navigator.language || "";
+  return nav.toLowerCase().startsWith(IDIOMA) ? nav : (IDIOMA === "es" ? "es-AR" : "en-US");
+}
 const fmtNumero = (v, decimales = 6) =>
-  v === null ? "—" : v.toLocaleString("es-AR", {maximumFractionDigits: decimales});
+  v === null ? "—" : v.toLocaleString(localeNumeros(), {maximumFractionDigits: decimales});
 
 /* "1.234,5", "1234.5", "12%" → número; vacío o "-" → null (hueco); otra cosa → NaN */
 function leerNumero(txt){
@@ -2002,31 +3129,31 @@ function leerGrafico(src){
   const tipo = String(g.tipo).toLowerCase();
   if(/^(barras?|columnas?|bars?)$/.test(tipo)) g.tipo = "barras";
   else if(/^(l[ií]neas?|lines?)$/.test(tipo)) g.tipo = "lineas";
-  else throw new Error('el tipo "' + g.tipo + '" no existe: tiene que ser barras o lineas');
+  else throw new Error(t("errTipo", g.tipo));
 
   for(const k of ["min", "max"]){
     if(g[k] === null || g[k] === ""){ g[k] = null; continue; }
     const n = leerNumero(g[k]);
-    if(n === null || Number.isNaN(n)) throw new Error(k + ' tiene que ser un número, no "' + g[k] + '"');
+    if(n === null || Number.isNaN(n)) throw new Error(t("errMinMax", k, g[k]));
     g[k] = n;
   }
 
-  if(filas.length < 2) throw new Error("faltan datos: hace falta una fila de encabezado y al menos una de valores");
+  if(filas.length < 2) throw new Error(t("errFaltanDatos"));
   const [encabezado, ...resto] = filas;
   g.ejeX = encabezado[0] || "";
-  g.series = encabezado.slice(1).map((s, k) => s || "Serie " + (k + 1));
-  if(!g.series.length) throw new Error("el encabezado necesita al menos una columna de valores después de la de categorías");
+  g.series = encabezado.slice(1).map((s, k) => s || t("serie", k + 1));
+  if(!g.series.length) throw new Error(t("errSinSeries"));
   if(g.series.length > GRAF_MAX_SERIES){
-    throw new Error("hay " + g.series.length + " series y el máximo es " + GRAF_MAX_SERIES);
+    throw new Error(t("errMuchasSeries", g.series.length, GRAF_MAX_SERIES));
   }
 
   g.categorias = resto.map(f => f[0] || "");
   g.valores = resto.map((f, r) => g.series.map((nombre, k) => {
     const n = leerNumero(f[k + 1]);
-    if(Number.isNaN(n)) throw new Error('"' + f[k + 1] + '" no es un número (fila ' + (r + 1) + ", " + nombre + ")");
+    if(Number.isNaN(n)) throw new Error(t("errNoNumero", f[k + 1], r + 1, nombre));
     return n;
   }));
-  if(!g.valores.some(f => f.some(v => v !== null))) throw new Error("no hay ningún valor numérico");
+  if(!g.valores.some(f => f.some(v => v !== null))) throw new Error(t("errSinValores"));
   return g;
 }
 
@@ -2088,7 +3215,7 @@ function dibujarLienzo(lienzo, g){
 
   const svg = svgNodo("svg", {
     viewBox: "0 0 " + ancho + " " + alto, width: ancho, height: alto, role: "img",
-    "aria-label": g.titulo || (g.tipo === "barras" ? "Gráfico de barras" : "Gráfico de líneas")
+    "aria-label": g.titulo || t(g.tipo === "barras" ? "graficoBarras" : "graficoLineas")
   }, lienzo);
 
   /* grilla y eje vertical */
@@ -2275,7 +3402,7 @@ function armarGrafico(bloque){
   const datos = document.createElement("details");
   datos.className = "chart-datos";
   const resumen = document.createElement("summary");
-  resumen.textContent = "Ver datos";
+  resumen.textContent = t("verDatos");
   const envoltura = document.createElement("div");
   envoltura.className = "tablewrap";
   const tabla = document.createElement("table");
@@ -2319,8 +3446,7 @@ function pintarGraficos(){
       bloque.dataset.chart = "error";
       const nota = document.createElement("p");
       nota.className = "diagram-err";
-      nota.textContent = "No se pudo dibujar este gráfico: " +
-        String((error && error.message) || error || "error desconocido");
+      nota.textContent = t("graficoError", String((error && error.message) || error || ""));
       bloque.appendChild(nota);
     }
   });
@@ -2357,7 +3483,7 @@ async function addFiles(list){
   await workspaceReady;
   const md = [...list].filter(f => /\.(md|markdown|txt)$/i.test(f.name));
   if(!md.length){
-    alert("No encontré archivos .md en lo que elegiste.");
+    alert(t("alertSinMd"));
     return;
   }
 
@@ -2372,7 +3498,7 @@ async function addFiles(list){
     .forEach(r => console.error("No se pudo leer un archivo:", r.reason));
 
   if(!leidos.length){
-    alert("No se pudo leer ninguno de los archivos elegidos.");
+    alert(t("alertNoLeidos"));
     return;
   }
 
@@ -2409,13 +3535,13 @@ function drawFiles(){
   let html = "", lastGrp = null;
   DOCS.forEach((d,idx)=>{
     const parts = d.path.split("/");
-    const grp = parts.length > 1 ? parts.slice(0,-1).join(" / ") : "raíz de la carpeta";
+    const grp = parts.length > 1 ? parts.slice(0,-1).join(" / ") : t("raizCarpeta");
     if(grp !== lastGrp){ html += '<div class="grp">'+esc(grp)+"</div>"; lastGrp = grp; }
     html += '<div class="filerow'+(idx===current?" cur":"")+'">'
           +   '<button class="file" data-i="'+idx+'" aria-current="'+(idx===current)+
               '" title="'+esc(d.path)+'">'+esc(d.name)+'</button>'
-          +   '<button class="rm" data-rm="'+idx+'" aria-label="Quitar '+esc(d.name)+
-              ' de la lista" title="Quitar de la lista (no borra el archivo)">&times;</button>'
+          +   '<button class="rm" data-rm="'+idx+'" aria-label="'+esc(t("quitarAria", d.name))+
+              '" title="'+esc(t("quitarTitle"))+'">&times;</button>'
           + '</div>';
   });
   box.innerHTML = html;
@@ -2423,7 +3549,7 @@ function drawFiles(){
   box.querySelectorAll(".rm").forEach(b => b.onclick = () => removeDoc(+b.dataset.rm));
 
   $("listHd").hidden = false;
-  $("fileCount").textContent = DOCS.length + (DOCS.length === 1 ? " archivo" : " archivos");
+  $("fileCount").textContent = t("archivos", DOCS.length);
 }
 
 /* quita un solo archivo de la lista (no toca el disco) */
@@ -2459,10 +3585,8 @@ function resetWorkspace(persistir = true){
   limpiarVista();
   $("listHd").hidden = true;
   $("fileCount").textContent = "";
-  $("files").innerHTML =
-    '<p class="empty">Área de trabajo vacía.<br><br>' +
-    'Volvé a usar <b>Abrir carpeta</b> cuando quieras. ' +
-    'Nada de esto borra archivos del disco.</p>';
+  // con data-t, para que un cambio de idioma también lo traduzca
+  $("files").innerHTML = '<p class="empty" data-t="vacioReset">' + t("vacioReset") + "</p>";
 
   // los input file se limpian para poder volver a elegir la MISMA carpeta
   $("inFolder").value = "";
@@ -2498,7 +3622,7 @@ function limpiarVista(){
   $("doc").hidden = true;
   $("doc").innerHTML = "";
   $("drop").hidden = false;
-  $("docname").textContent = "ningún archivo abierto";
+  $("docname").textContent = t("ningunArchivo");
   document.title = "Lector MD";
   $("search").value = "";
   $("search").disabled = true;
@@ -2543,8 +3667,9 @@ function open(i, opciones = {}){
 /* ============================================================
    ayuda
 
-   El documento de ejemplo viaja adentro del HTML (ver #ayudaSrc)
-   y se muestra como una vista aparte: no entra en la lista de
+   El documento de ejemplo viaja adentro del HTML, uno por idioma
+   (ver #ayudaSrc-es y #ayudaSrc-en), y se muestra como una vista
+   aparte: no entra en la lista de
    archivos ni se guarda en IndexedDB, porque esa lista es de los
    archivos del usuario, no de los nuestros. A cambio aprovecha
    todo el resto: índice, búsqueda, diagramas e impresión.
@@ -2559,6 +3684,21 @@ function marcarBotonAyuda(activo){
   });
 }
 
+/* arma la ayuda en el idioma actual; también se usa al cambiar de idioma */
+function pintarAyuda(){
+  // .trim() saca el salto de línea que el HTML deja pegado a la etiqueta
+  const {html, heads} = render($("ayudaSrc-" + IDIOMA).textContent.trim());
+  mostrarDocumento(html);
+
+  $("docname").textContent = t("ayudaDocname");
+  document.title = t("ayudaTitulo");
+  $("search").disabled = false;
+  $("search").value = "";
+  $("hits").textContent = "";
+  $("main").scrollTop = 0;
+  dibujarIndice(heads);
+}
+
 function alternarAyuda(){
   if(viendoAyuda){ salirDeAyuda(); return; }
 
@@ -2567,18 +3707,7 @@ function alternarAyuda(){
   viendoAyuda = true;
   current = -1;                   // no hay ningún archivo del usuario abierto
 
-  // .trim() saca el salto de línea que el HTML deja pegado a la etiqueta
-  const {html, heads} = render($("ayudaSrc").textContent.trim());
-  mostrarDocumento(html);
-
-  $("docname").textContent = "ayuda · ejemplo.md";
-  document.title = "Lector MD — ejemplo";
-  $("search").disabled = false;
-  $("search").value = "";
-  $("hits").textContent = "";
-  $("main").scrollTop = 0;
-
-  dibujarIndice(heads);
+  pintarAyuda();
   drawFiles();                    // saca el resaltado del archivo que estaba abierto
   marcarBotonAyuda(true);
   closeSide();
@@ -2640,7 +3769,7 @@ function search(q){
     frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
     node.replaceWith(frag);
   });
-  $("hits").textContent = n ? n + (n===1?" resultado":" resultados") : "sin resultados";
+  $("hits").textContent = t("resultados", n);
   if(first) $("main").scrollTo({top: first.offsetTop - 90, behavior:"smooth"});
 }
 
@@ -2761,10 +3890,8 @@ $("print").onclick = async () => {
 function setDensity(compact){
   document.body.classList.toggle("compact", compact);
   const b = $("density");
-  b.textContent = compact ? "⇕ Cómodo" : "⇕ Compacto";
-  b.title = compact
-    ? "Volver al interlineado cómodo para leer en pantalla"
-    : "Interlineado compacto, para que entre más por hoja";
+  b.textContent = t(compact ? "comodo" : "compacto");
+  b.title = t(compact ? "comodoTitle" : "compactoTitle");
   try{ localStorage.setItem("lectormd-density", compact ? "compact" : "comfy"); }catch(e){}
 }
 $("density").onclick = () => setDensity(!document.body.classList.contains("compact"));
@@ -2781,9 +3908,10 @@ document.querySelectorAll("details.fold").forEach(d => {
     try{ localStorage.setItem(key, d.open ? "1" : "0"); }catch(e){}
   });
 });
-try{
-  if(localStorage.getItem("lectormd-density") === "compact") setDensity(true);
-}catch(e){}
+// siempre se llama: el botón no trae texto propio en el HTML
+let densidadGuardada = false;
+try{ densidadGuardada = localStorage.getItem("lectormd-density") === "compact"; }catch(e){}
+setDensity(densidadGuardada);
 
 $("theme").onclick = ()=>{
   const next = esTemaOscuro() ? "light" : "dark";
@@ -2800,6 +3928,25 @@ try{
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change", () => {
   if(!document.documentElement.getAttribute("data-theme")) redibujarDiagramas();
 });
+
+/* ---------- idioma ---------- */
+function cambiarIdioma(nuevo){
+  IDIOMA = nuevo;
+  try{ localStorage.setItem("lectormd-lang", nuevo); }catch(e){}
+  traducirPagina();
+  pintarEstados();
+  setDensity(document.body.classList.contains("compact"));
+  // Lo que está a la vista se vuelve a armar: la ayuda cambia de documento, y en
+  // un archivo propio cambian el índice de [TOC], los gráficos y los avisos.
+  if(viendoAyuda) pintarAyuda();
+  else if(current >= 0) open(current, {persistir:false});
+  else limpiarVista();
+  if(DOCS.length) drawFiles();
+}
+$("lang").onclick = () => cambiarIdioma(IDIOMA === "es" ? "en" : "es");
+
+pintarEstados();
+$("docname").textContent = t("ningunArchivo");
 
 // Restaura los documentos antes de procesar archivos recibidos desde el sistema.
 workspaceReady = restaurarWorkspace();
@@ -2831,8 +3978,7 @@ document.addEventListener("keydown", e=>{
    lector sigue funcionando con la aproximación en Unicode.
    ============================================================ */
 (function loadKatex(){
-  const VER = "0.16.9";
-  const BASE = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/" + VER + "/";
+  const BASE = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/" + KATEX_VER + "/";
 
   const css = document.createElement("link");
   css.rel = "stylesheet";
@@ -2844,19 +3990,14 @@ document.addEventListener("keydown", e=>{
 
   js.onload = () => {
     KATEX = true;
-    $("mathWrap").classList.add("on");
-    $("mathSum").textContent = "fórmulas: KaTeX " + VER;
-    $("mathTxt").textContent =
-      "Tipografía matemática real, cargada desde CDN. Fracciones apiladas, radicales y " +
-      "recuadros se dibujan como en un libro.";
+    estadoKatex = "on";
+    pintarEstados();
     if(current >= 0) open(current);   // re-render con lo ya abierto
   };
 
   js.onerror = () => {
-    $("mathSum").textContent = "fórmulas: modo simple";
-    $("mathTxt").textContent =
-      "No se pudo cargar KaTeX (sin conexión). Las fórmulas se dibujan con la " +
-      "aproximación en Unicode: se leen bien, pero no es tipografía matemática real.";
+    estadoKatex = "off";
+    pintarEstados();
   };
 
   document.head.appendChild(js);
@@ -2975,30 +4116,30 @@ function avisarActualizacion(reg){
   const bar = document.createElement("div");
   bar.id = "updBar";
   bar.innerHTML =
-    '<span>Nueva versión lista. Se aplicará al cerrar la app.</span>' +
-    '<button type="button" id="updBtn">Actualizar ahora</button>';
+    '<span>' + t("updLista") + '</span>' +
+    '<button type="button" id="updBtn">' + t("updBoton") + '</button>';
   document.body.appendChild(bar);
   document.getElementById("updBtn").onclick = async () => {
     const btn = document.getElementById("updBtn");
     const mensaje = bar.querySelector("span");
     btn.disabled = true;
-    mensaje.textContent = "Guardando los documentos abiertos…";
+    mensaje.textContent = t("updGuardando");
 
     const guardado = await guardarWorkspaceCompleto();
     if(!guardado && DOCS.length){
-      mensaje.textContent = "No se pudo guardar la sesión. La actualización quedó en espera.";
+      mensaje.textContent = t("updFallo");
       btn.disabled = false;
       return;
     }
 
     const waiting = reg.waiting;
     if(!waiting){
-      mensaje.textContent = "La actualización se aplicará la próxima vez que abras la app.";
+      mensaje.textContent = t("updProxima");
       return;
     }
 
     recargaSolicitada = true;
-    mensaje.textContent = "Actualizando… tus documentos se restaurarán enseguida.";
+    mensaje.textContent = t("updActualizando");
     waiting.postMessage("SKIP_WAITING");
   };
 }
