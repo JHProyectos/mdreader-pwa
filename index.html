@@ -7,6 +7,20 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#34399B">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMzNDM5OUIiLz4KICA8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNOSAyMGg3bDYgOCA2LThoN3YyNWgtN1YzMWwtNiA4LTYtOHYxNEg5eiIvPgogIDxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MiAxOGg4djE2aDdMNDYgNDcgMzUgMzRoN3oiLz4KPC9zdmc+Cg==">
+
+<!-- iPhone / iPad. Safari usa este ícono antes que los del manifest, y en
+     iOS anterior a 16.4 es el único que mira. Va el maskable, que es
+     cuadrado y opaco: el de 192 tiene las esquinas transparentes y iOS las
+     rellenaría de negro por debajo de su propia máscara. -->
+<link rel="apple-touch-icon" href="/icon-maskable-512.png">
+<!-- pantalla completa al abrirlo desde la pantalla de inicio; en iOS 16.4+
+     esto ya lo decide "display" del manifest, pero sigue haciendo falta
+     para las versiones viejas -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lector MD">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
 <style>
 :root{
   --bg:#F0F1F4; --surface:#FAFBFD; --surface-2:#E9EBF1;
@@ -95,7 +109,9 @@ img{max-width:100%}
 [hidden]{display:none!important}
 
 /* ================= layout ================= */
-.app{display:grid; grid-template-columns:264px minmax(0,1fr); height:100vh}
+/* dvh es el alto que queda libre de verdad: en Safari de iPhone, 100vh
+   mete el último tramo de la app abajo de la barra del navegador. */
+.app{display:grid; grid-template-columns:264px minmax(0,1fr); height:100vh; height:100dvh}
 @media (max-width:820px){
   .app{grid-template-columns:minmax(0,1fr)}
   aside{position:fixed; inset:0 auto 0 0; width:280px; z-index:20;
@@ -281,6 +297,21 @@ main{overflow-y:auto; min-height:0; position:relative}
   .tip-movil{display:block}
   .tip-escritorio{display:none}
 }
+
+/* iOS tiene su propio juego de instrucciones: no existe el menú "Compartir"
+   hacia apps web ni el selector de carpetas, así que las de Android y las de
+   escritorio no aplican. El atributo lo pone ES_IOS, más abajo en el script;
+   estos selectores le ganan por especificidad a la consulta de ancho, que es
+   lo que hace falta en iPad. */
+.tip-ios, .tip-instalar{display:none}
+html[data-plat="ios"] .tip-movil,
+html[data-plat="ios"] .tip-escritorio{display:none}
+html[data-plat="ios"] .tip-ios{display:block}
+/* el instructivo de instalación sobra si ya está instalada */
+html[data-plat="ios"]:not([data-modo="app"]) .tip-instalar{display:block}
+/* webkitdirectory no hace nada en iOS: el botón abriría un cuadro vacío */
+html[data-plat="ios"] #pickFolder,
+html[data-plat="ios"] #pickFolder2{display:none}
 body.dragging main{outline:2px dashed var(--accent); outline-offset:-10px}
 
 /* ================= documento ================= */
@@ -609,6 +640,26 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
         <p class="fine" data-t="tipMovilFine"></p>
       </div>
 
+      <div class="tip tip-ios">
+        <h3 data-t="tipIosTitulo"></h3>
+        <ol>
+          <li data-t="tipIos1"></li>
+          <li data-t="tipIos2"></li>
+          <li data-t="tipIos3"></li>
+        </ol>
+        <p class="fine" data-t="tipIosFine"></p>
+      </div>
+
+      <div class="tip tip-instalar">
+        <h3 data-t="tipInstTitulo"></h3>
+        <ol>
+          <li data-t="tipInst1"></li>
+          <li data-t="tipInst2"></li>
+          <li data-t="tipInst3"></li>
+        </ol>
+        <p class="fine" data-t="tipInstFine"></p>
+      </div>
+
       <div class="tip tip-escritorio">
         <h3 data-t="tipEscTitulo"></h3>
         <ol>
@@ -703,6 +754,33 @@ const TEXTOS = {
     tipMovil3: "Elegí <b>Lector MD</b> en la lista de apps. El archivo se abre acá.",
     tipMovilFine: "Funciona igual desde Drive, Telegram, Gmail o el explorador de archivos: siempre " +
       "por <b>compartir</b>.",
+
+    /* Variantes para iPhone y iPad. Las claves que terminan en IOS pisan
+       automáticamente a la clave sin sufijo cuando ES_IOS es verdadero. */
+    abrirSueltosIOS: "Abrir archivos",
+    vacioInicialIOS: "Todavía no cargaste nada.<br><br>Usá <b>Abrir archivos</b> y buscá tus " +
+      "<code>.md</code> en la app <b>Archivos</b>: iCloud Drive, Descargas o donde los tengas. " +
+      "Podés elegir varios de una vez.",
+    vacioResetIOS: "Área de trabajo vacía.<br><br>Volvé a usar <b>Abrir archivos</b> cuando " +
+      "quieras. Nada de esto borra archivos del teléfono.",
+    dropBigIOS: "Abrí tus archivos",
+    dropTxtIOS: "Elegilos desde <b>Archivos</b>. Nada sale de tu teléfono: el archivo se lee y se " +
+      "muestra localmente, sin subir nada a ningún lado.",
+    tipIosTitulo: "¿Te mandaron un <code>.md</code> por WhatsApp?",
+    tipIos1: "En el chat, tocá el archivo y después el ícono de <b>compartir</b> " +
+      "<span class=\"k\">⤴</span>.",
+    tipIos2: "Elegí <b>Guardar en Archivos</b> y fijate en qué carpeta lo dejás.",
+    tipIos3: "Volvé acá, tocá <b>Abrir archivos</b> y buscalo ahí.",
+    tipIosFine: "Es el paso de más que pide el iPhone: iOS no deja que una app web aparezca en el " +
+      "menú <b>Compartir</b> ni que se abra tocando un <code>.md</code>, así que los archivos " +
+      "siempre entran desde este botón.",
+    tipInstTitulo: "Dejalo en la pantalla de inicio",
+    tipInst1: "Tocá el botón <b>Compartir</b> <span class=\"k\">⤴</span> de la barra del navegador.",
+    tipInst2: "Bajá hasta <b>Agregar a inicio</b> y confirmá.",
+    tipInst3: "Se abre como una app, sin la barra de Safari, y anda sin internet.",
+    tipInstFine: "Instalado también conserva lo que abriste: a una página suelta, iOS le borra los " +
+      "datos guardados después de una semana sin visitarla. En Chrome o Edge la opción está en su " +
+      "propio menú; si no aparece, abrilo con Safari.",
     tipEscTitulo: "Para usarlo sin internet, en cualquier PC",
     tipEsc1: "Copiá este <code>index.html</code> a un USB junto a tus archivos.",
     tipEsc2: "Doble clic: se abre en cualquier navegador, en cualquier PC.",
@@ -815,6 +893,33 @@ const TEXTOS = {
     tipMovil3: "Choose <b>Lector MD</b> from the list of apps. The file opens here.",
     tipMovilFine: "It works the same from Drive, Telegram, Gmail or the file manager: always " +
       "through <b>share</b>.",
+
+    /* iPhone and iPad variants. Keys ending in IOS automatically override the
+       key without the suffix whenever ES_IOS is true. */
+    abrirSueltosIOS: "Open files",
+    vacioInicialIOS: "Nothing loaded yet.<br><br>Tap <b>Open files</b> and look for your " +
+      "<code>.md</code> files in the <b>Files</b> app: iCloud Drive, Downloads, wherever you keep " +
+      "them. You can pick several at once.",
+    vacioResetIOS: "Workspace cleared.<br><br>Use <b>Open files</b> again whenever you like. " +
+      "None of this deletes anything from your phone.",
+    dropBigIOS: "Open your files",
+    dropTxtIOS: "Pick them from <b>Files</b>. Nothing leaves your phone: the file is read and " +
+      "shown locally, nothing is uploaded anywhere.",
+    tipIosTitulo: "Someone sent you a <code>.md</code> over WhatsApp?",
+    tipIos1: "In the chat, tap the file and then the <b>share</b> icon " +
+      "<span class=\"k\">⤴</span>.",
+    tipIos2: "Choose <b>Save to Files</b> and note which folder you drop it in.",
+    tipIos3: "Come back here, tap <b>Open files</b> and pick it from there.",
+    tipIosFine: "That extra step is the iPhone's doing: iOS won't let a web app show up in the " +
+      "<b>Share</b> sheet, or open when you tap a <code>.md</code>, so files always come in " +
+      "through this button.",
+    tipInstTitulo: "Keep it on your home screen",
+    tipInst1: "Tap the <b>Share</b> button <span class=\"k\">⤴</span> in the browser bar.",
+    tipInst2: "Scroll down to <b>Add to Home Screen</b> and confirm.",
+    tipInst3: "It opens like an app, with no Safari bar, and works offline.",
+    tipInstFine: "Installed, it also keeps what you opened: iOS wipes a plain web page's stored " +
+      "data after a week without visits. In Chrome or Edge the option lives in their own menu; if " +
+      "you can't find it, open this in Safari.",
     tipEscTitulo: "To use it offline, on any computer",
     tipEsc1: "Copy this <code>index.html</code> to a USB stick along with your files.",
     tipEsc2: "Double-click it: it opens in any browser, on any computer.",
@@ -883,8 +988,54 @@ function idiomaInicial(){
 
 let IDIOMA = idiomaInicial();
 
+/* ============================================================
+   iPhone y iPad
+
+   Safari no implementa nada de la integración con el sistema en la que se
+   apoya el resto de la app: no hay File Handling API (abrir un .md desde
+   Archivos), no hay Web Share Target (aparecer en el menú Compartir) y
+   webkitdirectory está declarado pero no abre nada. Los botones y las
+   instrucciones que dan por sentado eso se cambian por otros.
+
+   Va por user agent y no por detección de capacidades a propósito:
+   "webkitdirectory" in HTMLInputElement.prototype da true en iOS igual,
+   porque el atributo existe en WebKit aunque el selector no lo respete.
+   iPadOS se anuncia como Macintosh desde iOS 13; lo delata el touch.
+   ============================================================ */
+const ES_IOS = (() => {
+  const ua = navigator.userAgent || "";
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+})();
+
+if(ES_IOS){
+  const raiz = document.documentElement;
+  raiz.dataset.plat = "ios";
+
+  // navigator.standalone es el de iOS; display-mode cubre 16.4 en adelante
+  if(navigator.standalone === true ||
+     (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)){
+    raiz.dataset.modo = "app";
+  }
+
+  // sin "Abrir carpeta", el botón principal pasa a ser el de archivos sueltos
+  ["pickFiles", "pickFiles2"].forEach(id => {
+    const b = document.getElementById(id);
+    if(b) b.classList.add("primary");
+  });
+
+  // El selector de la app Archivos traduce accept a tipos del sistema: con
+  // una lista de extensiones sueltas suele mostrar todo en gris y no deja
+  // elegir nada. Sin accept se puede; addFiles descarta igual lo que no sea
+  // .md, .markdown o .txt.
+  const inFiles = document.getElementById("inFiles");
+  if(inFiles) inFiles.removeAttribute("accept");
+}
+
 const t = (clave, ...args) => {
-  const v = TEXTOS[IDIOMA][clave];
+  // en iOS, si el texto tiene variante propia (clave + "IOS"), manda esa
+  const dic = TEXTOS[IDIOMA];
+  const v = ES_IOS && (clave + "IOS") in dic ? dic[clave + "IOS"] : dic[clave];
   return typeof v === "function" ? v(...args) : v;
 };
 

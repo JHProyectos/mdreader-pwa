@@ -74,9 +74,19 @@ If you deploy somewhere other than Vercel, port the two rules in `vercel.json`: 
 
 On Android the entry point is **Share**, not "Open with" — Chrome for Android does not implement the File Handling API, so an installed PWA cannot register itself as a handler for a file extension there.
 
+### Install on an iPhone or iPad
+
+1. Open the URL and tap the browser's **Share** button → **Add to Home Screen**.
+2. Launch it from the home screen: standalone window, its own icon, offline support.
+3. To read a file, tap **Open files** and pick your `.md` from the **Files** app. A file someone sent you over WhatsApp or Telegram has to be saved with **Save to Files** first.
+
+The app detects iOS and adapts on its own: it hides **Open folder** (`webkitdirectory` is declared in WebKit but the picker ignores it), drops the `accept` filter on the file input (the Files picker turns extension lists into system types and ends up greying everything out), promotes **Open files** to the primary action, and swaps the Android share instructions for the ones above. The detection is user-agent based on purpose — feature detection reports these APIs as present on iOS.
+
+Installing matters more here than on other platforms: WebKit wipes a plain website's IndexedDB and caches after seven days without a visit, and home screen web apps are exempt.
+
 ### Known limitations
 
-- **iOS/Safari supports neither File Handling nor Share Target for files.** On iPhone the app can be installed as a PWA (home screen icon, works offline), but the system won't offer it as a way to open `.md` files from outside the app. There, the only way in is the **Open folder / Open individual files** pickers inside the app itself.
+- **iOS/Safari supports neither File Handling nor Share Target for files.** On iPhone the app can be installed as a PWA (home screen icon, works offline), but the system won't offer it as a way to open `.md` files from outside the app. There, the only way in is the **Open files** picker inside the app itself. Full integration would require a native wrapper (WKWebView plus a declared document type), which this repo does not do.
 - **Android: Share sheet only, not "Open with".** The File Handling API is desktop-only. Getting into the "Open with" menu on Android would require packaging the PWA as a TWA/APK, which this repo does not do.
 - **Desktop "Open with" requires Chromium ≥102.** Firefox and Safari do not implement the File Handling API.
 - **`.md` MIME types are inconsistent.** Android apps report Markdown files under several types, so `share_target` accepts a broad list including `application/octet-stream`. The trade-off is that the reader may also appear when sharing unrelated binary files.
@@ -207,9 +217,19 @@ Si lo desplegás fuera de Vercel, replicá las dos reglas de `vercel.json`: el h
 
 En Android el punto de entrada es **Compartir**, no "Abrir con": Chrome para Android no implementa la File Handling API, así que una PWA instalada no puede registrarse como handler de una extensión de archivo.
 
+### Instalar en iPhone o iPad
+
+1. Abrí la URL y tocá el botón **Compartir** del navegador → **Agregar a inicio**.
+2. Abrila desde la pantalla de inicio: ventana propia, ícono propio, funciona sin internet.
+3. Para leer un archivo, tocá **Abrir archivos** y elegí el `.md` desde la app **Archivos**. Si te lo mandaron por WhatsApp o Telegram, primero hay que guardarlo con **Guardar en Archivos**.
+
+La app detecta iOS y se acomoda sola: esconde **Abrir carpeta** (`webkitdirectory` existe en WebKit pero el selector lo ignora), le saca el filtro `accept` al input de archivos (el selector de Archivos traduce las extensiones a tipos del sistema y termina mostrando todo en gris), deja **Abrir archivos** como acción principal y cambia las instrucciones de Android por las de arriba. La detección va por user agent a propósito: por capacidades, iOS declara esas APIs como presentes.
+
+Acá instalarla pesa más que en otras plataformas: WebKit borra el IndexedDB y los cachés de un sitio común a los siete días sin visitas, y las apps agregadas a la pantalla de inicio quedan exentas.
+
 ### Limitaciones conocidas
 
-- **iOS/Safari no soporta ni File Handling ni Share Target para archivos.** En iPhone la app se puede instalar como PWA (ícono en el home, funciona offline), pero el sistema no la va a ofrecer para abrir `.md` desde fuera de la app. Ahí la única entrada son los selectores **Abrir carpeta / Abrir archivos sueltos** dentro de la propia app.
+- **iOS/Safari no soporta ni File Handling ni Share Target para archivos.** En iPhone la app se puede instalar como PWA (ícono en el home, funciona offline), pero el sistema no la va a ofrecer para abrir `.md` desde fuera de la app. Ahí la única entrada es el selector **Abrir archivos** dentro de la propia app. Para integrarla de verdad haría falta una envoltura nativa (WKWebView más un document type declarado), cosa que este repo no hace.
 - **Android: sólo menú Compartir, no "Abrir con".** La File Handling API es exclusiva de escritorio. Entrar al menú "Abrir con" en Android requeriría empaquetar la PWA como TWA/APK, cosa que este repo no hace.
 - **El "Abrir con" de escritorio requiere Chromium ≥102.** Firefox y Safari no implementan la File Handling API.
 - **Los MIME types de `.md` son inconsistentes.** Las apps de Android reportan los Markdown con varios tipos distintos, así que `share_target` acepta una lista amplia que incluye `application/octet-stream`. El costo es que el lector puede aparecer también al compartir otros archivos binarios.
