@@ -340,6 +340,12 @@ stateDiagram-v2
 Los diagramas siguen el tema del lector, y al imprimir se redibujan en claro
 para que salgan legibles en papel.
 
+Si la ventana da, el dibujo se estira más allá de la columna de texto. Y
+cuando aun así queda chico -un Gantt largo, un gráfico con muchas barras- el
+botón **⤢** de la esquina, o un clic en el diagrama, lo abren a pantalla
+completa: rueda o pellizco para acercar, arrastre para mover, `Esc` para
+volver.
+
 La librería de diagramas pesa unos 3 MB, así que **se baja recién cuando abrís
 un archivo que tiene alguno**. Después queda guardada y funciona sin conexión.
 Si no se puede bajar, el bloque se queda mostrando el código del diagrama, que

@@ -339,6 +339,11 @@ stateDiagram-v2
 Diagrams follow the reader's theme, and are redrawn in light colors when
 printing so they stay legible on paper.
 
+When the window allows it, the drawing stretches past the text column. And if
+it's still too small -a long Gantt, a chart with many bars- the **⤢** button in
+the corner, or a click on the diagram, opens it full screen: wheel or pinch to
+zoom, drag to move, `Esc` to go back.
+
 The diagram library weighs about 3 MB, so **it's only downloaded when you open
 a file that has a diagram**. After that it stays cached and works offline. If
 it can't be downloaded, the block keeps showing the diagram's source, which

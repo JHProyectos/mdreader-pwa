@@ -79,7 +79,8 @@
   --sp-mathfb:14px 16px;  /* idem en modo simple (sin KaTeX) */
   --sp-diag:12px 14px;    /* padding del bloque de diagrama ya dibujado */
   --sp-li:.28em;
-  --art-pad:34px 28px 96px;
+  --art-x:28px;           /* padding lateral de la columna; lo usa el ensanche de diagramas */
+  --art-pad:34px var(--art-x) 96px;
   --katex-disp:0.35em;    /* margen propio de .katex-display */
 }
 body.compact{
@@ -94,7 +95,8 @@ body.compact{
   --sp-mathfb:5px 10px;
   --sp-diag:6px 8px;
   --sp-li:.08em;
-  --art-pad:16px 24px 32px;
+  --art-x:24px;
+  --art-pad:16px var(--art-x) 32px;
   --katex-disp:0.1em;
 }
 
@@ -252,7 +254,10 @@ aside{
 .icon.on{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
 
 /* ================= main ================= */
-main{overflow-y:auto; min-height:0; position:relative}
+/* container-type deja medir el ancho real de esta zona desde adentro (100cqw):
+   es lo que usan los diagramas y los gráficos para estirarse más allá de la
+   columna de texto sin tener que adivinar cuánto ocupa el sidebar. */
+main{overflow-y:auto; min-height:0; position:relative; container-type:inline-size}
 .topbar{
   position:sticky; top:0; z-index:10; background:var(--bg);
   border-bottom:1px solid var(--line); display:flex; align-items:center;
@@ -406,6 +411,59 @@ td{font-variant-numeric:tabular-nums}
 .diagram[data-diagram="listo"] svg{max-width:100%; height:auto; vertical-align:middle}
 .diagram-err{margin:0 0 var(--sp-blk); font-size:12.5px; line-height:1.4; color:var(--warm)}
 
+/* ---- botón de ampliar (abre el visor a pantalla completa) ----
+   Aparece al pasar el puntero; donde no hay puntero queda siempre visible,
+   porque si no no habría forma de saber que el visor existe. */
+.ampliar{
+  position:absolute; top:6px; right:6px; z-index:1;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:27px; height:27px; padding:0; cursor:zoom-in;
+  font:inherit; font-size:13px; line-height:1;
+  border:1px solid var(--line); border-radius:4px;
+  background:var(--surface); color:var(--muted);
+  opacity:0; transition:opacity .12s, color .12s;
+}
+.diagram:hover > .ampliar,
+.chart:hover > .ampliar,
+.ampliar:focus-visible{opacity:1}
+.ampliar:hover{color:var(--accent)}
+@media (hover:none){.ampliar{opacity:.9}}
+
+/* ---- visor a pantalla completa: acercar, alejar y arrastrar ---- */
+.zoom{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:var(--bg)}
+.zoom-barra{
+  display:flex; align-items:center; gap:6px; flex:none;
+  padding:7px 10px; border-bottom:1px solid var(--line); background:var(--surface);
+}
+.zoom-barra .nombre{
+  flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  font-size:12.5px; color:var(--muted);
+}
+.zoom-barra .nivel{
+  flex:none; font-family:var(--mono); font-size:11.5px; color:var(--muted);
+  font-variant-numeric:tabular-nums; min-width:4.5ch; text-align:right;
+}
+.zoom-barra button{
+  flex:none; display:inline-flex; align-items:center; justify-content:center;
+  width:30px; height:30px; padding:0; cursor:pointer;
+  font:inherit; font-size:14px; line-height:1;
+  border:1px solid var(--line); border-radius:4px;
+  background:transparent; color:var(--ink);
+}
+.zoom-barra button:hover{border-color:var(--accent); color:var(--accent)}
+/* touch-action:none: el arrastre y el pellizco los maneja el visor, no el scroll */
+.zoom-lienzo{
+  flex:1; min-height:0; position:relative; overflow:hidden;
+  touch-action:none; cursor:grab; overscroll-behavior:contain;
+}
+.zoom-lienzo.arrastrando{cursor:grabbing}
+.zoom-contenido{
+  position:absolute; left:0; top:0; transform-origin:0 0;
+  text-align:center; line-height:1;
+}
+.zoom-contenido svg{display:block; height:auto}
+.zoom-contenido.chart{padding:4px 10px; text-align:left; line-height:var(--lh-prose)}
+
 /* ---- resaltado de código (Prism) ---- */
 /* Prism sólo marca los fragmentos con clases: los colores los pone el lector,
    así siguen el tema sin bajar una hoja de estilos de afuera. */
@@ -492,6 +550,23 @@ article .doctoc > ol > li > a{font-weight:500}
 .chart-datos .tablewrap{margin:6px 0 2px}
 .chart-datos td.num{text-align:right}
 
+/* ---- ensanche: un dibujo no tiene por qué entrar en la columna de texto ----
+   El texto se lee cómodo en 78ch, pero un Gantt o un gráfico con muchas
+   categorías achicado a ese ancho queda con la letra ilegible. Cuando la
+   ventana da de sobra, el bloque se estira hacia los dos márgenes (tope de
+   240px por lado, para que en un monitor ancho no se vaya de escala). Si no
+   sobra nada -celular, ventana angosta- el clamp da 0 y queda como antes.
+   Va después de las reglas de .chart: ahí el margin va en atajo y le ganaría
+   al margin-left de acá. Los 16px de más son por la barra de scroll, que
+   100cqw cuenta como si fuera ancho disponible. */
+.diagram[data-diagram="listo"],
+.chart[data-chart="listo"]{
+  --bleed:clamp(0px, (100cqw - 2 * var(--art-x) - 16px - 100%) / 2, 240px);
+  width:calc(100% + 2 * var(--bleed));
+  margin-left:calc(-1 * var(--bleed));
+  position:relative;
+}
+
 mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 @media print{
@@ -500,10 +575,12 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     --lh-prose:1.3;
     --sp-p:.35em; --sp-h:.75em; --sp-h2:.95em; --sp-blk:.4em;
     --sp-math:4px 0; --sp-mathfb:4px 8px; --sp-diag:4px 6px; --sp-li:.06em;
-    --art-pad:0; --katex-disp:.08em;
+    --art-x:0px; --art-pad:0; --katex-disp:.08em;
   }
   @page{margin:14mm}
-  aside,.topbar,.scrim{display:none!important}
+  aside,.topbar,.scrim,.ampliar,.zoom{display:none!important}
+  /* en papel no hay márgenes de sobra: el dibujo vuelve al ancho de la caja */
+  .diagram[data-diagram="listo"],.chart[data-chart="listo"]{--bleed:0px}
   .app{display:block; height:auto}
   main{overflow:visible}
   body{background:#fff; color:#000; font-size:10.5pt}
@@ -674,6 +751,19 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   </main>
 </div>
 
+<!-- visor de diagramas y gráficos: se llena recién cuando se abre -->
+<div class="zoom" id="zoom" hidden>
+  <div class="zoom-barra">
+    <span class="nombre" id="zoomNombre"></span>
+    <span class="nivel" id="zoomNivel"></span>
+    <button id="zoomMenos" data-t-title="zoomMenos" data-t-aria="zoomMenos">−</button>
+    <button id="zoomMas" data-t-title="zoomMas" data-t-aria="zoomMas">+</button>
+    <button id="zoomAjustar" data-t-title="zoomAjustar" data-t-aria="zoomAjustar">⤢</button>
+    <button id="zoomCerrar" data-t-title="zoomCerrar" data-t-aria="zoomCerrar">✕</button>
+  </div>
+  <div class="zoom-lienzo" id="zoomLienzo"></div>
+</div>
+
 <script>
 "use strict";
 /* ============================================================
@@ -799,6 +889,12 @@ const TEXTOS = {
     indiceAria: "Tabla de contenidos",
     indiceTitulo: "Contenido",
     diagramaError: detalle => "No se pudo dibujar este diagrama" + (detalle ? ": " + detalle : "."),
+    ampliar: "Ampliar (pantalla completa)",
+    zoomMas: "Acercar",
+    zoomMenos: "Alejar",
+    zoomAjustar: "Ajustar a la pantalla",
+    zoomCerrar: "Cerrar (Esc)",
+    zoomDiagrama: "Diagrama",
     verDatos: "Ver datos",
     graficoBarras: "Gráfico de barras",
     graficoLineas: "Gráfico de líneas",
@@ -938,6 +1034,12 @@ const TEXTOS = {
     indiceAria: "Table of contents",
     indiceTitulo: "Contents",
     diagramaError: detalle => "This diagram could not be drawn" + (detalle ? ": " + detalle : "."),
+    ampliar: "Enlarge (full screen)",
+    zoomMas: "Zoom in",
+    zoomMenos: "Zoom out",
+    zoomAjustar: "Fit to screen",
+    zoomCerrar: "Close (Esc)",
+    zoomDiagrama: "Diagram",
     verDatos: "Show data",
     graficoBarras: "Bar chart",
     graficoLineas: "Line chart",
@@ -1400,6 +1502,12 @@ stateDiagram-v2
 
 Los diagramas siguen el tema del lector, y al imprimir se redibujan en claro
 para que salgan legibles en papel.
+
+Si la ventana da, el dibujo se estira más allá de la columna de texto. Y
+cuando aun así queda chico -un Gantt largo, un gráfico con muchas barras- el
+botón **⤢** de la esquina, o un clic en el diagrama, lo abren a pantalla
+completa: rueda o pellizco para acercar, arrastre para mover, `Esc` para
+volver.
 
 La librería de diagramas pesa unos 3 MB, así que **se baja recién cuando abrís
 un archivo que tiene alguno**. Después queda guardada y funciona sin conexión.
@@ -2158,6 +2266,11 @@ stateDiagram-v2
 
 Diagrams follow the reader's theme, and are redrawn in light colors when
 printing so they stay legible on paper.
+
+When the window allows it, the drawing stretches past the text column. And if
+it's still too small -a long Gantt, a chart with many bars- the **⤢** button in
+the corner, or a click on the diagram, opens it full screen: wheel or pinch to
+zoom, drag to move, `Esc` to go back.
 
 The diagram library weighs about 3 MB, so **it's only downloaded when you open
 a file that has a diagram**. After that it stays cached and works offline. If
@@ -3332,6 +3445,7 @@ async function pintarDiagramas(opciones = {}){
       bloque.appendChild(caja);
       fuente.hidden = true;
       bloque.dataset.diagram = "listo";
+      agregarBotonAmpliar(bloque);
     }catch(error){
       if(gen !== generacionDoc || !bloque.isConnected) return;
       marcarDiagramaConError(bloque, error);
@@ -3348,6 +3462,8 @@ function reiniciarDiagramas(){
     if(nota) nota.remove();
     const fuente = bloque.querySelector(".diagram-src");
     if(fuente) fuente.hidden = false;
+    const boton = bloque.querySelector(":scope > .ampliar");
+    if(boton) boton.remove();
     bloque.dataset.diagram = "pendiente";
   });
 }
@@ -3355,6 +3471,7 @@ function reiniciarDiagramas(){
 /* el SVG trae los colores adentro: al cambiar de tema hay que redibujar */
 function redibujarDiagramas(){
   if(!MERMAID) return;
+  cerrarZoom();          // el SVG ampliado trae adentro los colores del tema viejo
   reiniciarDiagramas();
   void pintarDiagramas();
 }
@@ -4001,6 +4118,7 @@ function armarGrafico(bloque){
   bloque.dataset.chart = "listo";
   bloque._grafico = g;
   dibujarLienzo(lienzo, g);
+  agregarBotonAmpliar(bloque);
 }
 
 /* síncrono: necesita el documento ya visible para medir el ancho */
@@ -4022,8 +4140,236 @@ function pintarGraficos(){
   });
 }
 
+/* ============================================================
+   ampliar: visor a pantalla completa de un diagrama o un gráfico
+
+   Un Gantt de doce semanas entra en la columna de texto, pero con
+   la letra al 60%. Acá se ve al tamaño que haga falta: rueda o
+   pellizco para acercar, arrastre para mover.
+
+   Un diagrama es un SVG ya dibujado: se clona y se escala con un
+   transform. Un gráfico, en cambio, se vuelve a dibujar al ancho
+   del visor -armarGrafico dejó los datos en bloque._grafico-, así
+   las etiquetas se reparten de nuevo en vez de agrandarse.
+   ============================================================ */
+const ZOOM_MIN = 0.15, ZOOM_MAX = 8;
+let zoomEsc = 1, zoomX = 0, zoomY = 0;    // el transform del contenido
+let zoomAncho = 0, zoomAlto = 0;          // tamaño del contenido sin escalar
+let zoomFijo = false;                     // gráfico redibujado: su tamaño natural ya es el bueno
+let zoomVolverA = null;                   // a dónde devolver el foco al cerrar
+const zoomPuntos = new Map();             // punteros apoyados: arrastre y pellizco
+let zoomPellizco = null;
+
+/* el viewBox es la medida real del dibujo; el width del SVG puede venir en % */
+function medidaSvg(svg){
+  const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+  if(vb.length === 4 && vb[2] > 0 && vb[3] > 0) return {ancho:vb[2], alto:vb[3]};
+  const caja = svg.getBoundingClientRect();
+  return {ancho:Math.round(caja.width) || 640, alto:Math.round(caja.height) || 420};
+}
+
+function aplicarZoom(){
+  const caja = $("zoomLienzo").firstElementChild;
+  if(!caja) return;
+  caja.style.transform = "translate(" + Math.round(zoomX) + "px," + Math.round(zoomY) +
+    "px) scale(" + zoomEsc.toFixed(4) + ")";
+  $("zoomNivel").textContent = Math.round(zoomEsc * 100) + "%";
+}
+
+/* escala que hace entrar el dibujo entero; los chiquitos se agrandan hasta 3x */
+function escalaAjuste(){
+  if(zoomFijo || !zoomAncho || !zoomAlto) return 1;
+  const lienzo = $("zoomLienzo"), margen = 24;
+  return Math.min((lienzo.clientWidth - margen) / zoomAncho,
+                  (lienzo.clientHeight - margen) / zoomAlto, 3);
+}
+
+/* centra el dibujo a la escala pedida; si no entra, lo arrima al ángulo de
+   arriba a la izquierda, que es por donde se empieza a leer */
+function ajustarZoom(esc){
+  const lienzo = $("zoomLienzo");
+  zoomEsc = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, esc || escalaAjuste()));
+  zoomX = Math.max(0, (lienzo.clientWidth - zoomAncho * zoomEsc) / 2);
+  zoomY = Math.max(0, (lienzo.clientHeight - zoomAlto * zoomEsc) / 2);
+  aplicarZoom();
+}
+
+/* acerca o aleja dejando quieto el punto (px,py) del visor */
+function escalarZoom(factor, px, py){
+  const nuevo = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomEsc * factor));
+  if(nuevo === zoomEsc) return;
+  zoomX = px - (px - zoomX) * (nuevo / zoomEsc);
+  zoomY = py - (py - zoomY) * (nuevo / zoomEsc);
+  zoomEsc = nuevo;
+  aplicarZoom();
+}
+
+function escalarDesdeElCentro(factor){
+  const lienzo = $("zoomLienzo");
+  escalarZoom(factor, lienzo.clientWidth / 2, lienzo.clientHeight / 2);
+}
+
+function nombreZoom(bloque){
+  const titulo = bloque.querySelector(".chart-titulo");
+  if(titulo) return titulo.textContent;
+  if(bloque._grafico) return t(NOMBRE_GRAFICO[bloque._grafico.tipo]);
+  return t("zoomDiagrama");
+}
+
+function contenidoZoom(bloque){
+  const lienzo = $("zoomLienzo");
+  const caja = document.createElement("div");
+  caja.className = "zoom-contenido";
+
+  if(bloque.classList.contains("chart") && bloque._grafico){
+    caja.classList.add("chart");
+    ["chart-titulo", "chart-leyenda"].forEach(clase => {
+      const parte = bloque.querySelector("." + clase);
+      if(parte) caja.appendChild(parte.cloneNode(true));
+    });
+    const dibujo = document.createElement("div");
+    dibujo.className = "chart-lienzo";
+    caja.appendChild(dibujo);
+    // dibujarLienzo mide el ancho para repartir las categorías: hay que fijarlo
+    // antes, y con tope, porque un gráfico de 2000px no se lee mejor
+    caja.style.width = Math.max(320, Math.min(lienzo.clientWidth - 24, 1400)) + "px";
+    lienzo.appendChild(caja);
+    dibujarLienzo(dibujo, bloque._grafico);
+    zoomFijo = true;
+    return caja;
+  }
+
+  const svg = bloque.querySelector(".diagram-svg svg");
+  if(!svg) return null;
+  const copia = svg.cloneNode(true);
+  const medida = medidaSvg(svg);
+  // al tamaño natural: acá el que agranda es el transform, no el SVG
+  copia.style.maxWidth = "none";
+  copia.style.width = medida.ancho + "px";
+  copia.style.height = medida.alto + "px";
+  caja.appendChild(copia);
+  lienzo.appendChild(caja);
+  zoomFijo = false;
+  return caja;
+}
+
+function abrirZoom(bloque){
+  const visor = $("zoom"), lienzo = $("zoomLienzo");
+  lienzo.textContent = "";
+  visor.hidden = false;             // oculto mide 0: primero se muestra, después se mide
+  const caja = contenidoZoom(bloque);
+  if(!caja){ visor.hidden = true; return; }
+  zoomAncho = caja.offsetWidth;
+  zoomAlto = caja.offsetHeight;
+  $("zoomNombre").textContent = nombreZoom(bloque);
+  zoomVolverA = document.activeElement;
+  // en un teléfono, "que entre todo" un dibujo ancho deja la letra ilegible:
+  // se abre al 50% como piso y se arranca por el principio, que es lo que se
+  // quiere leer. El botón de ajustar sigue estando para ver el conjunto.
+  ajustarZoom(Math.max(escalaAjuste(), 0.5));
+  $("zoomCerrar").focus();
+}
+
+function cerrarZoom(){
+  if($("zoom").hidden) return;
+  $("zoom").hidden = true;
+  $("zoomLienzo").textContent = "";
+  zoomPuntos.clear();
+  zoomPellizco = null;
+  if(zoomVolverA && zoomVolverA.isConnected) zoomVolverA.focus();
+  zoomVolverA = null;
+}
+
+/* el botón va en la esquina del bloque ya dibujado */
+function agregarBotonAmpliar(bloque){
+  if(bloque.querySelector(":scope > .ampliar")) return;
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.className = "ampliar";
+  boton.textContent = "⤢";
+  boton.title = t("ampliar");
+  boton.setAttribute("aria-label", t("ampliar"));
+  boton.addEventListener("click", e => { e.stopPropagation(); abrirZoom(bloque); });
+  bloque.appendChild(boton);
+}
+
+/* en el diagrama alcanza con tocar el dibujo; en el gráfico no, porque ahí
+   el toque es del cartel con los valores */
+$("doc").addEventListener("click", e => {
+  const bloque = e.target.closest('.diagram[data-diagram="listo"]');
+  if(bloque && !e.target.closest(".ampliar") && !getSelection().toString()) abrirZoom(bloque);
+});
+
+(function armarVisor(){
+  const lienzo = $("zoomLienzo");
+
+  const pellizco = () => {
+    const [a, b] = [...zoomPuntos.values()];
+    return {x:(a.x + b.x) / 2, y:(a.y + b.y) / 2, dist:Math.hypot(a.x - b.x, a.y - b.y)};
+  };
+
+  lienzo.addEventListener("wheel", e => {
+    e.preventDefault();
+    const caja = lienzo.getBoundingClientRect();
+    // ctrl+rueda es el pellizco del trackpad: el mismo gesto, con otro paso
+    const paso = e.ctrlKey ? 0.01 : 0.0022;
+    escalarZoom(Math.exp(-e.deltaY * paso), e.clientX - caja.left, e.clientY - caja.top);
+  }, {passive:false});
+
+  lienzo.addEventListener("pointerdown", e => {
+    lienzo.setPointerCapture(e.pointerId);
+    zoomPuntos.set(e.pointerId, {x:e.clientX, y:e.clientY});
+    if(zoomPuntos.size === 2) zoomPellizco = pellizco();
+    lienzo.classList.add("arrastrando");
+  });
+
+  lienzo.addEventListener("pointermove", e => {
+    const previo = zoomPuntos.get(e.pointerId);
+    if(!previo) return;
+    zoomPuntos.set(e.pointerId, {x:e.clientX, y:e.clientY});
+
+    if(zoomPuntos.size >= 2){
+      const caja = lienzo.getBoundingClientRect();
+      const ahora = pellizco();
+      if(zoomPellizco && zoomPellizco.dist > 0 && ahora.dist > 0){
+        // el pellizco acerca y mueve a la vez: primero la escala, después el centro
+        escalarZoom(ahora.dist / zoomPellizco.dist,
+                    zoomPellizco.x - caja.left, zoomPellizco.y - caja.top);
+        zoomX += ahora.x - zoomPellizco.x;
+        zoomY += ahora.y - zoomPellizco.y;
+        aplicarZoom();
+      }
+      zoomPellizco = ahora;
+      return;
+    }
+
+    zoomX += e.clientX - previo.x;
+    zoomY += e.clientY - previo.y;
+    aplicarZoom();
+  });
+
+  ["pointerup","pointercancel"].forEach(ev => lienzo.addEventListener(ev, e => {
+    zoomPuntos.delete(e.pointerId);
+    if(zoomPuntos.size < 2) zoomPellizco = null;
+    if(!zoomPuntos.size) lienzo.classList.remove("arrastrando");
+  }));
+
+  // doble clic: alterna entre "entra todo" y el doble de cerca
+  lienzo.addEventListener("dblclick", e => {
+    const caja = lienzo.getBoundingClientRect();
+    if(Math.abs(zoomEsc - escalaAjuste()) > 0.01) ajustarZoom();
+    else escalarZoom(2, e.clientX - caja.left, e.clientY - caja.top);
+  });
+
+  $("zoomMas").onclick = () => escalarDesdeElCentro(1.25);
+  $("zoomMenos").onclick = () => escalarDesdeElCentro(0.8);
+  $("zoomAjustar").onclick = () => ajustarZoom();
+  $("zoomCerrar").onclick = cerrarZoom;
+})();
+
 /* monta el HTML ya parseado y completa lo que se dibuja después */
 function mostrarDocumento(html){
+  cerrarZoom();                 // lo ampliado era del documento anterior
   generacionDoc++;              // corta el pintado que hubiera en curso del documento anterior
   $("doc").innerHTML = html;
   $("doc").hidden = false;
@@ -4533,6 +4879,14 @@ document.addEventListener("drop", e=>{
 
 /* atajos */
 document.addEventListener("keydown", e=>{
+  // con el visor abierto el teclado es suyo: se cierra y se acerca desde ahí
+  if(!$("zoom").hidden){
+    if(e.key === "Escape"){ cerrarZoom(); return; }
+    if(e.key === "+" || e.key === "="){ escalarDesdeElCentro(1.25); return; }
+    if(e.key === "-"){ escalarDesdeElCentro(0.8); return; }
+    if(e.key === "0"){ ajustarZoom(); return; }
+    return;
+  }
   if((e.ctrlKey||e.metaKey) && e.key === "f"){ e.preventDefault(); $("search").focus(); $("search").select(); }
   if(e.key === "Escape" && document.activeElement === $("search")){
     $("search").value = ""; search(""); $("search").blur();
