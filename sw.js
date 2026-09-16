@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.12.0";
+const VERSION = "v0.13.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
