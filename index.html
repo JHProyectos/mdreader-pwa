@@ -252,6 +252,7 @@ aside{
 }
 .icon:hover{border-color:var(--accent); color:var(--accent)}
 .icon.on{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+.icon.warn{border-color:var(--warm); color:var(--warm)}
 
 /* ================= main ================= */
 /* container-type deja medir el ancho real de esta zona desde adentro (100cqw):
@@ -364,13 +365,6 @@ table{border-collapse:collapse; width:100%; font-size:13.5px}
 th,td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-align:top}
 th{background:var(--surface-2); font-weight:600; font-size:12.5px}
 td{font-variant-numeric:tabular-nums}
-
-/* ---- estado de KaTeX y de Mermaid ---- */
-#mathWrap .dot,#diagWrap .dot{
-  width:7px; height:7px; border-radius:50%; background:var(--muted); flex:none;
-}
-#mathWrap.on .dot,#diagWrap.on .dot{background:var(--good)}
-#mathWrap.on > summary,#diagWrap.on > summary{color:var(--good)}
 
 /* ---- matemática ---- */
 .mathblock.katex-on{
@@ -697,29 +691,16 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <nav id="toc"></nav>
     </details>
 
-    <!-- los textos de estos dos los pone pintarEstados: dependen de si la librería cargó -->
-    <details class="fold" id="mathWrap">
-      <summary><span class="dot" id="mathDot"></span><span id="mathSum"></span></summary>
-      <div class="body" id="mathTxt"></div>
-    </details>
-
-    <details class="fold" id="diagWrap">
-      <summary><span class="dot" id="diagDot"></span><span id="diagSum"></span></summary>
-      <div class="body" id="diagTxt"></div>
-    </details>
-
     <div class="foot">
       <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle"></button>
       <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
       <button class="icon" id="density"></button>
+      <!-- estado de KaTeX y Mermaid: el texto lo pone pintarEstados, según si la librería cargó -->
+      <button class="icon" id="mathInfo">∑</button>
+      <button class="icon" id="diagInfo">◇</button>
       <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle"></button>
       <button class="icon" id="lang" data-t="idiomaBoton" data-t-title="idiomaTitle"></button>
     </div>
-
-    <details class="fold" id="printWrap">
-      <summary data-t="numerarSum"></summary>
-      <div class="body" data-t="numerarTxt"></div>
-    </details>
   </aside>
 
   <main id="main">
@@ -888,27 +869,13 @@ const TEXTOS = {
       "Nada de esto borra archivos del disco.",
     enEsteArchivo: "En este archivo",
     katexSum: (estado, ver) => ({
-      espera: "fórmulas", on: "fórmulas: KaTeX " + ver, off: "fórmulas: modo simple"
-    })[estado],
-    katexTxt: estado => ({
-      espera: "modo simple: aproximación en Unicode",
-      on: "Tipografía matemática real, cargada desde CDN. Fracciones apiladas, radicales y " +
-        "recuadros se dibujan como en un libro.",
-      off: "No se pudo cargar KaTeX (sin conexión). Las fórmulas se dibujan con la aproximación " +
-        "en Unicode: se leen bien, pero no es tipografía matemática real."
+      espera: "fórmulas: modo simple (Unicode)", on: "fórmulas: KaTeX " + ver,
+      off: "fórmulas: no se pudo cargar KaTeX, modo simple"
     })[estado],
     mmdSum: (estado, ver) => ({
-      espera: "diagramas", cargando: "diagramas: cargando Mermaid…",
-      on: "diagramas: Mermaid " + ver, off: "diagramas: modo código"
+      espera: "diagramas: modo código", cargando: "diagramas: cargando Mermaid…",
+      on: "diagramas: Mermaid " + ver, off: "diagramas: no se pudo cargar Mermaid, modo código"
     })[estado],
-    mmdTxt: estado => ({
-      on: "Diagramas dibujados de verdad: flujos, secuencias, clases, estados, Gantt. Siguen el " +
-        "tema del lector y al imprimir salen en claro.",
-      off: "No se pudo cargar Mermaid (sin conexión). Los bloques <code>```mermaid</code> se " +
-        "muestran como código: se leen igual, pero no se dibujan. Con conexión se reintenta."
-    })[estado] || "Los bloques <code>```mermaid</code> se dibujan como diagrama. La librería se " +
-      "baja del CDN recién cuando abrís un archivo que tenga alguno, así el lector no pesa más de " +
-      "lo necesario.",
     tema: "◐ Tema",
     temaTitle: "Cambiar tema",
     pdfTitle: "Imprimir o guardar como PDF. Activá \"Encabezados y pies de página\" en el diálogo " +
@@ -921,11 +888,6 @@ const TEXTOS = {
     ayudaTitle: "Documento de ejemplo: qué hace el lector y qué Markdown entiende",
     idiomaBoton: "EN",
     idiomaTitle: "Switch to English",
-    numerarSum: "Numerar las hojas al imprimir",
-    numerarTxt: "En el diálogo de impresión abrí <span class=\"k\">Más opciones</span> y activá " +
-      "<span class=\"k\">Encabezados y pies de página</span>. El navegador agrega el número de " +
-      "página y el nombre del archivo. No se puede numerar desde la hoja de estilos: ningún " +
-      "navegador implementa esa parte de CSS.",
     menuAria: "Abrir panel de archivos",
     menuTitle: "Archivos",
     ningunArchivo: "ningún archivo abierto",
@@ -1065,27 +1027,13 @@ const TEXTOS = {
       "None of this deletes files from disk.",
     enEsteArchivo: "In this file",
     katexSum: (estado, ver) => ({
-      espera: "formulas", on: "formulas: KaTeX " + ver, off: "formulas: simple mode"
-    })[estado],
-    katexTxt: estado => ({
-      espera: "simple mode: Unicode approximation",
-      on: "Real math typesetting, loaded from a CDN. Stacked fractions, radicals and boxes are " +
-        "drawn like in a book.",
-      off: "KaTeX could not be loaded (offline). Formulas are drawn with the Unicode " +
-        "approximation: they read fine, but it isn't real math typesetting."
+      espera: "formulas: simple mode (Unicode)", on: "formulas: KaTeX " + ver,
+      off: "formulas: KaTeX failed to load, simple mode"
     })[estado],
     mmdSum: (estado, ver) => ({
-      espera: "diagrams", cargando: "diagrams: loading Mermaid…",
-      on: "diagrams: Mermaid " + ver, off: "diagrams: code mode"
+      espera: "diagrams: code mode", cargando: "diagrams: loading Mermaid…",
+      on: "diagrams: Mermaid " + ver, off: "diagrams: Mermaid failed to load, code mode"
     })[estado],
-    mmdTxt: estado => ({
-      on: "Fully drawn diagrams: flowcharts, sequence, class, state, Gantt. They follow the " +
-        "reader's theme and print in light colors.",
-      off: "Mermaid could not be loaded (offline). <code>```mermaid</code> blocks are shown as " +
-        "code: still readable, but not drawn. It retries once you're back online."
-    })[estado] || "<code>```mermaid</code> blocks are drawn as diagrams. The library is downloaded " +
-      "from the CDN only when you open a file that has one, so the reader weighs no more than it " +
-      "needs to.",
     tema: "◐ Theme",
     temaTitle: "Switch theme",
     pdfTitle: "Print or save as PDF. Turn on \"Headers and footers\" in the dialog to number the pages",
@@ -1097,10 +1045,6 @@ const TEXTOS = {
     ayudaTitle: "Sample document: what the reader does and which Markdown it understands",
     idiomaBoton: "ES",
     idiomaTitle: "Cambiar a español",
-    numerarSum: "Numbering pages when printing",
-    numerarTxt: "In the print dialog open <span class=\"k\">More settings</span> and turn on " +
-      "<span class=\"k\">Headers and footers</span>. The browser adds the page number and the " +
-      "file name. Pages can't be numbered from the stylesheet: no browser implements that part of CSS.",
     menuAria: "Open file panel",
     menuTitle: "Files",
     ningunArchivo: "no file open",
@@ -3456,12 +3400,19 @@ let estadoKatex = "espera";     // espera | on | off
 let estadoMermaid = "espera";   // espera | cargando | on | off
 
 function pintarEstados(){
-  $("mathWrap").classList.toggle("on", estadoKatex === "on");
-  $("mathSum").textContent = t("katexSum", estadoKatex, KATEX_VER);
-  $("mathTxt").innerHTML = t("katexTxt", estadoKatex);
-  $("diagWrap").classList.toggle("on", estadoMermaid === "on");
-  $("diagSum").textContent = t("mmdSum", estadoMermaid, MERMAID_VER);
-  $("diagTxt").innerHTML = t("mmdTxt", estadoMermaid);
+  const math = $("mathInfo"), diag = $("diagInfo");
+  const txtMath = t("katexSum", estadoKatex, KATEX_VER);
+  const txtDiag = t("mmdSum", estadoMermaid, MERMAID_VER);
+
+  math.classList.toggle("on", estadoKatex === "on");
+  math.classList.toggle("warn", estadoKatex === "off");
+  math.title = txtMath;
+  math.setAttribute("aria-label", txtMath);
+
+  diag.classList.toggle("on", estadoMermaid === "on");
+  diag.classList.toggle("warn", estadoMermaid === "off");
+  diag.title = txtDiag;
+  diag.setAttribute("aria-label", txtDiag);
 }
 
 function esTemaOscuro(){
