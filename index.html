@@ -2988,6 +2988,7 @@ function inline(t){
 
   const code = [];
   s = s.replace(/`([^`]+)`/g, (m,g)=>{ code.push(g); return ""+(code.length-1)+""; });
+  s = s.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
 
   const math = [];
   const keep = g => "" + (math.push(unesc(g)) - 1) + "";
