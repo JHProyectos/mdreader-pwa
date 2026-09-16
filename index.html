@@ -457,6 +457,37 @@ td{font-variant-numeric:tabular-nums}
   touch-action:none; cursor:grab; overscroll-behavior:contain;
 }
 .zoom-lienzo.arrastrando{cursor:grabbing}
+
+/* ---- importar desde GitHub ---- */
+.ghmodal{
+  position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center;
+  padding:16px; background:#0009;
+}
+.ghbox{
+  width:100%; max-width:420px; max-height:calc(100vh - 32px); overflow-y:auto;
+  background:var(--surface); border:1px solid var(--line); border-radius:8px;
+  padding:20px 22px; box-shadow:0 12px 32px #0006;
+}
+.ghbox h2{margin:0 0 14px; font-family:var(--serif); font-size:17px; font-weight:600}
+.ghbox form{display:flex; flex-direction:column; gap:5px}
+.ghlabel{font-size:11.5px; color:var(--muted); margin-top:10px}
+.ghbox input[type="text"],.ghbox input[type="password"]{
+  font:inherit; font-size:13px; padding:8px 10px; border-radius:4px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink);
+}
+.ghbox input[type="text"]:focus,.ghbox input[type="password"]:focus{outline:2px solid var(--accent-soft); border-color:var(--accent)}
+.ghpriv{border-top:1px solid var(--line); margin-top:14px; padding-top:2px}
+.ghpriv > summary{
+  cursor:pointer; padding:8px 0; list-style:none; font-size:12.5px; color:var(--muted); user-select:none;
+}
+.ghpriv > summary::-webkit-details-marker{display:none}
+.ghremember{display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12.5px; color:var(--muted)}
+.ghayuda{font-size:11.5px; line-height:1.5; color:var(--muted); margin:8px 0 0}
+.ghayuda a{color:var(--accent)}
+.ghmsg{font-size:12.5px; line-height:1.5; color:var(--warm); margin:12px 0 0}
+.ghmsg.ok{color:var(--good)}
+.ghbotones{display:flex; justify-content:flex-end; gap:8px; margin-top:16px}
+.ghbotones .btn{flex:none}
 .zoom-contenido{
   position:absolute; left:0; top:0; transform-origin:0 0;
   text-align:center; line-height:1;
@@ -647,6 +678,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     <div class="actions">
       <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec"></button>
       <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
+      <button class="btn" id="pickGithub" data-t="importarGithub"></button>
       <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
       <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
     </div>
@@ -704,6 +736,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <div class="dropactions">
         <button class="btn primary" id="pickFolder2" data-t="abrirCarpeta"></button>
         <button class="btn" id="pickFiles2" data-t="abrirSueltos"></button>
+        <button class="btn" id="pickGithub2" data-t="importarGithub"></button>
         <button class="btn" id="help2" data-t="verEjemplo"></button>
       </div>
 
@@ -764,6 +797,38 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   <div class="zoom-lienzo" id="zoomLienzo"></div>
 </div>
 
+<!-- importar archivos .md/.txt desde un repo de GitHub (público o privado con PAT) -->
+<div class="ghmodal" id="ghModal" hidden>
+  <div class="ghbox" role="dialog" aria-modal="true" aria-labelledby="ghTitulo">
+    <h2 id="ghTitulo" data-t="ghTitulo"></h2>
+    <form id="ghForm">
+      <label class="ghlabel" for="ghRepo" data-t="ghRepoLabel"></label>
+      <input type="text" id="ghRepo" data-t-placeholder="ghRepoPlaceholder" autocomplete="off" required>
+
+      <label class="ghlabel" for="ghRama" data-t="ghRamaLabel"></label>
+      <input type="text" id="ghRama" data-t-placeholder="ghRamaPlaceholder" autocomplete="off">
+
+      <details class="ghpriv" id="ghPrivWrap">
+        <summary data-t="ghPrivSum"></summary>
+        <label class="ghlabel" for="ghToken" data-t="ghTokenLabel"></label>
+        <input type="password" id="ghToken" data-t-placeholder="ghTokenPlaceholder" autocomplete="off">
+        <label class="ghremember">
+          <input type="checkbox" id="ghRecordar">
+          <span data-t="ghRecordarToken"></span>
+        </label>
+        <p class="ghayuda" id="ghTokenAyuda" data-t="ghTokenAyuda"></p>
+      </details>
+
+      <p class="ghmsg" id="ghMsg" hidden></p>
+
+      <div class="ghbotones">
+        <button type="button" class="btn" id="ghCancelar" data-t="ghCancelar"></button>
+        <button type="submit" class="btn primary" id="ghSubmit" data-t="ghImportar"></button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 "use strict";
 /* ============================================================
@@ -784,7 +849,37 @@ const TEXTOS = {
     abrirCarpetaRec: "Abrir carpeta<kbd>recomendado</kbd>",
     abrirCarpeta: "Abrir carpeta",
     abrirSueltos: "Abrir archivos sueltos",
+    importarGithub: "Importar de GitHub",
     verEjemplo: "Ver un ejemplo",
+    ghTitulo: "Importar desde GitHub",
+    ghRepoLabel: "Repositorio",
+    ghRepoPlaceholder: "usuario/repo o la URL del repo",
+    ghRamaLabel: "Rama (opcional)",
+    ghRamaPlaceholder: "por defecto, la rama principal",
+    ghPrivSum: "¿Es un repositorio privado?",
+    ghTokenLabel: "Token de acceso personal",
+    ghTokenPlaceholder: "ghp_… (opcional para repos públicos)",
+    ghRecordarToken: "Recordar este token en este navegador",
+    ghTokenAyuda: "Hace falta un <b>Personal Access Token</b> con permiso de solo lectura sobre el " +
+      "contenido del repo. En GitHub: <b>Settings → Developer settings → " +
+      "Personal access tokens → Fine-grained tokens</b>, elegí <b>solo este repositorio</b> y el " +
+      "permiso <b>Contents: Read-only</b>. El token queda guardado únicamente en este navegador " +
+      "(y solo si tildás la casilla de arriba); podés borrarlo cuando quieras. Convivé poniéndole " +
+      "una fecha de expiración corta. <a href=\"https://github.com/settings/personal-access-tokens/new\" " +
+      "target=\"_blank\" rel=\"noopener\">Crear un token →</a>",
+    ghCancelar: "Cancelar",
+    ghImportar: "Importar",
+    ghImportando: "Importando…",
+    ghErrRepo: "Escribí el repositorio como \"usuario/repo\" o pegá la URL de GitHub.",
+    ghErrRed: "No se pudo conectar con GitHub. Revisá tu conexión e intentá de nuevo.",
+    ghErrNoEncontrado: "No se encontró ese repositorio o esa rama (o hace falta un token si es privado).",
+    ghErrAuth: "El token no es válido o no tiene permiso para leer este repositorio.",
+    ghErrLimite: "Se alcanzó el límite de pedidos a la API de GitHub. Probá de nuevo en un rato" +
+      ", o agregá un token para tener más margen.",
+    ghErrTruncado: "El repositorio es muy grande y GitHub no devolvió el árbol completo de archivos" +
+      ": puede que falten algunos.",
+    ghErrSinArchivos: "No encontré archivos .md, .markdown o .txt en ese repositorio.",
+    ghErrGenerico: "No se pudo completar la importación.",
     limpiarTodo: "Limpiar todo",
     limpiarTodoTitle: "Vacía la lista del lector. No borra ningún archivo del disco.",
     vacioInicial: "Todavía no cargaste nada.<br><br>Usá <b>Abrir carpeta</b> y elegí la carpeta que " +
@@ -931,7 +1026,37 @@ const TEXTOS = {
     abrirCarpetaRec: "Open folder<kbd>recommended</kbd>",
     abrirCarpeta: "Open folder",
     abrirSueltos: "Open individual files",
+    importarGithub: "Import from GitHub",
     verEjemplo: "See an example",
+    ghTitulo: "Import from GitHub",
+    ghRepoLabel: "Repository",
+    ghRepoPlaceholder: "owner/repo or the repo URL",
+    ghRamaLabel: "Branch (optional)",
+    ghRamaPlaceholder: "defaults to the main branch",
+    ghPrivSum: "Is it a private repository?",
+    ghTokenLabel: "Personal access token",
+    ghTokenPlaceholder: "ghp_… (optional for public repos)",
+    ghRecordarToken: "Remember this token in this browser",
+    ghTokenAyuda: "You need a <b>Personal Access Token</b> with read-only access to the repo's " +
+      "contents. On GitHub: <b>Settings → Developer settings → Personal access tokens → " +
+      "Fine-grained tokens</b>, pick <b>only this repository</b> and the <b>Contents: Read-only</b> " +
+      "permission. The token is stored only in this browser (and only if you tick the box above); " +
+      "you can remove it at any time. Give it a short expiration date as a safety habit. " +
+      "<a href=\"https://github.com/settings/personal-access-tokens/new\" target=\"_blank\" " +
+      "rel=\"noopener\">Create a token →</a>",
+    ghCancelar: "Cancel",
+    ghImportar: "Import",
+    ghImportando: "Importing…",
+    ghErrRepo: "Enter the repository as \"owner/repo\" or paste the GitHub URL.",
+    ghErrRed: "Could not reach GitHub. Check your connection and try again.",
+    ghErrNoEncontrado: "That repository or branch wasn't found (or it's private and needs a token).",
+    ghErrAuth: "The token is invalid or doesn't have access to this repository.",
+    ghErrLimite: "GitHub's API rate limit was reached. Try again in a while, or add a token for a " +
+      "higher limit.",
+    ghErrTruncado: "This repository is very large and GitHub didn't return the full file tree: " +
+      "some files may be missing.",
+    ghErrSinArchivos: "No .md, .markdown or .txt files were found in that repository.",
+    ghErrGenerico: "The import could not be completed.",
     limpiarTodo: "Clear all",
     limpiarTodoTitle: "Empties the reader's list. It doesn't delete any file from disk.",
     vacioInicial: "Nothing loaded yet.<br><br>Use <b>Open folder</b> and pick the folder you want " +
@@ -4431,6 +4556,180 @@ async function addFiles(list){
     navigator.storage.persist().catch(() => {});
   }
 }
+
+/* ============================================================
+   importar desde GitHub (API REST, solo el último commit de una rama)
+
+   No se clona nada: se pide el árbol recursivo del commit HEAD de la
+   rama, se descartan todos los archivos que no sean .md/.markdown/.txt
+   y solo esos se descargan. Para repos privados hace falta un Personal
+   Access Token, que viaja en el header Authorization y se guarda en
+   localStorage únicamente si el usuario tilda "recordar".
+   ============================================================ */
+const GH_TOKEN_KEY = "lectormd-gh-token";
+
+function parsearRepoGithub(entrada){
+  const s = (entrada || "").trim();
+  if(!s) return null;
+  // acepta "usuario/repo", "usuario/repo/tree/rama" o una URL completa de github.com
+  const limpio = s.replace(/^https?:\/\/(www\.)?github\.com\//i, "")
+                  .replace(/\.git$/i, "")
+                  .replace(/^\/+|\/+$/g, "");
+  const m = limpio.match(/^([^/\s]+)\/([^/\s]+)(?:\/tree\/(.+))?$/);
+  if(!m) return null;
+  return {owner:m[1], repo:m[2], rama:m[3] ? decodeURIComponent(m[3]) : null};
+}
+
+class ErrorGithub extends Error{
+  constructor(clave){ super(clave); this.claveTexto = clave; }
+}
+
+async function pedirGithub(url, token){
+  const headers = {Accept:"application/vnd.github+json"};
+  if(token) headers.Authorization = "Bearer " + token;
+  let res;
+  try{
+    res = await fetch(url, {headers});
+  }catch{
+    throw new ErrorGithub("ghErrRed");
+  }
+  if(res.status === 401) throw new ErrorGithub("ghErrAuth");
+  if(res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0"){
+    throw new ErrorGithub("ghErrLimite");
+  }
+  if(res.status === 404) throw new ErrorGithub("ghErrNoEncontrado");
+  if(!res.ok) throw new ErrorGithub("ghErrGenerico");
+  return res.json();
+}
+
+async function obtenerRamaPorDefecto(owner, repo, token){
+  const info = await pedirGithub("https://api.github.com/repos/" + owner + "/" + repo, token);
+  return info.default_branch;
+}
+
+async function obtenerArbolGithub(owner, repo, rama, token){
+  const url = "https://api.github.com/repos/" + owner + "/" + repo +
+    "/git/trees/" + encodeURIComponent(rama) + "?recursive=1";
+  const data = await pedirGithub(url, token);
+  const archivos = (data.tree || [])
+    .filter(it => it.type === "blob" && /\.(md|markdown|txt)$/i.test(it.path));
+  return {archivos, truncado: !!data.truncated};
+}
+
+/* decodifica el contenido base64 de la API de "contents" respetando UTF-8 */
+function decodificarBase64Utf8(b64){
+  const binario = atob(b64.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(binario, c => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+async function obtenerContenidoGithub(owner, repo, rama, path, token){
+  if(!token){
+    // repo público: el raw es más liviano y no gasta límite de la API
+    const url = "https://raw.githubusercontent.com/" + owner + "/" + repo + "/" +
+      encodeURIComponent(rama) + "/" + path.split("/").map(encodeURIComponent).join("/");
+    let res;
+    try{
+      res = await fetch(url);
+    }catch{
+      throw new ErrorGithub("ghErrRed");
+    }
+    if(!res.ok) throw new ErrorGithub("ghErrNoEncontrado");
+    return res.text();
+  }
+  const url = "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" +
+    path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(rama);
+  const data = await pedirGithub(url, token);
+  return decodificarBase64Utf8(data.content || "");
+}
+
+function mostrarMensajeGithub(texto, ok = false){
+  const el = $("ghMsg");
+  el.textContent = texto || "";
+  el.hidden = !texto;
+  el.classList.toggle("ok", ok);
+}
+
+function abrirModalGithub(){
+  $("ghForm").reset();
+  mostrarMensajeGithub("");
+  const tokenGuardado = localStorage.getItem(GH_TOKEN_KEY) || "";
+  $("ghToken").value = tokenGuardado;
+  $("ghRecordar").checked = !!tokenGuardado;
+  if(tokenGuardado) $("ghPrivWrap").open = true;
+  $("ghModal").hidden = false;
+  $("ghRepo").focus();
+}
+
+function cerrarModalGithub(){
+  $("ghModal").hidden = true;
+}
+
+async function importarDesdeGithub(){
+  const repoInfo = parsearRepoGithub($("ghRepo").value);
+  if(!repoInfo){ mostrarMensajeGithub(t("ghErrRepo")); return; }
+
+  const token = $("ghToken").value.trim();
+  const ramaEscrita = $("ghRama").value.trim();
+  const submit = $("ghSubmit");
+
+  submit.disabled = true;
+  mostrarMensajeGithub(t("ghImportando"));
+
+  try{
+    const {owner, repo} = repoInfo;
+    const rama = ramaEscrita || repoInfo.rama ||
+      await obtenerRamaPorDefecto(owner, repo, token);
+
+    const {archivos, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
+    if(!archivos.length){ mostrarMensajeGithub(t("ghErrSinArchivos")); return; }
+
+    const resultados = await Promise.allSettled(
+      archivos.map(a => obtenerContenidoGithub(owner, repo, rama, a.path, token)
+        .then(text => ({
+          name: a.path.split("/").pop(),
+          path: owner + "/" + repo + "/" + a.path,
+          text
+        })))
+    );
+    const leidos = resultados.filter(r => r.status === "fulfilled").map(r => r.value);
+    resultados.filter(r => r.status === "rejected")
+      .forEach(r => console.error("No se pudo leer un archivo de GitHub:", r.reason));
+
+    if(!leidos.length){ mostrarMensajeGithub(t("ghErrSinArchivos")); return; }
+
+    if($("ghRecordar").checked) localStorage.setItem(GH_TOKEN_KEY, token);
+    else localStorage.removeItem(GH_TOKEN_KEY);
+
+    const rutaActiva = current >= 0 && DOCS[current] ? DOCS[current].path : null;
+    leidos.forEach(doc => {
+      const exists = DOCS.findIndex(d => d.path === doc.path);
+      if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
+    });
+
+    afterLoad(rutaActiva);
+    await guardarDocumentosPersistidos(leidos);
+    await guardarEstadoPersistido();
+    if(navigator.storage && navigator.storage.persist){
+      navigator.storage.persist().catch(() => {});
+    }
+
+    cerrarModalGithub();
+    if(truncado) alert(t("ghErrTruncado"));
+  }catch(error){
+    mostrarMensajeGithub(error instanceof ErrorGithub ? t(error.claveTexto) : t("ghErrGenerico"));
+  }finally{
+    submit.disabled = false;
+  }
+}
+
+["pickGithub", "pickGithub2"].forEach(id => {
+  const b = $(id);
+  if(b) b.onclick = abrirModalGithub;
+});
+$("ghCancelar").onclick = cerrarModalGithub;
+$("ghModal").addEventListener("mousedown", e => { if(e.target === $("ghModal")) cerrarModalGithub(); });
+$("ghForm").addEventListener("submit", e => { e.preventDefault(); void importarDesdeGithub(); });
 
 function afterLoad(rutaActiva = null){
   // orden: primero los archivos en la raíz, después los de subcarpetas
