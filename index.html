@@ -178,6 +178,8 @@ aside{
   padding:2px 0; text-decoration:underline; text-underline-offset:3px;
 }
 .link:hover{color:var(--warm)}
+.link:disabled{cursor:default; opacity:.6; text-decoration:none}
+.listhdBtns{display:flex; gap:12px}
 
 .files{flex:1 1 auto; overflow-y:auto; min-height:0; padding:8px 8px 16px}
 .files .empty{padding:14px 8px; font-size:12.5px; color:var(--muted); line-height:1.5}
@@ -669,17 +671,23 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <p data-t="lema"></p>
     </div>
 
-    <div class="actions">
-      <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec"></button>
-      <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
-      <button class="btn" id="pickGithub" data-t="importarGithub"></button>
-      <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
-      <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
-    </div>
+    <details class="fold" id="actionsWrap" open>
+      <summary data-t="abrirArchivosSum"></summary>
+      <div class="actions">
+        <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec"></button>
+        <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
+        <button class="btn" id="pickGithub" data-t="importarGithub"></button>
+        <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
+        <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
+      </div>
+    </details>
 
     <div class="listhd" id="listHd" hidden>
       <span id="fileCount"></span>
-      <button class="link" id="clearAll" data-t="limpiarTodo" data-t-title="limpiarTodoTitle"></button>
+      <span class="listhdBtns">
+        <button class="link" id="ghActualizar" data-t="ghActualizarBtn" hidden></button>
+        <button class="link" id="clearAll" data-t="limpiarTodo" data-t-title="limpiarTodoTitle"></button>
+      </span>
     </div>
 
     <div class="files" id="files">
@@ -829,6 +837,7 @@ const TEXTOS = {
     lema: "Portátil · funciona sin internet",
     abrirCarpetaRec: "Abrir carpeta<kbd>recomendado</kbd>",
     abrirCarpeta: "Abrir carpeta",
+    abrirArchivosSum: "Abrir archivos",
     abrirSueltos: "Abrir archivos sueltos",
     importarGithub: "Importar de GitHub",
     verEjemplo: "Ver un ejemplo",
@@ -861,6 +870,10 @@ const TEXTOS = {
       ": puede que falten algunos.",
     ghErrSinArchivos: "No encontré archivos .md, .markdown o .txt en ese repositorio.",
     ghErrGenerico: "No se pudo completar la importación.",
+    ghActualizarBtn: "Actualizar de GitHub",
+    ghActualizando: "Actualizando…",
+    ghErrActualizar: "Algunos repositorios de GitHub no se pudieron actualizar. Revisá la consola " +
+      "para más detalle.",
     limpiarTodo: "Limpiar todo",
     limpiarTodoTitle: "Vacía la lista del lector. No borra ningún archivo del disco.",
     vacioInicial: "Todavía no cargaste nada.<br><br>Usá <b>Abrir carpeta</b> y elegí la carpeta que " +
@@ -987,6 +1000,7 @@ const TEXTOS = {
     lema: "Portable · works offline",
     abrirCarpetaRec: "Open folder<kbd>recommended</kbd>",
     abrirCarpeta: "Open folder",
+    abrirArchivosSum: "Open files",
     abrirSueltos: "Open individual files",
     importarGithub: "Import from GitHub",
     verEjemplo: "See an example",
@@ -1019,6 +1033,9 @@ const TEXTOS = {
       "some files may be missing.",
     ghErrSinArchivos: "No .md, .markdown or .txt files were found in that repository.",
     ghErrGenerico: "The import could not be completed.",
+    ghActualizarBtn: "Refresh from GitHub",
+    ghActualizando: "Refreshing…",
+    ghErrActualizar: "Some GitHub repositories could not be refreshed. Check the console for details.",
     limpiarTodo: "Clear all",
     limpiarTodoTitle: "Empties the reader's list. It doesn't delete any file from disk.",
     vacioInicial: "Nothing loaded yet.<br><br>Use <b>Open folder</b> and pick the folder you want " +
@@ -2766,6 +2783,7 @@ https://github.com/JHProyectos/mdreader-pwa
    ============================================================ */
 const DOCS = [];          // {name, path, text}
 let current = -1;
+const REPOS_GITHUB = []; // {owner, repo, rama, prefijo}: repos importados, para poder actualizarlos
 
 const $ = id => document.getElementById(id);
 
@@ -2880,6 +2898,7 @@ function crearEstadoPersistible(){
     key: STATE_KEY,
     currentPath: activo >= 0 && DOCS[activo] ? DOCS[activo].path : null,
     scrollPorRuta: posiciones,
+    reposGithub: REPOS_GITHUB,
     guardadoEn: new Date().toISOString()
   };
 }
@@ -2972,6 +2991,14 @@ async function restaurarWorkspace(){
           const valor = Number(state.scrollPorRuta[d.path]);
           if(Number.isFinite(valor) && valor >= 0) scrollPorRuta[d.path] = valor;
         });
+      }
+
+      if(Array.isArray(state && state.reposGithub)){
+        REPOS_GITHUB.splice(0, REPOS_GITHUB.length, ...state.reposGithub.filter(r =>
+          r && typeof r.owner === "string" && typeof r.repo === "string" &&
+          typeof r.rama === "string" && typeof r.prefijo === "string"
+        ));
+        $("ghActualizar").hidden = !REPOS_GITHUB.length;
       }
 
       const recordado = state && typeof state.currentPath === "string"
@@ -4616,6 +4643,32 @@ function cerrarModalGithub(){
   $("ghModal").hidden = true;
 }
 
+/* trae y lee los .md/.markdown/.txt del último commit de una rama; lo usan
+   tanto la importación inicial como el botón "actualizar" */
+async function traerArchivosGithub(owner, repo, rama, token){
+  const {archivos, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
+  const resultados = await Promise.allSettled(
+    archivos.map(a => obtenerContenidoGithub(owner, repo, rama, a.path, token)
+      .then(text => ({
+        name: a.path.split("/").pop(),
+        path: owner + "/" + repo + "/" + a.path,
+        text
+      })))
+  );
+  const leidos = resultados.filter(r => r.status === "fulfilled").map(r => r.value);
+  resultados.filter(r => r.status === "rejected")
+    .forEach(r => console.error("No se pudo leer un archivo de GitHub:", r.reason));
+  return {leidos, truncado};
+}
+
+function registrarRepoGithub(owner, repo, rama){
+  const prefijo = owner + "/" + repo;
+  const existente = REPOS_GITHUB.find(r => r.prefijo === prefijo);
+  if(existente) existente.rama = rama;
+  else REPOS_GITHUB.push({owner, repo, rama, prefijo});
+  $("ghActualizar").hidden = false;
+}
+
 async function importarDesdeGithub(){
   const repoInfo = parsearRepoGithub($("ghRepo").value);
   if(!repoInfo){ mostrarMensajeGithub(t("ghErrRepo")); return; }
@@ -4632,21 +4685,7 @@ async function importarDesdeGithub(){
     const rama = ramaEscrita || repoInfo.rama ||
       await obtenerRamaPorDefecto(owner, repo, token);
 
-    const {archivos, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
-    if(!archivos.length){ mostrarMensajeGithub(t("ghErrSinArchivos")); return; }
-
-    const resultados = await Promise.allSettled(
-      archivos.map(a => obtenerContenidoGithub(owner, repo, rama, a.path, token)
-        .then(text => ({
-          name: a.path.split("/").pop(),
-          path: owner + "/" + repo + "/" + a.path,
-          text
-        })))
-    );
-    const leidos = resultados.filter(r => r.status === "fulfilled").map(r => r.value);
-    resultados.filter(r => r.status === "rejected")
-      .forEach(r => console.error("No se pudo leer un archivo de GitHub:", r.reason));
-
+    const {leidos, truncado} = await traerArchivosGithub(owner, repo, rama, token);
     if(!leidos.length){ mostrarMensajeGithub(t("ghErrSinArchivos")); return; }
 
     if($("ghRecordar").checked) localStorage.setItem(GH_TOKEN_KEY, token);
@@ -4658,6 +4697,7 @@ async function importarDesdeGithub(){
       if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
     });
 
+    registrarRepoGithub(owner, repo, rama);
     afterLoad(rutaActiva);
     await guardarDocumentosPersistidos(leidos);
     await guardarEstadoPersistido();
@@ -4674,6 +4714,57 @@ async function importarDesdeGithub(){
   }
 }
 
+/* vuelve a traer el último commit de cada repo importado: agrega archivos
+   nuevos, pisa los que cambiaron y quita los que ya no están en el repo */
+async function actualizarGithub(){
+  if(!REPOS_GITHUB.length) return;
+  const boton = $("ghActualizar");
+  const textoOriginal = boton.textContent;
+  boton.disabled = true;
+  boton.textContent = t("ghActualizando");
+
+  const token = localStorage.getItem(GH_TOKEN_KEY) || "";
+  const rutaActiva = current >= 0 && DOCS[current] ? DOCS[current].path : null;
+  const leidosTotal = [];
+  let huboError = false;
+
+  for(const repoInfo of REPOS_GITHUB){
+    try{
+      const {leidos, truncado} = await traerArchivosGithub(
+        repoInfo.owner, repoInfo.repo, repoInfo.rama, token
+      );
+      if(truncado) huboError = true;
+
+      const prefijo = repoInfo.prefijo + "/";
+      const rutasNuevas = new Set(leidos.map(d => d.path));
+      for(let i = DOCS.length - 1; i >= 0; i--){
+        if(DOCS[i].path.startsWith(prefijo) && !rutasNuevas.has(DOCS[i].path)){
+          const [quitado] = DOCS.splice(i, 1);
+          delete scrollPorRuta[quitado.path];
+          void eliminarDocumentoPersistido(quitado.path);
+        }
+      }
+
+      leidos.forEach(doc => {
+        const exists = DOCS.findIndex(d => d.path === doc.path);
+        if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
+      });
+      leidosTotal.push(...leidos);
+    }catch(error){
+      console.error("No se pudo actualizar " + repoInfo.prefijo + ":", error);
+      huboError = true;
+    }
+  }
+
+  afterLoad(rutaActiva);
+  await guardarDocumentosPersistidos(leidosTotal);
+  await guardarEstadoPersistido();
+
+  boton.disabled = false;
+  boton.textContent = textoOriginal;
+  if(huboError) alert(t("ghErrActualizar"));
+}
+
 ["pickGithub", "pickGithub2"].forEach(id => {
   const b = $(id);
   if(b) b.onclick = abrirModalGithub;
@@ -4681,6 +4772,7 @@ async function importarDesdeGithub(){
 $("ghCancelar").onclick = cerrarModalGithub;
 $("ghModal").addEventListener("mousedown", e => { if(e.target === $("ghModal")) cerrarModalGithub(); });
 $("ghForm").addEventListener("submit", e => { e.preventDefault(); void importarDesdeGithub(); });
+$("ghActualizar").onclick = () => void actualizarGithub();
 
 function afterLoad(rutaActiva = null){
   // orden: primero los archivos en la raíz, después los de subcarpetas
@@ -4745,12 +4837,14 @@ function resetWorkspace(persistir = true){
   guardadoEstadoT = null;
   DOCS.length = 0;
   current = -1;
+  REPOS_GITHUB.length = 0;
   Object.keys(scrollPorRuta).forEach(path => delete scrollPorRuta[path]);
 
   if(viendoAyuda) cerrarAyuda();
   limpiarVista();
   $("listHd").hidden = true;
   $("fileCount").textContent = "";
+  $("ghActualizar").hidden = true;
   // con data-t, para que un cambio de idioma también lo traduzca
   $("files").innerHTML = '<p class="empty" data-t="vacioReset">' + t("vacioReset") + "</p>";
 
