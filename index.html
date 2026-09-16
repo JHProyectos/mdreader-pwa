@@ -136,11 +136,13 @@ aside{
 #sideInner{display:flex; flex-direction:column; min-height:0; flex:1 1 auto}
 #sideExpand{margin:0 auto}
 .brand{padding:16px 16px 12px; border-bottom:1px solid var(--line)}
+.brand-row{display:flex; align-items:flex-start; justify-content:space-between; gap:8px}
 .brand h1{
   font-family:var(--serif); font-size:17px; font-weight:600; margin:0;
   letter-spacing:-.01em;
 }
 .brand p{margin:3px 0 0; font-size:11.5px; color:var(--muted)}
+.brand-row .icon{flex:none; margin-top:-2px}
 
 .actions{padding:12px 16px; display:flex; flex-direction:column; gap:7px; border-bottom:1px solid var(--line)}
 .btn{
@@ -621,7 +623,10 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     <button class="icon" id="sideExpand" data-t-title="mostrarPanelTitle" data-t-aria="mostrarPanelTitle" hidden>☰</button>
     <div id="sideInner">
     <div class="brand">
-      <h1>Lector MD</h1>
+      <div class="brand-row">
+        <h1>Lector MD</h1>
+        <button class="icon" id="sideCollapse" data-t-title="ocultarPanelTitle" data-t-aria="ocultarPanelTitle">«</button>
+      </div>
       <p data-t="lema"></p>
     </div>
 
@@ -662,7 +667,6 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <button class="icon" id="diagInfo">◇</button>
       <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle"></button>
       <button class="icon" id="lang" data-t="idiomaBoton" data-t-title="idiomaTitle"></button>
-      <button class="icon" id="sideCollapse" data-t-title="ocultarPanelTitle" data-t-aria="ocultarPanelTitle">«</button>
     </div>
     </div>
   </aside>
@@ -813,8 +817,8 @@ const TEXTOS = {
       ": puede que falten algunos.",
     ghErrSinArchivos: "No encontré archivos .md, .markdown o .txt en ese repositorio.",
     ghErrGenerico: "No se pudo completar la importación.",
-    ghActualizarBtn: "Actualizar de GitHub",
-    ghActualizando: "Actualizando…",
+    ghActualizarBtn: "↻ Actualizar",
+    ghActualizando: "↻ Actualizando…",
     ghErrActualizar: "Algunos repositorios de GitHub no se pudieron actualizar. Revisá la consola " +
       "para más detalle.",
     limpiarTodo: "Limpiar todo",
@@ -976,8 +980,8 @@ const TEXTOS = {
       "some files may be missing.",
     ghErrSinArchivos: "No .md, .markdown or .txt files were found in that repository.",
     ghErrGenerico: "The import could not be completed.",
-    ghActualizarBtn: "Refresh from GitHub",
-    ghActualizando: "Refreshing…",
+    ghActualizarBtn: "↻ Refresh",
+    ghActualizando: "↻ Refreshing…",
     ghErrActualizar: "Some GitHub repositories could not be refreshed. Check the console for details.",
     limpiarTodo: "Clear all",
     limpiarTodoTitle: "Empties the reader's list. It doesn't delete any file from disk.",
@@ -4279,12 +4283,16 @@ class ErrorGithub extends Error{
   constructor(clave){ super(clave); this.claveTexto = clave; }
 }
 
+function sinCacheGithub(url){
+  return url + (url.includes("?") ? "&" : "?") + "_=" + Date.now();
+}
+
 async function pedirGithub(url, token){
   const headers = {Accept:"application/vnd.github+json"};
   if(token) headers.Authorization = "Bearer " + token;
   let res;
   try{
-    res = await fetch(url, {headers});
+    res = await fetch(sinCacheGithub(url), {headers, cache:"no-store"});
   }catch{
     throw new ErrorGithub("ghErrRed");
   }
@@ -4324,7 +4332,7 @@ async function obtenerContenidoGithub(owner, repo, rama, path, token){
       encodeURIComponent(rama) + "/" + path.split("/").map(encodeURIComponent).join("/");
     let res;
     try{
-      res = await fetch(url);
+      res = await fetch(sinCacheGithub(url), {cache:"no-store"});
     }catch{
       throw new ErrorGithub("ghErrRed");
     }

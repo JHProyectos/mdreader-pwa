@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.13.0";
+const VERSION = "v0.14.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -166,7 +166,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Librerías externas (KaTeX, Mermaid, Prism): network-first con respaldo
+  // 3a. API de GitHub: nunca se cachea. Cada pedido lleva su propia marca de
+  // tiempo (import/actualizar desde GitHub) para no servir contenido viejo;
+  // guardarlo en el caché del service worker solo acumularía entradas que
+  // nunca se reutilizan.
+  if (url.hostname === "api.github.com" || url.hostname === "raw.githubusercontent.com") {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // 3b. Librerías externas (KaTeX, Mermaid, Prism): network-first con respaldo
   // en caché. Gracias a esto, una vez bajadas las fórmulas, los diagramas y
   // el resaltado de código siguen funcionando sin conexión.
   event.respondWith(
