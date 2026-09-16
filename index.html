@@ -106,6 +106,12 @@ img{max-width:100%}
   aside.open{transform:none}
   .scrim{position:fixed; inset:0; background:#0008; z-index:15}
   .menubtn{display:inline-flex!important}
+  #sideExpand,#sideCollapse{display:none!important}
+}
+@media (min-width:821px){
+  :root[data-sidebar="collapsed"] .app{grid-template-columns:52px minmax(0,1fr)}
+  :root[data-sidebar="collapsed"] #sideInner{display:none}
+  :root[data-sidebar="collapsed"] aside{align-items:center; padding-top:14px}
 }
 
 .menubtn{
@@ -127,6 +133,8 @@ aside{
   background:var(--surface); border-right:1px solid var(--line);
   display:flex; flex-direction:column; min-height:0;
 }
+#sideInner{display:flex; flex-direction:column; min-height:0; flex:1 1 auto}
+#sideExpand{margin:0 auto}
 .brand{padding:16px 16px 12px; border-bottom:1px solid var(--line)}
 .brand h1{
   font-family:var(--serif); font-size:17px; font-weight:600; margin:0;
@@ -610,6 +618,8 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 <div class="app">
   <aside id="side">
+    <button class="icon" id="sideExpand" data-t-title="mostrarPanelTitle" data-t-aria="mostrarPanelTitle" hidden>☰</button>
+    <div id="sideInner">
     <div class="brand">
       <h1>Lector MD</h1>
       <p data-t="lema"></p>
@@ -652,6 +662,8 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <button class="icon" id="diagInfo">◇</button>
       <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle"></button>
       <button class="icon" id="lang" data-t="idiomaBoton" data-t-title="idiomaTitle"></button>
+      <button class="icon" id="sideCollapse" data-t-title="ocultarPanelTitle" data-t-aria="ocultarPanelTitle">«</button>
+    </div>
     </div>
   </aside>
 
@@ -832,6 +844,8 @@ const TEXTOS = {
     ayudaTitle: "Documento de ejemplo: qué hace el lector y qué Markdown entiende",
     idiomaBoton: "EN",
     idiomaTitle: "Switch to English",
+    ocultarPanelTitle: "Ocultar panel",
+    mostrarPanelTitle: "Mostrar panel",
     menuAria: "Abrir panel de archivos",
     menuTitle: "Archivos",
     ningunArchivo: "ningún archivo abierto",
@@ -991,6 +1005,8 @@ const TEXTOS = {
     ayudaTitle: "Sample document: what the reader does and which Markdown it understands",
     idiomaBoton: "ES",
     idiomaTitle: "Cambiar a español",
+    ocultarPanelTitle: "Hide panel",
+    mostrarPanelTitle: "Show panel",
     menuAria: "Open file panel",
     menuTitle: "Files",
     ningunArchivo: "no file open",
@@ -4831,6 +4847,18 @@ document.querySelectorAll("details.fold").forEach(d => {
 let densidadGuardada = false;
 try{ densidadGuardada = localStorage.getItem("lectormd-density") === "compact"; }catch(e){}
 setDensity(densidadGuardada);
+
+function setSidebarCollapsed(collapsed){
+  document.documentElement.dataset.sidebar = collapsed ? "collapsed" : "";
+  $("sideExpand").hidden = !collapsed;
+  try{ localStorage.setItem("lectormd-sidebar", collapsed ? "1" : "0"); }catch(e){}
+}
+$("sideCollapse").onclick = () => setSidebarCollapsed(true);
+$("sideExpand").onclick = () => setSidebarCollapsed(false);
+
+let sidebarColapsada = false;
+try{ sidebarColapsada = localStorage.getItem("lectormd-sidebar") === "1"; }catch(e){}
+setSidebarCollapsed(sidebarColapsada);
 
 $("theme").onclick = ()=>{
   const next = esTemaOscuro() ? "light" : "dark";
