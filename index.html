@@ -8,14 +8,8 @@
 <meta name="theme-color" content="#34399B">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMzNDM5OUIiLz4KICA8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNOSAyMGg3bDYgOCA2LThoN3YyNWgtN1YzMWwtNiA4LTYtOHYxNEg5eiIvPgogIDxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MiAxOGg4djE2aDdMNDYgNDcgMzUgMzRoN3oiLz4KPC9zdmc+Cg==">
 
-<!-- iPhone / iPad. Safari usa este ícono antes que los del manifest, y en
-     iOS anterior a 16.4 es el único que mira. Va el maskable, que es
-     cuadrado y opaco: el de 192 tiene las esquinas transparentes y iOS las
-     rellenaría de negro por debajo de su propia máscara. -->
 <link rel="apple-touch-icon" href="/icon-maskable-512.png">
-<!-- pantalla completa al abrirlo desde la pantalla de inicio; en iOS 16.4+
-     esto ya lo decide "display" del manifest, pero sigue haciendo falta
-     para las versiones viejas -->
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lector MD">
@@ -43,10 +37,6 @@
   --accent:#8F94F0; --accent-soft:#8F94F022; --warm:#E2907A; --good:#6FBF95;
 }
 
-/* colores del resaltado de código (--tk-*) y de las series de los gráficos.
-   Las series son una paleta categórica validada para daltonismo y contraste
-   contra --surface de cada tema; el orden es parte de esa validación, así
-   que no se reordena ni se agregan colores. */
 :root{
   --tk-comment:#6B6F80; --tk-keyword:#34399B; --tk-string:#2F6B4F;
   --tk-number:#B0452E;  --tk-function:#7A3E9D; --tk-type:#8A5A00;
@@ -68,20 +58,19 @@
   --serie-5:#d55181; --serie-6:#008300; --serie-7:#9085e9; --serie-8:#e66767;
 }
 
-/* ================= densidad: cómodo (por defecto) / compacto ================= */
 :root{
   --lh-prose:1.6;
-  --sp-p:1em;          /* margen inferior de párrafos */
-  --sp-h:1.9em;        /* margen superior de encabezados */
+  --sp-p:1em;
+  --sp-h:1.9em;
   --sp-h2:2.2em;
-  --sp-blk:1.2em;      /* pre, tablas, citas */
-  --sp-math:6px 0 10px;   /* padding del bloque de fórmula con KaTeX */
-  --sp-mathfb:14px 16px;  /* idem en modo simple (sin KaTeX) */
-  --sp-diag:12px 14px;    /* padding del bloque de diagrama ya dibujado */
+  --sp-blk:1.2em;
+  --sp-math:6px 0 10px;
+  --sp-mathfb:14px 16px;
+  --sp-diag:12px 14px;
   --sp-li:.28em;
-  --art-x:28px;           /* padding lateral de la columna; lo usa el ensanche de diagramas */
+  --art-x:28px;
   --art-pad:34px var(--art-x) 96px;
-  --katex-disp:0.35em;    /* margen propio de .katex-display */
+  --katex-disp:0.35em;
 }
 body.compact{
   --lh-prose:1.38;
@@ -89,8 +78,7 @@ body.compact{
   --sp-h:.85em;
   --sp-h2:1.1em;
   --sp-blk:.45em;
-  /* 4px por lado: KaTeX se pasa hasta 4px con \boxed y \begin{cases},
-     y como el bloque no puede scrollear en vertical, se recortaria */
+
   --sp-math:4px 0;
   --sp-mathfb:5px 10px;
   --sp-diag:6px 8px;
@@ -110,9 +98,6 @@ body{
 img{max-width:100%}
 [hidden]{display:none!important}
 
-/* ================= layout ================= */
-/* dvh es el alto que queda libre de verdad: en Safari de iPhone, 100vh
-   mete el último tramo de la app abajo de la barra del navegador. */
 .app{display:grid; grid-template-columns:264px minmax(0,1fr); height:100vh; height:100dvh}
 @media (max-width:820px){
   .app{grid-template-columns:minmax(0,1fr)}
@@ -123,7 +108,6 @@ img{max-width:100%}
   .menubtn{display:inline-flex!important}
 }
 
-/* botón de menú: sólo en pantallas chicas, donde el sidebar está oculto */
 .menubtn{
   display:none; align-items:center; justify-content:center;
   font:inherit; font-size:17px; line-height:1; cursor:pointer;
@@ -133,14 +117,12 @@ img{max-width:100%}
 }
 .menubtn:hover{border-color:var(--accent); color:var(--accent)}
 
-/* acciones dentro de la pantalla vacía */
 .dropactions{
   display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
   margin:18px 0 4px;
 }
 .dropactions .btn{text-align:center}
 
-/* ================= sidebar ================= */
 aside{
   background:var(--surface); border-right:1px solid var(--line);
   display:flex; flex-direction:column; min-height:0;
@@ -210,7 +192,7 @@ aside{
   font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--muted); padding:12px 9px 4px;
 }
-/* ---- bloques plegables (índice y aclaraciones) ---- */
+
 .fold{border-top:1px solid var(--line); flex:none}
 .fold > summary{
   cursor:pointer; padding:9px 16px; list-style:none;
@@ -256,10 +238,6 @@ aside{
 .icon.on{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
 .icon.warn{border-color:var(--warm); color:var(--warm)}
 
-/* ================= main ================= */
-/* container-type deja medir el ancho real de esta zona desde adentro (100cqw):
-   es lo que usan los diagramas y los gráficos para estirarse más allá de la
-   columna de texto sin tener que adivinar cuánto ocupa el sidebar. */
 main{overflow-y:auto; min-height:0; position:relative; container-type:inline-size}
 .topbar{
   position:sticky; top:0; z-index:10; background:var(--bg);
@@ -285,7 +263,6 @@ main{overflow-y:auto; min-height:0; position:relative; container-type:inline-siz
 .drop p{max-width:46ch; margin:0 auto 6px; font-size:14px}
 .drop ol{max-width:44ch; margin:20px auto 0; text-align:left; font-size:13.5px; line-height:1.9}
 
-/* bloques de ayuda: uno para celular, otro para escritorio */
 .tip{
   max-width:46ch; margin:26px auto 0; padding:16px 18px;
   border:1px solid var(--line); border-radius:6px;
@@ -306,23 +283,17 @@ main{overflow-y:auto; min-height:0; position:relative; container-type:inline-siz
   .tip-escritorio{display:none}
 }
 
-/* iOS tiene su propio juego de instrucciones: no existe el menú "Compartir"
-   hacia apps web ni el selector de carpetas, así que las de Android y las de
-   escritorio no aplican. El atributo lo pone ES_IOS, más abajo en el script;
-   estos selectores le ganan por especificidad a la consulta de ancho, que es
-   lo que hace falta en iPad. */
 .tip-ios, .tip-instalar{display:none}
 html[data-plat="ios"] .tip-movil,
 html[data-plat="ios"] .tip-escritorio{display:none}
 html[data-plat="ios"] .tip-ios{display:block}
-/* el instructivo de instalación sobra si ya está instalada */
+
 html[data-plat="ios"]:not([data-modo="app"]) .tip-instalar{display:block}
-/* webkitdirectory no hace nada en iOS: el botón abriría un cuadro vacío */
+
 html[data-plat="ios"] #pickFolder,
 html[data-plat="ios"] #pickFolder2{display:none}
 body.dragging main{outline:2px dashed var(--accent); outline-offset:-10px}
 
-/* ================= documento ================= */
 article{
   max-width:78ch; margin:0 auto; padding:var(--art-pad);
 }
@@ -368,22 +339,19 @@ th,td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-
 th{background:var(--surface-2); font-weight:600; font-size:12.5px}
 td{font-variant-numeric:tabular-nums}
 
-/* ---- matemática ---- */
 .mathblock.katex-on{
   font-family:inherit; font-size:inherit; line-height:1.3;
   background:transparent; border:none; padding:var(--sp-math);
   margin:0 0 var(--sp-blk);
 }
-/* KaTeX trae margin:1em 0 propio en .katex-display: es la causa principal
-   del aire entre formulas. Lo reemplazamos por un token controlable. */
+
 .mathblock .katex-display{margin:var(--katex-disp) 0}
 .katex{color:var(--ink)}
 .mathblock{
   font-family:var(--mono); font-size:14.5px; text-align:center;
   background:var(--surface); border:1px solid var(--line); border-radius:3px;
   padding:var(--sp-mathfb); margin:0 0 var(--sp-blk); line-height:1.9;
-  /* solo scroll horizontal: con overflow-x:auto suelto, overflow-y pasa a auto
-     y el margen del hijo dispara una barra vertical de 1-2px */
+
   overflow-x:auto; overflow-y:hidden;
 }
 .mathinline{font-family:var(--mono); font-size:.9em; white-space:nowrap}
@@ -393,23 +361,16 @@ td{font-variant-numeric:tabular-nums}
 .frac .den{display:block; padding:0 .3em; line-height:1.5}
 .root{border-top:1.2px solid currentColor; padding:0 .15em}
 
-/* ---- diagramas (Mermaid) ---- */
-/* Mientras el diagrama no está dibujado -o no se pudo dibujar- el bloque
-   muestra el código fuente: el <pre> de adentro ya trae su propio marco,
-   así que el contenedor no dibuja nada. */
 .diagram{margin:0}
 .diagram[data-diagram="listo"]{
   background:var(--surface); border:1px solid var(--line); border-radius:3px;
   padding:var(--sp-diag); margin:0 0 var(--sp-blk); text-align:center; line-height:1;
-  /* solo scroll horizontal, igual que .mathblock */
+
   overflow-x:auto; overflow-y:hidden;
 }
 .diagram[data-diagram="listo"] svg{max-width:100%; height:auto; vertical-align:middle}
 .diagram-err{margin:0 0 var(--sp-blk); font-size:12.5px; line-height:1.4; color:var(--warm)}
 
-/* ---- botón de ampliar (abre el visor a pantalla completa) ----
-   Aparece al pasar el puntero; donde no hay puntero queda siempre visible,
-   porque si no no habría forma de saber que el visor existe. */
 .ampliar{
   position:absolute; top:6px; right:6px; z-index:1;
   display:inline-flex; align-items:center; justify-content:center;
@@ -425,7 +386,6 @@ td{font-variant-numeric:tabular-nums}
 .ampliar:hover{color:var(--accent)}
 @media (hover:none){.ampliar{opacity:.9}}
 
-/* ---- visor a pantalla completa: acercar, alejar y arrastrar ---- */
 .zoom{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:var(--bg)}
 .zoom-barra{
   display:flex; align-items:center; gap:6px; flex:none;
@@ -447,14 +407,13 @@ td{font-variant-numeric:tabular-nums}
   background:transparent; color:var(--ink);
 }
 .zoom-barra button:hover{border-color:var(--accent); color:var(--accent)}
-/* touch-action:none: el arrastre y el pellizco los maneja el visor, no el scroll */
+
 .zoom-lienzo{
   flex:1; min-height:0; position:relative; overflow:hidden;
   touch-action:none; cursor:grab; overscroll-behavior:contain;
 }
 .zoom-lienzo.arrastrando{cursor:grabbing}
 
-/* ---- importar desde GitHub ---- */
 .ghmodal{
   position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center;
   padding:16px; background:#0009;
@@ -491,9 +450,6 @@ td{font-variant-numeric:tabular-nums}
 .zoom-contenido svg{display:block; height:auto}
 .zoom-contenido.chart{padding:4px 10px; text-align:left; line-height:var(--lh-prose)}
 
-/* ---- resaltado de código (Prism) ---- */
-/* Prism sólo marca los fragmentos con clases: los colores los pone el lector,
-   así siguen el tema sin bajar una hoja de estilos de afuera. */
 .token.comment,.token.prolog,.token.doctype,.token.cdata{color:var(--tk-comment); font-style:italic}
 .token.punctuation{color:var(--muted)}
 .token.keyword,.token.atrule,.token.important,.token.tag,.token.selector{color:var(--tk-keyword)}
@@ -504,7 +460,6 @@ td{font-variant-numeric:tabular-nums}
 .token.important{font-weight:600}
 .token.namespace{opacity:.75}
 
-/* ---- índice dentro del documento ([TOC]) ---- */
 .doctoc{
   margin:0 0 var(--sp-blk); padding:10px 16px 10px 14px;
   background:var(--surface); border:1px solid var(--line); border-radius:3px;
@@ -521,9 +476,6 @@ article .doctoc a{text-decoration:none}
 article .doctoc a:hover{text-decoration:underline}
 article .doctoc > ol > li > a{font-weight:500}
 
-/* ---- gráficos: barras, líneas, área, dispersión y torta (los dibuja el lector, ver armarGrafico) ---- */
-/* Igual que los diagramas: hasta que se dibuja, o si los datos tienen un
-   error, el bloque muestra el texto de la valla con su propio marco. */
 .chart{margin:0}
 .chart[data-chart="listo"]{
   background:var(--surface); border:1px solid var(--line); border-radius:3px;
@@ -535,7 +487,7 @@ article .doctoc > ol > li > a{font-weight:500}
   font-size:12px; line-height:1.4; color:var(--muted);
 }
 .chart-leyenda span{display:inline-flex; align-items:center; gap:6px}
-/* el color va en la clave, nunca en el texto */
+
 .chart-leyenda i,.chart-tip i{flex:none; background:currentColor}
 .chart-leyenda i{width:10px; height:10px; border-radius:2px}
 .chart-leyenda.lineas i{width:14px; height:2px; border-radius:1px}
@@ -548,9 +500,9 @@ article .doctoc > ol > li > a{font-weight:500}
 .chart .barra{fill:currentColor; transition:opacity .12s}
 .chart svg.hover .grupo:not(.activo) .barra{opacity:.4}
 .chart .linea{fill:none; stroke:currentColor; stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
-/* el área se pinta translúcida para que dos series encimadas se sigan leyendo */
+
 .chart .area{fill:currentColor; fill-opacity:.16; stroke:none}
-/* la porción lleva el borde del color del fondo, que hace de separador */
+
 .chart .porcion{fill:currentColor; stroke:var(--surface); stroke-width:2; transition:opacity .12s}
 .chart svg.hover .porcion:not(.activo){opacity:.4}
 .chart .punto{fill:currentColor; stroke:var(--surface); stroke-width:2}
@@ -577,15 +529,6 @@ article .doctoc > ol > li > a{font-weight:500}
 .chart-datos .tablewrap{margin:6px 0 2px}
 .chart-datos td.num{text-align:right}
 
-/* ---- ensanche: un dibujo no tiene por qué entrar en la columna de texto ----
-   El texto se lee cómodo en 78ch, pero un Gantt o un gráfico con muchas
-   categorías achicado a ese ancho queda con la letra ilegible. Cuando la
-   ventana da de sobra, el bloque se estira hacia los dos márgenes (tope de
-   240px por lado, para que en un monitor ancho no se vaya de escala). Si no
-   sobra nada -celular, ventana angosta- el clamp da 0 y queda como antes.
-   Va después de las reglas de .chart: ahí el margin va en atajo y le ganaría
-   al margin-left de acá. Los 16px de más son por la barra de scroll, que
-   100cqw cuenta como si fuera ancho disponible. */
 .diagram[data-diagram="listo"],
 .chart[data-chart="listo"]{
   --bleed:clamp(0px, (100cqw - 2 * var(--art-x) - 16px - 100%) / 2, 240px);
@@ -597,7 +540,7 @@ article .doctoc > ol > li > a{font-weight:500}
 mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 @media print{
-  /* al imprimir siempre va compacto, incluso si en pantalla estás en cómodo */
+
   :root{
     --lh-prose:1.3;
     --sp-p:.35em; --sp-h:.75em; --sp-h2:.95em; --sp-blk:.4em;
@@ -606,7 +549,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   }
   @page{margin:14mm}
   aside,.topbar,.scrim,.ampliar,.zoom{display:none!important}
-  /* en papel no hay márgenes de sobra: el dibujo vuelve al ancho de la caja */
+
   .diagram[data-diagram="listo"],.chart[data-chart="listo"]{--bleed:0px}
   .app{display:block; height:auto}
   main{overflow:visible}
@@ -618,29 +561,25 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   table{font-size:9.5pt} th,td{padding:3px 6px}
   pre,.mathblock,table,th,td{border-color:#bbb}
   pre{border-left-color:#666}
-  /* los diagramas se redibujan en claro antes de imprimir (ver $("print")),
-     así que el marco del bloque no debe aportar el fondo oscuro del tema */
+
   .diagram[data-diagram="listo"]{background:none; border-color:#bbb}
   article h1,article h2,article h3,article h4{break-after:avoid}
   pre,.mathblock,.diagram,.chart,table,blockquote{break-inside:avoid}
 
-  /* Los colores del código y de las series del tema oscuro están pensados
-     para fondo oscuro: en papel van los del claro. Gana por orden: este
-     bloque tiene la misma especificidad que los del tema y va después. */
   :root:not([data-theme="light"]){
     --tk-comment:#6B6F80; --tk-keyword:#34399B; --tk-string:#2F6B4F;
     --tk-number:#B0452E;  --tk-function:#7A3E9D; --tk-type:#8A5A00;
     --serie-1:#2a78d6; --serie-2:#eb6834; --serie-3:#1baf7a; --serie-4:#eda100;
     --serie-5:#e87ba4; --serie-6:#008300; --serie-7:#4a3aa7; --serie-8:#e34948;
   }
-  /* el anillo de los puntos y la grilla son del color del papel */
+
   .chart{--surface:#fff; --line:#ddd; --muted:#555}
   .chart[data-chart="listo"],.doctoc{background:none; border-color:#bbb}
   .chart-tip{display:none!important}
   .chart-datos:not([open]){display:none}
   .doctoc a{color:#000}
 }
-/* aviso de versión nueva disponible */
+
 #updBar{
   position:fixed; left:16px; right:16px; bottom:16px; margin:0 auto;
   z-index:50; display:flex; align-items:center; justify-content:space-between;
@@ -703,7 +642,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle"></button>
       <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
       <button class="icon" id="density"></button>
-      <!-- estado de KaTeX y Mermaid: el texto lo pone pintarEstados, según si la librería cargó -->
+
       <button class="icon" id="mathInfo">∑</button>
       <button class="icon" id="diagInfo">◇</button>
       <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle"></button>
@@ -773,7 +712,6 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   </main>
 </div>
 
-<!-- visor de diagramas y gráficos: se llena recién cuando se abre -->
 <div class="zoom" id="zoom" hidden>
   <div class="zoom-barra">
     <span class="nombre" id="zoomNombre"></span>
@@ -786,7 +724,6 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   <div class="zoom-lienzo" id="zoomLienzo"></div>
 </div>
 
-<!-- importar archivos .md/.txt desde un repo de GitHub (público o privado con PAT) -->
 <div class="ghmodal" id="ghModal" hidden>
   <div class="ghbox" role="dialog" aria-modal="true" aria-labelledby="ghTitulo">
     <h2 id="ghTitulo" data-t="ghTitulo"></h2>
@@ -820,18 +757,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 <script>
 "use strict";
-/* ============================================================
-   idioma
 
-   La interfaz y la ayuda están en español y en inglés. De entrada
-   manda el idioma del navegador; el botón del panel lo cambia y la
-   elección queda guardada. Este script va antes que los bloques de
-   ayuda para que los textos ya estén puestos en el primer cuadro.
-
-   Los elementos fijos llevan la clave de TEXTOS en data-t (contenido,
-   puede traer HTML propio), data-t-title, data-t-placeholder o
-   data-t-aria. Lo que arma el script principal usa t() directo.
-   ============================================================ */
 const TEXTOS = {
   es: {
     lema: "Portátil · funciona sin internet",
@@ -915,8 +841,6 @@ const TEXTOS = {
     tipMovilFine: "Funciona igual desde Drive, Telegram, Gmail o el explorador de archivos: siempre " +
       "por <b>compartir</b>.",
 
-    /* Variantes para iPhone y iPad. Las claves que terminan en IOS pisan
-       automáticamente a la clave sin sufijo cuando ES_IOS es verdadero. */
     abrirSueltosIOS: "Abrir archivos",
     vacioInicialIOS: "Todavía no cargaste nada.<br><br>Usá <b>Abrir archivos</b> y buscá tus " +
       "<code>.md</code> en la app <b>Archivos</b>: iCloud Drive, Descargas o donde los tengas. " +
@@ -1076,8 +1000,6 @@ const TEXTOS = {
     tipMovilFine: "It works the same from Drive, Telegram, Gmail or the file manager: always " +
       "through <b>share</b>.",
 
-    /* iPhone and iPad variants. Keys ending in IOS automatically override the
-       key without the suffix whenever ES_IOS is true. */
     abrirSueltosIOS: "Open files",
     vacioInicialIOS: "Nothing loaded yet.<br><br>Tap <b>Open files</b> and look for your " +
       "<code>.md</code> files in the <b>Files</b> app: iCloud Drive, Downloads, wherever you keep " +
@@ -1166,7 +1088,7 @@ function idiomaInicial(){
   const lista = navigator.languages && navigator.languages.length
     ? navigator.languages
     : [navigator.language || ""];
-  // manda el primero de la lista que sea uno de los dos; si ninguno lo es, inglés
+
   for(const l of lista){
     const base = String(l).slice(0, 2).toLowerCase();
     if(base === "es" || base === "en") return base;
@@ -1176,20 +1098,6 @@ function idiomaInicial(){
 
 let IDIOMA = idiomaInicial();
 
-/* ============================================================
-   iPhone y iPad
-
-   Safari no implementa nada de la integración con el sistema en la que se
-   apoya el resto de la app: no hay File Handling API (abrir un .md desde
-   Archivos), no hay Web Share Target (aparecer en el menú Compartir) y
-   webkitdirectory está declarado pero no abre nada. Los botones y las
-   instrucciones que dan por sentado eso se cambian por otros.
-
-   Va por user agent y no por detección de capacidades a propósito:
-   "webkitdirectory" in HTMLInputElement.prototype da true en iOS igual,
-   porque el atributo existe en WebKit aunque el selector no lo respete.
-   iPadOS se anuncia como Macintosh desde iOS 13; lo delata el touch.
-   ============================================================ */
 const ES_IOS = (() => {
   const ua = navigator.userAgent || "";
   return /iPad|iPhone|iPod/.test(ua) ||
@@ -1200,34 +1108,27 @@ if(ES_IOS){
   const raiz = document.documentElement;
   raiz.dataset.plat = "ios";
 
-  // navigator.standalone es el de iOS; display-mode cubre 16.4 en adelante
   if(navigator.standalone === true ||
      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)){
     raiz.dataset.modo = "app";
   }
 
-  // sin "Abrir carpeta", el botón principal pasa a ser el de archivos sueltos
   ["pickFiles", "pickFiles2"].forEach(id => {
     const b = document.getElementById(id);
     if(b) b.classList.add("primary");
   });
 
-  // El selector de la app Archivos traduce accept a tipos del sistema: con
-  // una lista de extensiones sueltas suele mostrar todo en gris y no deja
-  // elegir nada. Sin accept se puede; addFiles descarta igual lo que no sea
-  // .md, .markdown o .txt.
   const inFiles = document.getElementById("inFiles");
   if(inFiles) inFiles.removeAttribute("accept");
 }
 
 const t = (clave, ...args) => {
-  // en iOS, si el texto tiene variante propia (clave + "IOS"), manda esa
+
   const dic = TEXTOS[IDIOMA];
   const v = ES_IOS && (clave + "IOS") in dic ? dic[clave + "IOS"] : dic[clave];
   return typeof v === "function" ? v(...args) : v;
 };
 
-/* Los textos son nuestros, no del archivo: por eso data-t va con innerHTML. */
 function traducirPagina(){
   document.documentElement.lang = IDIOMA;
   document.querySelectorAll("[data-t]").forEach(el => { el.innerHTML = t(el.dataset.t); });
@@ -1239,13 +1140,6 @@ function traducirPagina(){
 traducirPagina();
 </script>
 
-<!-- Documentos de ayuda, uno por idioma. Van embebidos y no se bajan porque
-     el lector tiene que funcionar copiando sólo este archivo a un pendrive:
-     abierto con file:// el navegador no deja leer el .md de al lado. El tipo
-     text/markdown hace que el navegador no los ejecute y deja el texto crudo,
-     sin escapar nada. Estos bloques son el original: ejemplo.md y example.md,
-     en la raíz del repo, son copias para leer en GitHub.
-     Ojo: no indentar el contenido, cuatro espacios lo volverían código. -->
 <script type="text/markdown" id="ayudaSrc-es" lang="es">
 # Lector MD — documento de ejemplo
 
@@ -2778,22 +2672,12 @@ https://github.com/JHProyectos/mdreader-pwa
 <script>
 "use strict";
 
-/* ============================================================
-   estado
-   ============================================================ */
-const DOCS = [];          // {name, path, text}
+const DOCS = [];
 let current = -1;
-const REPOS_GITHUB = []; // {owner, repo, rama, prefijo}: repos importados, para poder actualizarlos
+const REPOS_GITHUB = [];
 
 const $ = id => document.getElementById(id);
 
-/* ============================================================
-   persistencia del área de trabajo
-
-   Los documentos se guardan en IndexedDB, separados del caché del
-   service worker. Por eso una actualización puede reemplazar el shell
-   de la app sin perder los archivos cargados ni el punto de lectura.
-   ============================================================ */
 const DB_NAME = "lector-md-datos";
 const DB_VERSION = 1;
 const DOC_STORE = "documentos";
@@ -2830,7 +2714,7 @@ function abrirBaseDeDatos(){
 }
 
 const DB_READY = abrirBaseDeDatos();
-// Evita un rechazo sin manejar si el navegador bloquea IndexedDB al iniciar.
+
 DB_READY.catch(() => {});
 
 function avisarErrorPersistencia(error){
@@ -2890,9 +2774,7 @@ function crearEstadoPersistible(){
     const valor = Number(scrollPorRuta[d.path]);
     posiciones[d.path] = Number.isFinite(valor) && valor > 0 ? valor : 0;
   });
-  // Con la ayuda abierta no hay archivo activo, pero sí uno al que se vuelve:
-  // ese es el que hay que recordar, para no perder el punto de lectura si se
-  // cierra la app estando en la ayuda.
+
   const activo = viendoAyuda ? ayudaVolverA : current;
   return {
     key: STATE_KEY,
@@ -2953,8 +2835,6 @@ async function vaciarWorkspacePersistido(){
   }
 }
 
-/* Escritura completa usada antes de una actualización manual. Si falla,
-   la página no se recarga y los documentos siguen abiertos en memoria. */
 async function guardarWorkspaceCompleto(){
   try{
     const db = await DB_READY;
@@ -3010,25 +2890,19 @@ async function restaurarWorkspace(){
       });
     }
   }catch(error){
-    // La app sigue siendo utilizable aunque el navegador no permita persistencia.
+
     console.warn("No se pudo restaurar el área de trabajo:", error);
   }finally{
     restaurandoWorkspace = false;
   }
 
-  // Solicita protección contra la limpieza automática de almacenamiento.
-  // El navegador decide si la concede; no muestra un permiso invasivo.
   if(navigator.storage && navigator.storage.persist){
     navigator.storage.persist().catch(() => {});
   }
 }
 
-/* ============================================================
-   utilidades
-   ============================================================ */
 const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 
-/* ---------- símbolos LaTeX -> unicode ---------- */
 const SYM = {
   alpha:"α", beta:"β", gamma:"γ", Gamma:"Γ", delta:"δ", Delta:"Δ",
   epsilon:"ε", varepsilon:"ε", zeta:"ζ", eta:"η", theta:"θ", Theta:"Θ",
@@ -3048,18 +2922,15 @@ const SYM = {
   max:"max", min:"min", det:"det", deg:"deg"
 };
 
-/* convierte un fragmento LaTeX en HTML legible (aproximación, no tipografía real) */
 function mathify(src){
   let s = esc(src);
 
-  // limpieza de comandos de espaciado y tamaño
   s = s.replace(/\\(left|right|big|Big|bigg|Bigg|displaystyle|limits|!|,|;|:|\s)/g," ");
   s = s.replace(/\\begin\{(cases|aligned|align\*?|array)\}(\{[^}]*\})?/g,"");
   s = s.replace(/\\end\{(cases|aligned|align\*?|array)\}/g,"");
   s = s.replace(/\\\\/g," ; ");
   s = s.replace(/&amp;/g," ");
 
-  // estructuras (dos pasadas para anidamiento simple)
   for(let i=0;i<2;i++){
     s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,
         '<span class="frac"><span class="num">$1</span><span class="den">$2</span></span>');
@@ -3076,29 +2947,19 @@ function mathify(src){
     });
   }
 
-  // exponentes y subíndices
   s = s.replace(/\^\s*\{([^{}]*)\}/g,"<sup>$1</sup>");
   s = s.replace(/_\s*\{([^{}]*)\}/g,"<sub>$1</sub>");
   s = s.replace(/\^(-?[0-9a-zA-Z])/g,"<sup>$1</sup>");
   s = s.replace(/_(-?[0-9a-zA-Z])/g,"<sub>$1</sub>");
 
-  // símbolos con nombre
   s = s.replace(/\\([A-Za-z]+)/g, (m,name)=> SYM[name] !== undefined ? SYM[name] : name);
 
-  // llaves residuales
   s = s.replace(/[{}]/g,"");
   return s;
 }
 
-/* ============================================================
-   parser markdown
-   ============================================================ */
-/* deshace el escapado HTML: KaTeX necesita el TeX crudo */
 const unesc = s => s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");
 
-/* ------------------------------------------------------------
-   renderMath: KaTeX si está disponible, aproximación si no
-   ------------------------------------------------------------ */
 let KATEX = false;
 
 function renderMath(tex, display){
@@ -3109,23 +2970,13 @@ function renderMath(tex, display){
         trust: false, output: "html"
       });
       return display ? '<div class="mathblock katex-on">'+html+'</div>' : html;
-    }catch(e){ /* TeX que KaTeX no entiende → cae a la aproximación */ }
+    }catch(e){  }
   }
   return display
     ? '<div class="mathblock">'+mathify(tex)+'</div>'
     : '<span class="mathinline">'+mathify(tex)+'</span>';
 }
 
-/* ------------------------------------------------------------
-   renderDiagram: mermaid.render() es asíncrono, así que el parser
-   sólo deja el código fuente en un <pre> y el dibujo se completa
-   después, ya montado el HTML (ver pintarDiagramas).
-
-   Ese <pre> es además el respaldo visible: si la librería no está
-   -sin conexión, archivo suelto en un USB- o el diagrama tiene un
-   error de sintaxis, el bloque se queda mostrando el código, que
-   sigue siendo legible.
-   ------------------------------------------------------------ */
 function renderDiagram(src){
   return '<div class="diagram" data-diagram="pendiente">'
        +   '<pre class="diagram-src"><code>'+esc(src)+'</code></pre>'
@@ -3135,36 +2986,28 @@ function renderDiagram(src){
 function inline(t){
   let s = esc(t);
 
-  // código en línea primero: se protege del resto
   const code = [];
   s = s.replace(/`([^`]+)`/g, (m,g)=>{ code.push(g); return ""+(code.length-1)+""; });
 
-  // matemática en línea \( ... \) y $ ... $ — se guarda con su propio centinela para
-  // que el HTML generado no pase por los reemplazos de énfasis y enlaces
   const math = [];
   const keep = g => "" + (math.push(unesc(g)) - 1) + "";
   s = s.replace(/\\\((.+?)\\\)/g, (m,g)=>keep(g));
   s = s.replace(/(^|[^$\\])\$([^$\n]+)\$/g, (m,pre,g)=>pre+keep(g));
 
-  // énfasis
   s = s.replace(/\*\*\*(.+?)\*\*\*/g,"<strong><em>$1</em></strong>");
   s = s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>");
   s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g,"$1<em>$2</em>");
   s = s.replace(/(^|[^_\w])_([^_\n]+)_/g,"$1<em>$2</em>");
   s = s.replace(/~~(.+?)~~/g,"<del>$1</del>");
 
-  // enlaces e imágenes
   s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,'<img src="$2" alt="$1">');
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
   s = s.replace(/(^|\s)(https?:\/\/[^\s<]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
 
-  // wiki-links tipo [[nombre]]
   s = s.replace(/\[\[([^\]]+)\]\]/g,'<code>$1</code>');
 
-  // restaurar matemática ya renderizada
   s = s.replace(/(\d+)/g,(m,i)=>renderMath(math[+i], false));
 
-  // restaurar código
   s = s.replace(/(\d+)/g,(m,i)=>"<code>"+code[+i]+"</code>");
   return s;
 }
@@ -3176,7 +3019,7 @@ function render(md){
   const L = md.replace(/\r\n?/g,"\n").split("\n");
   const out = [];
   const heads = [];
-  // hCount no se reinicia: los id deben ser únicos en todo el documento
+
   let i = 0;
 
   const flushPara = buf => { if(buf.length){ out.push("<p>"+inline(buf.join(" "))+"</p>"); buf.length = 0; } };
@@ -3185,8 +3028,6 @@ function render(md){
   while(i < L.length){
     const ln = L[i];
 
-    /* ---- código cercado ---- */
-    // el # y el punto entran para que ```c# no deje de ser una valla
     const fence = ln.match(/^\s*(```+|~~~+)\s*([\w+#.-]*)\s*$/);
     if(fence){
       flushPara(para);
@@ -3196,7 +3037,7 @@ function render(md){
       while(i < L.length && !new RegExp("^\\s*"+mark).test(L[i])){ body.push(L[i]); i++; }
       i++;
       const lang = fence[2] || "";
-      // ```math  /  ```latex  → bloque de fórmula (estilo GitHub)
+
       if(/^(math|latex|tex)$/i.test(lang)){
         out.push(renderMath(body.join(" "), true));
       } else if(/^mermaid$/i.test(lang)){
@@ -3209,16 +3050,12 @@ function render(md){
       continue;
     }
 
-    /* ---- índice dentro del documento: [TOC] solo en su línea ---- */
-    // Se deja una marca y se reemplaza al final, cuando ya se conocen todos
-    // los encabezados: el [TOC] suele ir arriba, antes de los que lista.
     if(/^\s*(\[toc\]|\[\[_toc_\]\])\s*$/i.test(ln)){
       flushPara(para);
       out.push(MARCA_INDICE);
       i++; continue;
     }
 
-    /* ---- matemática en bloque \[ ... \]  ó  $$ ... $$ ---- */
     if(/^\s*(\\\[|\$\$)\s*$/.test(ln)){
       flushPara(para);
       const close = ln.includes("$$") ? /\$\$/ : /\\\]/;
@@ -3229,7 +3066,7 @@ function render(md){
       out.push(renderMath(body.join(" "), true));
       continue;
     }
-    // en una sola línea: \[ x \]  ó  $$ x $$
+
     const one = ln.match(/^\s*\\\[(.+?)\\\]\s*$/) || ln.match(/^\s*\$\$(.+?)\$\$\s*$/);
     if(one){
       flushPara(para);
@@ -3237,7 +3074,6 @@ function render(md){
       i++; continue;
     }
 
-    /* ---- bloque indentado (4 espacios) = preformateado ---- */
     if(/^ {4}\S/.test(ln) && !para.length){
       flushPara(para);
       const body = [];
@@ -3250,7 +3086,6 @@ function render(md){
       continue;
     }
 
-    /* ---- tabla ---- */
     if(/^\s*\|.*\|\s*$/.test(ln) && /^\s*\|[\s:|-]+\|\s*$/.test(L[i+1]||"")){
       flushPara(para);
       const cells = r => r.trim().replace(/^\||\|$/g,"").split("|").map(c=>c.trim());
@@ -3270,7 +3105,6 @@ function render(md){
       continue;
     }
 
-    /* ---- encabezado ---- */
     const h = ln.match(/^(#{1,6})\s+(.*)$/);
     if(h){
       flushPara(para);
@@ -3282,12 +3116,10 @@ function render(md){
       i++; continue;
     }
 
-    /* ---- regla horizontal ---- */
     if(/^\s*([-*_])(\s*\1){2,}\s*$/.test(ln)){
       flushPara(para); out.push("<hr>"); i++; continue;
     }
 
-    /* ---- cita ---- */
     if(/^\s*>/.test(ln)){
       flushPara(para);
       const body = [];
@@ -3296,7 +3128,6 @@ function render(md){
       continue;
     }
 
-    /* ---- listas ---- */
     if(/^\s*([-*+]|\d+[.)])\s+/.test(ln)){
       flushPara(para);
       const ord = /^\s*\d+[.)]\s+/.test(ln);
@@ -3307,13 +3138,13 @@ function render(md){
         if(ind < baseIndent) break;
         let txt = L[i].replace(/^\s*([-*+]|\d+[.)])\s+/,"");
         i++;
-        // continuación: líneas más indentadas o sublistas
+
         const cont = [];
         while(i < L.length && L[i].trim() !== "" && !/^\s*([-*+]|\d+[.)])\s+/.test(L[i])
               && L[i].match(/^\s*/)[0].length > ind){
           cont.push(L[i].trim()); i++;
         }
-        // sublista
+
         const sub = [];
         while(i < L.length && /^\s*([-*+]|\d+[.)])\s+/.test(L[i])
               && L[i].match(/^\s*/)[0].length > ind){
@@ -3327,7 +3158,6 @@ function render(md){
       continue;
     }
 
-    /* ---- vacío / párrafo ---- */
     if(ln.trim() === ""){ flushPara(para); i++; continue; }
     para.push(ln.trim());
     i++;
@@ -3338,13 +3168,10 @@ function render(md){
   return {html, heads};
 }
 
-/* La marca no puede aparecer en el texto del usuario: todo pasa por esc(),
-   que convierte el < en &lt;. */
 const MARCA_INDICE = "<!--indice-->";
 
-/* lista anidada de encabezados para [TOC] */
 function indiceHTML(heads){
-  // un único # es el título del documento: no se lista a sí mismo
+
   const lista = heads.filter(h => h.lv === 1).length === 1
     ? heads.filter(h => h.lv > 1)
     : heads;
@@ -3355,9 +3182,9 @@ function indiceHTML(heads){
            + t("indiceTitulo")+'</p><ol>';
   let prof = -1;
   for(const h of lista){
-    // un salto de nivel (## seguido de ####) baja de a un escalón
+
     const nivel = Math.min(h.lv - base, prof + 1);
-    if(prof < 0){ /* primer ítem */ }
+    if(prof < 0){  }
     else if(nivel > prof) html += "<ol>";
     else {
       html += "</li>";
@@ -3371,11 +3198,6 @@ function indiceHTML(heads){
   return html + "</ol></nav>";
 }
 
-/* ------------------------------------------------------------
-   renderCodigo: el resaltado lo hace Prism, que se carga aparte
-   (ver pintarCodigo). El parser sólo anota la gramática; un
-   lenguaje que no está en la lista queda como código sin color.
-   ------------------------------------------------------------ */
 const LENGUAJES = {
   js:"javascript", javascript:"javascript", mjs:"javascript", cjs:"javascript", json:"javascript",
   ts:"typescript", typescript:"typescript",
@@ -3394,37 +3216,22 @@ function renderCodigo(src, lang){
     : "<pre><code>"+esc(src)+"</code></pre>";
 }
 
-/* ------------------------------------------------------------
-   renderGrafico: igual que los diagramas, el parser deja el texto
-   de la valla y el dibujo se hace ya montado (ver armarGrafico),
-   porque necesita el ancho real de la columna.
-   ------------------------------------------------------------ */
 function renderGrafico(src){
   return '<figure class="chart" data-chart="pendiente">'
        +   '<pre class="chart-src"><code>'+esc(src)+'</code></pre>'
        + '</figure>';
 }
 
-/* ============================================================
-   diagramas Mermaid
-
-   La librería pesa unos 3 MB, así que no se carga con la app: se
-   baja del CDN recién cuando el archivo abierto tiene algún
-   diagrama. Después queda en el caché del service worker, y a
-   partir de ahí funciona también sin conexión.
-   ============================================================ */
 const MERMAID_VER = "11.15.0";
-let MERMAID = false;        // librería disponible
-let mmdCarga = null;        // promesa de carga, para no pedirla dos veces
-let mmdSeq = 0;             // ids únicos para mermaid.render
-let mmdClaro = null;        // con qué tema se configuró la última vez
-let generacionDoc = 0;      // cambia al abrir otro archivo: corta pintados en curso
+let MERMAID = false;
+let mmdCarga = null;
+let mmdSeq = 0;
+let mmdClaro = null;
+let generacionDoc = 0;
 
-/* Los plegables de fórmulas y de diagramas cuentan si la librería cargó.
-   Se guarda el estado y no el texto, para poder repintarlo en otro idioma. */
 const KATEX_VER = "0.16.9";
-let estadoKatex = "espera";     // espera | on | off
-let estadoMermaid = "espera";   // espera | cargando | on | off
+let estadoKatex = "espera";
+let estadoMermaid = "espera";
 
 function pintarEstados(){
   const math = $("mathInfo"), diag = $("diagInfo");
@@ -3480,22 +3287,18 @@ function asegurarMermaid(){
   return mmdCarga;
 }
 
-/* Mermaid hornea los colores adentro del SVG, así que el tema se decide
-   en el momento de dibujar y hay que reconfigurarlo si cambió. */
 function configurarMermaid(claro){
   if(mmdClaro === claro) return;
   const css = getComputedStyle(document.body);
-  // Las etiquetas de las flechas se dibujan con fondo propio: tiene que ser el
-  // del bloque. Si el tema del diagrama no coincide con el del lector es porque
-  // se está redibujando para imprimir, y ahí el bloque va sin fondo (papel).
+
   const forzado = claro !== !esTemaOscuro();
   const fondo = forzado ? "#ffffff" : (css.getPropertyValue("--surface").trim() || "#ffffff");
 
   mermaid.initialize({
     startOnLoad: false,
-    // los .md llegan de afuera (WhatsApp, Drive): sin HTML ni interacción
+
     securityLevel: "strict",
-    // el error lo mostramos nosotros junto al código, no su SVG de error
+
     suppressErrorRendering: true,
     theme: claro ? "default" : "dark",
     themeVariables: {
@@ -3520,8 +3323,6 @@ function marcarDiagramaConError(bloque, error){
   bloque.appendChild(nota);
 }
 
-/* Dibuja los bloques que todavía están pendientes. Con {claro:true} los
-   dibuja en tema claro sin importar el tema del lector (para imprimir). */
 async function pintarDiagramas(opciones = {}){
   const pendientes = () => [...$("doc").querySelectorAll('.diagram[data-diagram="pendiente"]')];
   if(!pendientes().length) return;
@@ -3529,7 +3330,7 @@ async function pintarDiagramas(opciones = {}){
   const gen = generacionDoc;
   if(!MERMAID){
     const listo = await asegurarMermaid();
-    // sin librería queda el código a la vista; se reintenta al abrir otro archivo
+
     if(!listo){ mmdCarga = null; return; }
     if(gen !== generacionDoc) return;
   }
@@ -3556,7 +3357,6 @@ async function pintarDiagramas(opciones = {}){
   }
 }
 
-/* vuelve a dejar todos los diagramas sin dibujar */
 function reiniciarDiagramas(){
   $("doc").querySelectorAll(".diagram").forEach(bloque => {
     const svg = bloque.querySelector(".diagram-svg");
@@ -3571,22 +3371,13 @@ function reiniciarDiagramas(){
   });
 }
 
-/* el SVG trae los colores adentro: al cambiar de tema hay que redibujar */
 function redibujarDiagramas(){
   if(!MERMAID) return;
-  cerrarZoom();          // el SVG ampliado trae adentro los colores del tema viejo
+  cerrarZoom();
   reiniciarDiagramas();
   void pintarDiagramas();
 }
 
-/* ============================================================
-   resaltado de código (Prism)
-
-   Como Mermaid, se baja del CDN recién cuando el archivo abierto
-   tiene código en alguno de los lenguajes de LENGUAJES, y después
-   queda en el caché del service worker. Sin librería el bloque se
-   ve igual, en un solo color.
-   ============================================================ */
 const PRISM_VER = "1.30.0";
 let PRISM = false;
 let prismCarga = null;
@@ -3604,22 +3395,18 @@ function cargarScript(src){
 function asegurarPrism(){
   if(prismCarga) return prismCarga;
   const BASE = "https://cdnjs.cloudflare.com/ajax/libs/prism/" + PRISM_VER + "/";
-  // Sin esto, Prism resalta por su cuenta todo lo que encuentra al cargar.
+
   window.Prism = window.Prism || {};
   window.Prism.manual = true;
 
-  // prism.min.js ya trae markup, css, clike y javascript; los demás se
-  // apoyan en esos, así que van después y entre ellos en paralelo.
   prismCarga = cargarScript(BASE + "prism.min.js")
     .then(() => Promise.all(["typescript", "python", "java", "c", "csharp"]
       .map(l => cargarScript(BASE + "components/prism-" + l + ".min.js"))))
     .then(() => (PRISM = !!(window.Prism && Prism.highlight)))
-    .catch(() => { prismCarga = null; return false; });   // se reintenta al abrir otro archivo
+    .catch(() => { prismCarga = null; return false; });
   return prismCarga;
 }
 
-/* Con Prism ya cargado corre de un tirón, sin await: el código aparece
-   coloreado en el mismo cuadro, sin un parpadeo en gris. */
 async function pintarCodigo(){
   const pendientes = () => [...$("doc").querySelectorAll("pre[data-lang]:not([data-resaltado])")];
   if(!pendientes().length) return;
@@ -3634,28 +3421,17 @@ async function pintarCodigo(){
     const lang = pre.dataset.lang;
     const gramatica = Prism.languages[lang];
     if(!code || !gramatica) continue;
-    // Prism escapa el texto que recibe: el resultado es HTML seguro
+
     code.innerHTML = Prism.highlight(code.textContent, gramatica, lang);
     pre.dataset.resaltado = "";
   }
 }
 
-/* ============================================================
-   gráficos de barras y de líneas
-
-   Los dibuja el propio lector en SVG, sin librerías, así funcionan
-   también desde un pendrive sin conexión. Los colores son variables
-   CSS (--serie-N, --line, --muted) y no quedan horneados como en
-   Mermaid: cambiar de tema o imprimir no obliga a redibujar. Sólo
-   el ancho dispara un redibujado, porque el SVG se arma a tamaño
-   real para que la letra de los ejes no se achique en el celular.
-   ============================================================ */
 const SVG_NS = "http://www.w3.org/2000/svg";
-const GRAF_MAX_SERIES = 8;     // una por color de la paleta: no se inventan colores
-const GRAF_ALTO = 220;         // alto del área de datos, en px
-const GRAF_CARACTER = 6.4;     // ancho medio de un carácter a 11px, para reservar lugar sin medir
+const GRAF_MAX_SERIES = 8;
+const GRAF_ALTO = 220;
+const GRAF_CARACTER = 6.4;
 
-/* nombre de cada tipo para el aria-label, cuando el gráfico no tiene título */
 const NOMBRE_GRAFICO = {
   barras:"graficoBarras", lineas:"graficoLineas", area:"graficoArea",
   dispersion:"graficoDispersion", torta:"graficoTorta"
@@ -3670,8 +3446,6 @@ const GRAF_CLAVES = {
 
 const redondo = v => Math.round(v * 10) / 10;
 
-/* Los valores se muestran con la puntuación del idioma de la interfaz: la
-   variante del navegador si coincide (es-MX usa punto decimal), si no una fija. */
 function localeNumeros(){
   const nav = navigator.language || "";
   return nav.toLowerCase().startsWith(IDIOMA) ? nav : (IDIOMA === "es" ? "es-AR" : "en-US");
@@ -3679,12 +3453,11 @@ function localeNumeros(){
 const fmtNumero = (v, decimales = 6) =>
   v === null ? "—" : v.toLocaleString(localeNumeros(), {maximumFractionDigits: decimales});
 
-/* "1.234,5", "1234.5", "12%" → número; vacío o "-" → null (hueco); otra cosa → NaN */
 function leerNumero(txt){
   let s = String(txt || "").replace(/\s/g, "").replace(/%$/, "");
   if(s === "" || s === "-") return null;
   if(s.includes(",") && s.includes(".")){
-    // con los dos separadores, el que aparece último es el decimal
+
     s = s.lastIndexOf(",") > s.lastIndexOf(".")
       ? s.replace(/\./g, "").replace(",", ".")
       : s.replace(/,/g, "");
@@ -3695,8 +3468,6 @@ function leerNumero(txt){
   return Number.isFinite(n) ? n : NaN;
 }
 
-/* texto de la valla → {tipo, titulo, unidad, min, max, ejeX, series, categorias, valores}.
-   Los errores salen como Error con un mensaje para mostrarle al usuario. */
 function leerGrafico(src){
   const g = {tipo:"barras", titulo:"", unidad:"", min:null, max:null};
   const filas = [];
@@ -3706,17 +3477,14 @@ function leerGrafico(src){
     const ln = crudo.trim();
     if(!ln) continue;
 
-    // opciones "clave: valor", sólo antes de la primera fila de datos
     if(!filas.length){
       const op = ln.match(/^([a-záéíóú]+)\s*:\s*(.*)$/i);
       const clave = op && GRAF_CLAVES[op[1].toLowerCase()];
       if(clave){ g[clave] = op[2].trim(); continue; }
     }
-    // la línea de guiones de una tabla Markdown pegada tal cual
+
     if(/^\|?[\s:|-]+\|?$/.test(ln) && ln.includes("-")) continue;
 
-    // Sólo se recortan espacios: con tabulaciones, la celda vacía de la
-    // esquina (típica al copiar de una planilla) tiene que seguir ahí.
     let fila = crudo.replace(/^ +| +$/g, "");
     if(sep === null){
       sep = fila.includes("\t") ? "\t" : fila.includes("|") ? "|" : fila.includes(";") ? ";" : ",";
@@ -3757,8 +3525,6 @@ function leerGrafico(src){
   }));
   if(!g.valores.some(f => f.some(v => v !== null))) throw new Error(t("errSinValores"));
 
-  /* La torta reparte un total entre categorías: una sola columna de valores,
-     un color por porción y nada que repartir si son negativos o suman cero. */
   if(g.tipo === "torta"){
     if(g.series.length > 1) throw new Error(t("errTortaSeries", g.series.length));
     if(g.categorias.length > GRAF_MAX_SERIES){
@@ -3769,9 +3535,6 @@ function leerGrafico(src){
     if(!g.total) throw new Error(t("errTortaCero"));
   }
 
-  /* Dispersión: si todas las categorías son números, el eje horizontal es
-     numérico y cada punto va en su lugar, no repartido parejo. Si no lo son,
-     queda como en las líneas, una posición por categoría. */
   if(g.tipo === "dispersion"){
     const xs = g.categorias.map(c => leerNumero(c));
     g.equis = xs.every(v => v !== null && !Number.isNaN(v)) ? xs : null;
@@ -3780,7 +3543,6 @@ function leerGrafico(src){
   return g;
 }
 
-/* eje con valores redondos: pasos de 1, 2, 2,5 o 5 por potencia de 10 */
 function escalaLinda(lo, hi){
   if(lo === hi){ const d = Math.abs(lo) / 2 || 1; lo -= d; hi += d; }
   const bruto = (hi - lo) / 5;
@@ -3801,7 +3563,6 @@ function svgNodo(tag, attrs, padre){
   return n;
 }
 
-/* barra con la punta redondeada y la base recta, hacia arriba o hacia abajo */
 function caminoBarra(x, w, yBase, yPunta){
   const r = Math.min(4, w / 2, Math.abs(yBase - yPunta));
   const s = yPunta < yBase ? 1 : -1;
@@ -3810,10 +3571,9 @@ function caminoBarra(x, w, yBase, yPunta){
   return `M${a},${yb}V${yr}Q${a},${yp} ${b},${yp}H${c}Q${d},${yp} ${d},${yr}V${yb}Z`;
 }
 
-/* porción de torta entre dos ángulos, en radianes y con el cero arriba */
 function caminoPorcion(cx, cy, r, a0, a1){
   const p = a => [redondo(cx + r * Math.cos(a)), redondo(cy + r * Math.sin(a))];
-  // una sola porción es el círculo entero: con un solo arco el path se cierra sobre sí mismo
+
   if(a1 - a0 >= Math.PI * 2 - 1e-9){
     const [ix, iy] = p(a0), [dx, dy] = p(a0 + Math.PI);
     return `M${ix},${iy}A${r},${r} 0 1 1 ${dx},${dy}A${r},${r} 0 1 1 ${ix},${iy}Z`;
@@ -3823,7 +3583,6 @@ function caminoPorcion(cx, cy, r, a0, a1){
          `A${r},${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1},${y1}Z`;
 }
 
-/* el cartel de valores: lo comparten todos los tipos de gráfico */
 function crearTip(lienzo){
   const tip = document.createElement("div");
   tip.className = "chart-tip";
@@ -3832,7 +3591,6 @@ function crearTip(lienzo){
   return tip;
 }
 
-/* al lado del puntero, del lado donde entre */
 function ubicarTip(tip, lienzo, e){
   const caja = lienzo.getBoundingClientRect();
   const px = e.clientX - caja.left, py = e.clientY - caja.top;
@@ -3842,7 +3600,6 @@ function ubicarTip(tip, lienzo, e){
   tip.style.top = Math.max(0, Math.min(py - tip.offsetHeight / 2, caja.height - tip.offsetHeight)) + "px";
 }
 
-/* una fila del cartel: la clave de color, el valor resaltado y el nombre atrás */
 function filaTip(clase, valor, nombre){
   const fila = document.createElement("div");
   fila.className = "fila";
@@ -3856,26 +3613,21 @@ function filaTip(clase, valor, nombre){
   return fila;
 }
 
-/* arma el SVG y su capa de hover dentro de lienzo; se repite si cambia el ancho */
 function dibujarLienzo(lienzo, g){
   const ancho = Math.round(lienzo.clientWidth);
-  if(ancho < 120) return;          // documento oculto o todavía sin layout
+  if(ancho < 120) return;
   lienzo.dataset.ancho = ancho;
   lienzo.textContent = "";
   if(g.tipo === "torta") dibujarTorta(lienzo, g, ancho);
   else dibujarCartesiano(lienzo, g, ancho);
 }
 
-/* barras, líneas, área y dispersión: todos comparten ejes, grilla y hover */
 function dibujarCartesiano(lienzo, g, ancho){
   const esBarras = g.tipo === "barras";
   const esArea = g.tipo === "area";
   const esDisp = g.tipo === "dispersion";
-  const traza = g.tipo === "lineas" || esArea;   // tipos que unen los puntos con una línea
+  const traza = g.tipo === "lineas" || esArea;
 
-  // rango: las barras y el área siempre arrancan de cero, porque lo que se lee
-  // es la superficie; las líneas y los puntos, sólo si los datos quedan cerca,
-  // para que una serie entre 980 y 1020 no se vea plana
   const todos = g.valores.flat().filter(v => v !== null);
   let lo = Math.min(...todos), hi = Math.max(...todos);
   if(esBarras || esArea){ lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
@@ -3898,7 +3650,6 @@ function dibujarCartesiano(lienzo, g, ancho){
     "aria-label": g.titulo || t(NOMBRE_GRAFICO[g.tipo])
   }, lienzo);
 
-  /* grilla y eje vertical */
   const ejes = svgNodo("g", {}, svg);
   const hayCero = escala.ticks.includes(0);
   escala.ticks.forEach((t, k) => {
@@ -3908,9 +3659,6 @@ function dibujarCartesiano(lienzo, g, ancho){
   });
   if(g.unidad) svgNodo("text", {x: 0, y: 11}, ejes).textContent = g.unidad;
 
-  /* posiciones horizontales: las barras ocupan una franja por categoría; las
-     líneas y el área van de punta a punta; la dispersión con categorías
-     numéricas usa su propia escala, así que un hueco en los datos se ve */
   const n = g.categorias.length;
   const banda = (x1 - x0) / n;
   const hueco = esBarras ? banda : (n === 1 ? x1 - x0 : (x1 - x0 - 16) / (n - 1));
@@ -3921,7 +3669,6 @@ function dibujarCartesiano(lienzo, g, ancho){
       ? i => x0 + banda * (i + .5)
       : i => n === 1 ? (x0 + x1) / 2 : x0 + 8 + i * hueco;
 
-  /* etiquetas de abajo: si no entran todas, una cada tantas */
   const recorte = t => t.length > 16 ? t.slice(0, 15) + "…" : t;
   const rotular = (txt, x) => {
     const w = txt.length * GRAF_CARACTER;
@@ -3929,7 +3676,7 @@ function dibujarCartesiano(lienzo, g, ancho){
     svgNodo("text", {x: redondo(px), y: y1 + 17, "text-anchor": "middle"}, ejes).textContent = txt;
   };
   if(escalaX){
-    // eje numérico: valores redondos y una línea de grilla en cada uno
+
     const decX = (String(+escalaX.paso.toPrecision(6)).split(".")[1] || "").length;
     const etqX = escalaX.ticks.map(v => fmtNumero(v, decX));
     const xTick = v => x0 + (v - escalaX.lo) / (escalaX.hi - escalaX.lo) * (x1 - x0);
@@ -3948,7 +3695,6 @@ function dibujarCartesiano(lienzo, g, ancho){
     });
   }
 
-  /* marcas */
   const S = g.series.length;
   const capa = svgNodo("g", {}, svg);
   if(esBarras){
@@ -3964,13 +3710,13 @@ function dibujarCartesiano(lienzo, g, ancho){
       });
     });
   } else {
-    // el relleno del área va primero, para que ninguna serie tape la línea de otra
+
     if(esArea){
       const yBase = redondo(yDe(Math.min(Math.max(0, escala.lo), escala.hi)));
       g.series.forEach((nombre, k) => {
         let tramo = [];
         const cerrar = () => {
-          // un punto suelto entre huecos no tiene superficie que pintar
+
           if(tramo.length > 1){
             const d = "M" + tramo[0][0] + "," + yBase +
               tramo.map(p => "L" + p[0] + "," + p[1]).join("") +
@@ -3995,8 +3741,7 @@ function dibujarCartesiano(lienzo, g, ancho){
       });
       if(d) svgNodo("path", {class: "linea s" + (k + 1), d}, capa);
     });
-    // puntos: en la dispersión son el gráfico entero, así que van todos; en las
-    // líneas, todos si son pocos, si no sólo los que quedan sueltos entre huecos
+
     g.series.forEach((nombre, k) => {
       g.valores.forEach((fila, i) => {
         if(fila[k] === null) return;
@@ -4008,9 +3753,6 @@ function dibujarCartesiano(lienzo, g, ancho){
     });
   }
 
-  /* hover: una franja invisible por categoría, más ancha que la marca. Las
-     barras ocupan su banda; el resto se reparte en la mitad hasta el vecino,
-     que con el eje numérico de la dispersión no siempre es el índice de al lado. */
   const cruz = !esBarras ? svgNodo("line", {class: "cruz", x1: 0, x2: 0, y1: y0, y2: y1}, svg) : null;
   const resaltes = !esBarras ? svgNodo("g", {}, svg) : null;
   const zonas = svgNodo("g", {}, svg);
@@ -4049,8 +3791,6 @@ function dibujarCartesiano(lienzo, g, ancho){
       });
     }
 
-    // Todo con textContent: categorías y series vienen del archivo.
-    // El valor va primero y resaltado; el nombre de la serie, atrás.
     tip.textContent = "";
     const cat = document.createElement("div");
     cat.className = "cat";
@@ -4071,14 +3811,13 @@ function dibujarCartesiano(lienzo, g, ancho){
   };
   svg.addEventListener("pointermove", alMover);
   svg.addEventListener("pointerdown", alMover);
-  // con el dedo no hay "salir": el cartel queda hasta que se toca otra cosa
+
   svg.addEventListener("pointerleave", e => { if(e.pointerType !== "touch") apagar(); });
   lienzo._apagar = apagar;
 }
 
-/* torta: una porción por categoría, con el porcentaje afuera de las más grandes */
 function dibujarTorta(lienzo, g, ancho){
-  const MARGEN = 58;                    // lugar a los costados para los porcentajes
+  const MARGEN = 58;
   const alto = GRAF_ALTO + 16;
   const cx = ancho / 2, cy = alto / 2;
   const r = Math.max(40, Math.min(GRAF_ALTO / 2, ancho / 2 - MARGEN));
@@ -4092,22 +3831,21 @@ function dibujarTorta(lienzo, g, ancho){
   const parte = i => (g.valores[i][0] || 0) / g.total;
   const pct = f => fmtNumero(f * 100, 1) + " %";
 
-  let a = -Math.PI / 2;                  // arranca arriba y va en el sentido del reloj
-  const ultima = {};                     // última etiqueta de cada lado, para no encimarlas
+  let a = -Math.PI / 2;
+  const ultima = {};
   g.categorias.forEach((c, i) => {
     const f = parte(i);
-    if(!f) return;                       // un cero no ocupa lugar
+    if(!f) return;
     const a0 = a, a1 = a + f * Math.PI * 2;
     a = a1;
     svgNodo("path", {class: "porcion s" + (i + 1), "data-i": i, d: caminoPorcion(cx, cy, r, a0, a1)}, capa);
 
-    // el porcentaje sólo si la porción es lo bastante ancha para que se lea
     if(f < .04) return;
     const med = (a0 + a1) / 2, lado = Math.cos(med) >= 0 ? 1 : -1;
     const y = cy + (r + 10) * Math.sin(med);
     if(ultima[lado] !== undefined && Math.abs(y - ultima[lado]) < 13) return;
     ultima[lado] = y;
-    // en una columna angosta el texto se corre para no salirse del recuadro
+
     const txt = pct(f), w = txt.length * GRAF_CARACTER;
     const x = cx + (r + 10) * Math.cos(med);
     svgNodo("text", {
@@ -4127,7 +3865,6 @@ function dibujarTorta(lienzo, g, ancho){
     svg.classList.add("hover");
     capa.querySelectorAll(".porcion").forEach(p => p.classList.toggle("activo", +p.dataset.i === i));
 
-    // Todo con textContent: las categorías vienen del archivo.
     tip.textContent = "";
     const cat = document.createElement("div");
     cat.className = "cat";
@@ -4153,7 +3890,6 @@ function dibujarTorta(lienzo, g, ancho){
   lienzo._apagar = apagar;
 }
 
-/* título, leyenda, lienzo y tabla de datos; el lienzo es lo único que se redibuja */
 function armarGrafico(bloque){
   const fuente = bloque.querySelector(".chart-src");
   const g = leerGrafico(fuente.textContent);
@@ -4168,8 +3904,6 @@ function armarGrafico(bloque){
     caja.appendChild(titulo);
   }
 
-  // en la torta el color es de cada porción, así que la leyenda lista las
-  // categorías; en el resto, las series, y con una sola el título ya lo dice
   const rotulos = g.tipo === "torta" ? g.categorias : g.series.length > 1 ? g.series : [];
   if(rotulos.length){
     const leyenda = document.createElement("div");
@@ -4188,7 +3922,6 @@ function armarGrafico(bloque){
   lienzo.className = "chart-lienzo";
   caja.appendChild(lienzo);
 
-  // los mismos valores en una tabla: no dependen del color ni del puntero
   const datos = document.createElement("details");
   datos.className = "chart-datos";
   const resumen = document.createElement("summary");
@@ -4224,7 +3957,6 @@ function armarGrafico(bloque){
   agregarBotonAmpliar(bloque);
 }
 
-/* síncrono: necesita el documento ya visible para medir el ancho */
 function pintarGraficos(){
   $("doc").querySelectorAll('.chart[data-chart="pendiente"]').forEach(bloque => {
     try{
@@ -4243,27 +3975,14 @@ function pintarGraficos(){
   });
 }
 
-/* ============================================================
-   ampliar: visor a pantalla completa de un diagrama o un gráfico
-
-   Un Gantt de doce semanas entra en la columna de texto, pero con
-   la letra al 60%. Acá se ve al tamaño que haga falta: rueda o
-   pellizco para acercar, arrastre para mover.
-
-   Un diagrama es un SVG ya dibujado: se clona y se escala con un
-   transform. Un gráfico, en cambio, se vuelve a dibujar al ancho
-   del visor -armarGrafico dejó los datos en bloque._grafico-, así
-   las etiquetas se reparten de nuevo en vez de agrandarse.
-   ============================================================ */
 const ZOOM_MIN = 0.15, ZOOM_MAX = 8;
-let zoomEsc = 1, zoomX = 0, zoomY = 0;    // el transform del contenido
-let zoomAncho = 0, zoomAlto = 0;          // tamaño del contenido sin escalar
-let zoomFijo = false;                     // gráfico redibujado: su tamaño natural ya es el bueno
-let zoomVolverA = null;                   // a dónde devolver el foco al cerrar
-const zoomPuntos = new Map();             // punteros apoyados: arrastre y pellizco
+let zoomEsc = 1, zoomX = 0, zoomY = 0;
+let zoomAncho = 0, zoomAlto = 0;
+let zoomFijo = false;
+let zoomVolverA = null;
+const zoomPuntos = new Map();
 let zoomPellizco = null;
 
-/* el viewBox es la medida real del dibujo; el width del SVG puede venir en % */
 function medidaSvg(svg){
   const vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
   if(vb.length === 4 && vb[2] > 0 && vb[3] > 0) return {ancho:vb[2], alto:vb[3]};
@@ -4279,7 +3998,6 @@ function aplicarZoom(){
   $("zoomNivel").textContent = Math.round(zoomEsc * 100) + "%";
 }
 
-/* escala que hace entrar el dibujo entero; los chiquitos se agrandan hasta 3x */
 function escalaAjuste(){
   if(zoomFijo || !zoomAncho || !zoomAlto) return 1;
   const lienzo = $("zoomLienzo"), margen = 24;
@@ -4287,8 +4005,6 @@ function escalaAjuste(){
                   (lienzo.clientHeight - margen) / zoomAlto, 3);
 }
 
-/* centra el dibujo a la escala pedida; si no entra, lo arrima al ángulo de
-   arriba a la izquierda, que es por donde se empieza a leer */
 function ajustarZoom(esc){
   const lienzo = $("zoomLienzo");
   zoomEsc = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, esc || escalaAjuste()));
@@ -4297,7 +4013,6 @@ function ajustarZoom(esc){
   aplicarZoom();
 }
 
-/* acerca o aleja dejando quieto el punto (px,py) del visor */
 function escalarZoom(factor, px, py){
   const nuevo = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomEsc * factor));
   if(nuevo === zoomEsc) return;
@@ -4333,8 +4048,7 @@ function contenidoZoom(bloque){
     const dibujo = document.createElement("div");
     dibujo.className = "chart-lienzo";
     caja.appendChild(dibujo);
-    // dibujarLienzo mide el ancho para repartir las categorías: hay que fijarlo
-    // antes, y con tope, porque un gráfico de 2000px no se lee mejor
+
     caja.style.width = Math.max(320, Math.min(lienzo.clientWidth - 24, 1400)) + "px";
     lienzo.appendChild(caja);
     dibujarLienzo(dibujo, bloque._grafico);
@@ -4346,7 +4060,7 @@ function contenidoZoom(bloque){
   if(!svg) return null;
   const copia = svg.cloneNode(true);
   const medida = medidaSvg(svg);
-  // al tamaño natural: acá el que agranda es el transform, no el SVG
+
   copia.style.maxWidth = "none";
   copia.style.width = medida.ancho + "px";
   copia.style.height = medida.alto + "px";
@@ -4359,16 +4073,14 @@ function contenidoZoom(bloque){
 function abrirZoom(bloque){
   const visor = $("zoom"), lienzo = $("zoomLienzo");
   lienzo.textContent = "";
-  visor.hidden = false;             // oculto mide 0: primero se muestra, después se mide
+  visor.hidden = false;
   const caja = contenidoZoom(bloque);
   if(!caja){ visor.hidden = true; return; }
   zoomAncho = caja.offsetWidth;
   zoomAlto = caja.offsetHeight;
   $("zoomNombre").textContent = nombreZoom(bloque);
   zoomVolverA = document.activeElement;
-  // en un teléfono, "que entre todo" un dibujo ancho deja la letra ilegible:
-  // se abre al 50% como piso y se arranca por el principio, que es lo que se
-  // quiere leer. El botón de ajustar sigue estando para ver el conjunto.
+
   ajustarZoom(Math.max(escalaAjuste(), 0.5));
   $("zoomCerrar").focus();
 }
@@ -4383,7 +4095,6 @@ function cerrarZoom(){
   zoomVolverA = null;
 }
 
-/* el botón va en la esquina del bloque ya dibujado */
 function agregarBotonAmpliar(bloque){
   if(bloque.querySelector(":scope > .ampliar")) return;
   const boton = document.createElement("button");
@@ -4396,8 +4107,6 @@ function agregarBotonAmpliar(bloque){
   bloque.appendChild(boton);
 }
 
-/* en el diagrama alcanza con tocar el dibujo; en el gráfico no, porque ahí
-   el toque es del cartel con los valores */
 $("doc").addEventListener("click", e => {
   const bloque = e.target.closest('.diagram[data-diagram="listo"]');
   if(bloque && !e.target.closest(".ampliar") && !getSelection().toString()) abrirZoom(bloque);
@@ -4414,7 +4123,7 @@ $("doc").addEventListener("click", e => {
   lienzo.addEventListener("wheel", e => {
     e.preventDefault();
     const caja = lienzo.getBoundingClientRect();
-    // ctrl+rueda es el pellizco del trackpad: el mismo gesto, con otro paso
+
     const paso = e.ctrlKey ? 0.01 : 0.0022;
     escalarZoom(Math.exp(-e.deltaY * paso), e.clientX - caja.left, e.clientY - caja.top);
   }, {passive:false});
@@ -4435,7 +4144,7 @@ $("doc").addEventListener("click", e => {
       const caja = lienzo.getBoundingClientRect();
       const ahora = pellizco();
       if(zoomPellizco && zoomPellizco.dist > 0 && ahora.dist > 0){
-        // el pellizco acerca y mueve a la vez: primero la escala, después el centro
+
         escalarZoom(ahora.dist / zoomPellizco.dist,
                     zoomPellizco.x - caja.left, zoomPellizco.y - caja.top);
         zoomX += ahora.x - zoomPellizco.x;
@@ -4457,7 +4166,6 @@ $("doc").addEventListener("click", e => {
     if(!zoomPuntos.size) lienzo.classList.remove("arrastrando");
   }));
 
-  // doble clic: alterna entre "entra todo" y el doble de cerca
   lienzo.addEventListener("dblclick", e => {
     const caja = lienzo.getBoundingClientRect();
     if(Math.abs(zoomEsc - escalaAjuste()) > 0.01) ajustarZoom();
@@ -4470,10 +4178,9 @@ $("doc").addEventListener("click", e => {
   $("zoomCerrar").onclick = cerrarZoom;
 })();
 
-/* monta el HTML ya parseado y completa lo que se dibuja después */
 function mostrarDocumento(html){
-  cerrarZoom();                 // lo ampliado era del documento anterior
-  generacionDoc++;              // corta el pintado que hubiera en curso del documento anterior
+  cerrarZoom();
+  generacionDoc++;
   $("doc").innerHTML = html;
   $("doc").hidden = false;
   $("drop").hidden = true;
@@ -4482,9 +4189,6 @@ function mostrarDocumento(html){
   void pintarDiagramas();
 }
 
-/* ============================================================
-   interfaz
-   ============================================================ */
 function leerArchivoComoTexto(file){
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -4535,21 +4239,12 @@ async function addFiles(list){
   }
 }
 
-/* ============================================================
-   importar desde GitHub (API REST, solo el último commit de una rama)
-
-   No se clona nada: se pide el árbol recursivo del commit HEAD de la
-   rama, se descartan todos los archivos que no sean .md/.markdown/.txt
-   y solo esos se descargan. Para repos privados hace falta un Personal
-   Access Token, que viaja en el header Authorization y se guarda en
-   localStorage únicamente si el usuario tilda "recordar".
-   ============================================================ */
 const GH_TOKEN_KEY = "lectormd-gh-token";
 
 function parsearRepoGithub(entrada){
   const s = (entrada || "").trim();
   if(!s) return null;
-  // acepta "usuario/repo", "usuario/repo/tree/rama" o una URL completa de github.com
+
   const limpio = s.replace(/^https?:\/\/(www\.)?github\.com\//i, "")
                   .replace(/\.git$/i, "")
                   .replace(/^\/+|\/+$/g, "");
@@ -4594,7 +4289,6 @@ async function obtenerArbolGithub(owner, repo, rama, token){
   return {archivos, truncado: !!data.truncated};
 }
 
-/* decodifica el contenido base64 de la API de "contents" respetando UTF-8 */
 function decodificarBase64Utf8(b64){
   const binario = atob(b64.replace(/\n/g, ""));
   const bytes = Uint8Array.from(binario, c => c.charCodeAt(0));
@@ -4603,7 +4297,7 @@ function decodificarBase64Utf8(b64){
 
 async function obtenerContenidoGithub(owner, repo, rama, path, token){
   if(!token){
-    // repo público: el raw es más liviano y no gasta límite de la API
+
     const url = "https://raw.githubusercontent.com/" + owner + "/" + repo + "/" +
       encodeURIComponent(rama) + "/" + path.split("/").map(encodeURIComponent).join("/");
     let res;
@@ -4643,8 +4337,6 @@ function cerrarModalGithub(){
   $("ghModal").hidden = true;
 }
 
-/* trae y lee los .md/.markdown/.txt del último commit de una rama; lo usan
-   tanto la importación inicial como el botón "actualizar" */
 async function traerArchivosGithub(owner, repo, rama, token){
   const {archivos, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
   const resultados = await Promise.allSettled(
@@ -4714,8 +4406,6 @@ async function importarDesdeGithub(){
   }
 }
 
-/* vuelve a traer el último commit de cada repo importado: agrega archivos
-   nuevos, pisa los que cambiaron y quita los que ya no están en el repo */
 async function actualizarGithub(){
   if(!REPOS_GITHUB.length) return;
   const boton = $("ghActualizar");
@@ -4775,7 +4465,7 @@ $("ghForm").addEventListener("submit", e => { e.preventDefault(); void importarD
 $("ghActualizar").onclick = () => void actualizarGithub();
 
 function afterLoad(rutaActiva = null){
-  // orden: primero los archivos en la raíz, después los de subcarpetas
+
   DOCS.sort((a,b)=>{
     const w = p => p.includes("/") ? 1 : 0;
     return w(a.path) - w(b.path) || a.path.localeCompare(b.path,"es");
@@ -4810,7 +4500,6 @@ function drawFiles(){
   $("fileCount").textContent = t("archivos", DOCS.length);
 }
 
-/* quita un solo archivo de la lista (no toca el disco) */
 function removeDoc(i){
   if(i < 0 || i >= DOCS.length) return;
   tomarPosicionActual();
@@ -4820,10 +4509,10 @@ function removeDoc(i){
   if(!DOCS.length){ resetWorkspace(); return; }
 
   if(i === current){
-    // se cerró el que estaba abierto: abro el vecino
+
     open(Math.min(i, DOCS.length - 1), {guardarAnterior:false});
   } else {
-    if(i < current) current--;          // los índices de arriba se corrieron
+    if(i < current) current--;
     drawFiles();
     programarGuardadoEstado();
   }
@@ -4831,7 +4520,6 @@ function removeDoc(i){
   void eliminarDocumentoPersistido(quitado.path);
 }
 
-/* vacía el área de trabajo y vuelve a la pantalla inicial */
 function resetWorkspace(persistir = true){
   clearTimeout(guardadoEstadoT);
   guardadoEstadoT = null;
@@ -4845,24 +4533,21 @@ function resetWorkspace(persistir = true){
   $("listHd").hidden = true;
   $("fileCount").textContent = "";
   $("ghActualizar").hidden = true;
-  // con data-t, para que un cambio de idioma también lo traduzca
+
   $("files").innerHTML = '<p class="empty" data-t="vacioReset">' + t("vacioReset") + "</p>";
 
-  // los input file se limpian para poder volver a elegir la MISMA carpeta
   $("inFolder").value = "";
   $("inFiles").value = "";
 
   if(persistir) void vaciarWorkspacePersistido();
 }
 
-/* lleva a un encabezado sin que lo tape la barra superior */
 function irAEncabezado(id){
   const t = document.getElementById(id);
   if(t) $("main").scrollTo({top: t.offsetTop - 52, behavior:"smooth"});
   return !!t;
 }
 
-/* el índice lateral: lo arman por igual un archivo y la ayuda */
 function dibujarIndice(heads){
   const toc = $("toc");
   if(heads.length > 2){
@@ -4876,9 +4561,8 @@ function dibujarIndice(heads){
   } else { $("tocWrap").hidden = true; toc.innerHTML = ""; }
 }
 
-/* deja la pantalla como si no hubiera nada abierto, sin tocar el área de trabajo */
 function limpiarVista(){
-  generacionDoc++;              // corta el pintado de diagramas en curso
+  generacionDoc++;
   $("doc").hidden = true;
   $("doc").innerHTML = "";
   $("drop").hidden = false;
@@ -4903,8 +4587,7 @@ function open(i, opciones = {}){
   const {html, heads} = render(d.text);
   mostrarDocumento(html);
   $("docname").textContent = d.path;
-  // el navegador usa document.title en el encabezado impreso, así que le ponemos
-  // el nombre real del archivo en vez del nombre del lector
+
   document.title = d.name.replace(/\.(md|markdown|txt)$/i, "");
   $("search").disabled = false;
   $("search").value = "";
@@ -4924,18 +4607,8 @@ function open(i, opciones = {}){
   if(persistir) programarGuardadoEstado();
 }
 
-/* ============================================================
-   ayuda
-
-   El documento de ejemplo viaja adentro del HTML, uno por idioma
-   (ver #ayudaSrc-es y #ayudaSrc-en), y se muestra como una vista
-   aparte: no entra en la lista de
-   archivos ni se guarda en IndexedDB, porque esa lista es de los
-   archivos del usuario, no de los nuestros. A cambio aprovecha
-   todo el resto: índice, búsqueda, diagramas e impresión.
-   ============================================================ */
 let viendoAyuda = false;
-let ayudaVolverA = -1;    // a qué archivo volver al cerrarla
+let ayudaVolverA = -1;
 
 function marcarBotonAyuda(activo){
   ["help","help2"].forEach(id => {
@@ -4944,9 +4617,8 @@ function marcarBotonAyuda(activo){
   });
 }
 
-/* arma la ayuda en el idioma actual; también se usa al cambiar de idioma */
 function pintarAyuda(){
-  // .trim() saca el salto de línea que el HTML deja pegado a la etiqueta
+
   const {html, heads} = render($("ayudaSrc-" + IDIOMA).textContent.trim());
   mostrarDocumento(html);
 
@@ -4962,18 +4634,17 @@ function pintarAyuda(){
 function alternarAyuda(){
   if(viendoAyuda){ salirDeAyuda(); return; }
 
-  tomarPosicionActual();          // guarda dónde ibas en lo que estabas leyendo
+  tomarPosicionActual();
   ayudaVolverA = current;
   viendoAyuda = true;
-  current = -1;                   // no hay ningún archivo del usuario abierto
+  current = -1;
 
   pintarAyuda();
-  drawFiles();                    // saca el resaltado del archivo que estaba abierto
+  drawFiles();
   marcarBotonAyuda(true);
   closeSide();
 }
 
-/* sólo apaga el estado; no toca lo que se muestra */
 function cerrarAyuda(){
   viendoAyuda = false;
   ayudaVolverA = -1;
@@ -4988,7 +4659,6 @@ function salirDeAyuda(){
   else                                    limpiarVista();
 }
 
-/* ---------- búsqueda ---------- */
 function clearMarks(root){
   root.querySelectorAll("mark").forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
   root.normalize();
@@ -4999,11 +4669,7 @@ function search(q){
   if(!q || q.length < 2){ $("hits").textContent = ""; return; }
   const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "gi");
   let n = 0, first = null;
-  // Dos cosas quedan fuera de la búsqueda: lo que es SVG (diagramas y ejes de
-  // gráficos), porque un <mark> de HTML adentro no se dibuja -haría desaparecer
-  // el texto-, y lo que no se ve, como el código fuente detrás de un diagrama o
-  // la tabla de un gráfico con "Ver datos" cerrado: no tiene sentido contar un
-  // resultado que no se puede mostrar.
+
   const walk = document.createTreeWalker(art, NodeFilter.SHOW_TEXT, {
     acceptNode: node => node.parentElement &&
       node.parentElement.closest("svg,[hidden],details:not([open]) > :not(summary)")
@@ -5033,13 +4699,12 @@ function search(q){
   if(first) $("main").scrollTo({top: first.offsetTop - 90, behavior:"smooth"});
 }
 
-/* ---------- eventos ---------- */
 $("pickFolder").onclick = () => $("inFolder").click();
 $("pickFiles").onclick  = () => $("inFiles").click();
-// mismos disparadores desde la pantalla vacía (en mobile el sidebar está oculto)
+
 $("pickFolder2").onclick = () => $("inFolder").click();
 $("pickFiles2").onclick  = () => $("inFiles").click();
-// se limpia el value después de cargar, si no elegir la misma carpeta no dispara change
+
 $("inFolder").onchange = e => {
   const files = [...e.target.files];
   e.target.value = "";
@@ -5054,24 +4719,20 @@ $("clearAll").onclick   = () => resetWorkspace();
 $("help").onclick       = () => alternarAyuda();
 $("help2").onclick      = () => alternarAyuda();
 
-// Enlaces internos -el índice de [TOC] o un [texto](#id) escrito a mano-:
-// el mismo desplazamiento que el índice lateral, sin tocar la URL.
 $("doc").addEventListener("click", e => {
   const a = e.target.closest('a[href^="#"]');
   if(!a) return;
   let id = a.getAttribute("href").slice(1);
-  try{ id = decodeURIComponent(id); }catch(error){ /* se usa tal cual */ }
+  try{ id = decodeURIComponent(id); }catch(error){  }
   if(irAEncabezado(id)) e.preventDefault();
 });
 
-/* gráficos: el cartel tocado con el dedo se cierra al tocar cualquier otra cosa */
 document.addEventListener("pointerdown", e => {
   document.querySelectorAll(".chart-lienzo").forEach(l => {
     if(l._apagar && !l.contains(e.target)) l._apagar();
   });
 });
 
-/* gráficos: se redibujan si cambia el ancho de la columna (ventana, densidad) */
 if("ResizeObserver" in window){
   let cuadroGraficos = 0;
   new ResizeObserver(() => {
@@ -5085,7 +4746,6 @@ if("ResizeObserver" in window){
   }).observe($("doc"));
 }
 
-/* ---------- sidebar en mobile ---------- */
 function closeSide(){
   $("side").classList.remove("open");
   const s = $("scrim");
@@ -5118,7 +4778,6 @@ $("main").addEventListener("scroll", () => {
   programarGuardadoEstado();
 }, {passive:true});
 
-// El guardado es continuo; estos eventos sólo fuerzan el último estado pendiente.
 document.addEventListener("visibilitychange", () => {
   if(document.visibilityState === "hidden"){
     clearTimeout(guardadoEstadoT);
@@ -5132,10 +4791,6 @@ window.addEventListener("pagehide", () => {
   void guardarEstadoPersistido();
 });
 
-/* Los colores de Mermaid quedan dentro del SVG: en tema oscuro un diagrama
-   sale con trazos claros, ilegibles en papel. Antes de abrir el diálogo se
-   redibujan en claro y al volver se restauran al tema de pantalla.
-   (Con Ctrl+P directo no hay forma de interceptarlo: sale con el tema actual.) */
 $("print").onclick = async () => {
   const redibujar = MERMAID && esTemaOscuro() && !!$("doc").querySelector(".diagram");
   if(redibujar){
@@ -5146,7 +4801,6 @@ $("print").onclick = async () => {
   if(redibujar) redibujarDiagramas();
 };
 
-/* ---------- densidad ---------- */
 function setDensity(compact){
   document.body.classList.toggle("compact", compact);
   const b = $("density");
@@ -5156,7 +4810,6 @@ function setDensity(compact){
 }
 $("density").onclick = () => setDensity(!document.body.classList.contains("compact"));
 
-/* ---------- bloques plegables: recuerdan si los dejaste abiertos ---------- */
 document.querySelectorAll("details.fold").forEach(d => {
   const key = "lectormd-fold-" + d.id;
   try{
@@ -5168,7 +4821,7 @@ document.querySelectorAll("details.fold").forEach(d => {
     try{ localStorage.setItem(key, d.open ? "1" : "0"); }catch(e){}
   });
 });
-// siempre se llama: el botón no trae texto propio en el HTML
+
 let densidadGuardada = false;
 try{ densidadGuardada = localStorage.getItem("lectormd-density") === "compact"; }catch(e){}
 setDensity(densidadGuardada);
@@ -5184,20 +4837,17 @@ try{
   if(t) document.documentElement.setAttribute("data-theme", t);
 }catch(e){}
 
-/* si el tema lo decide el sistema, puede cambiar con la app abierta */
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change", () => {
   if(!document.documentElement.getAttribute("data-theme")) redibujarDiagramas();
 });
 
-/* ---------- idioma ---------- */
 function cambiarIdioma(nuevo){
   IDIOMA = nuevo;
   try{ localStorage.setItem("lectormd-lang", nuevo); }catch(e){}
   traducirPagina();
   pintarEstados();
   setDensity(document.body.classList.contains("compact"));
-  // Lo que está a la vista se vuelve a armar: la ayuda cambia de documento, y en
-  // un archivo propio cambian el índice de [TOC], los gráficos y los avisos.
+
   if(viendoAyuda) pintarAyuda();
   else if(current >= 0) open(current, {persistir:false});
   else limpiarVista();
@@ -5208,10 +4858,8 @@ $("lang").onclick = () => cambiarIdioma(IDIOMA === "es" ? "en" : "es");
 pintarEstados();
 $("docname").textContent = t("ningunArchivo");
 
-// Restaura los documentos antes de procesar archivos recibidos desde el sistema.
 workspaceReady = restaurarWorkspace();
 
-/* arrastrar y soltar */
 ["dragenter","dragover"].forEach(ev =>
   document.addEventListener(ev, e => { e.preventDefault(); document.body.classList.add("dragging"); }));
 ["dragleave","drop"].forEach(ev =>
@@ -5221,9 +4869,8 @@ document.addEventListener("drop", e=>{
   if(items && items.length) void addFiles([...items]);
 });
 
-/* atajos */
 document.addEventListener("keydown", e=>{
-  // con el visor abierto el teclado es suyo: se cierra y se acerca desde ahí
+
   if(!$("zoom").hidden){
     if(e.key === "Escape"){ cerrarZoom(); return; }
     if(e.key === "+" || e.key === "="){ escalarDesdeElCentro(1.25); return; }
@@ -5240,11 +4887,6 @@ document.addEventListener("keydown", e=>{
   if((e.key === "k" || e.key === "ArrowUp")   && e.altKey && current > 0) open(current-1);
 });
 
-/* ============================================================
-   KaTeX opcional: si hay internet se carga desde CDN y las
-   fórmulas salen con tipografía matemática real. Si no, el
-   lector sigue funcionando con la aproximación en Unicode.
-   ============================================================ */
 (function loadKatex(){
   const BASE = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/" + KATEX_VER + "/";
 
@@ -5260,7 +4902,7 @@ document.addEventListener("keydown", e=>{
     KATEX = true;
     estadoKatex = "on";
     pintarEstados();
-    if(current >= 0) open(current);   // re-render con lo ya abierto
+    if(current >= 0) open(current);
   };
 
   js.onerror = () => {
@@ -5271,10 +4913,6 @@ document.addEventListener("keydown", e=>{
   document.head.appendChild(js);
 })();
 
-/* ============================================================
-   File Handling API — abrir .md directo desde el explorador
-   (requiere PWA instalada desde un origen https, ver manifest.json)
-   ============================================================ */
 if("launchQueue" in window && "files" in LaunchParams.prototype){
   window.launchQueue.setConsumer(async (launchParams) => {
     if(!launchParams.files.length) return;
@@ -5291,11 +4929,6 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
   });
 }
 
-/* ============================================================
-   Web Share Target — archivos que llegan desde el menú
-   "Compartir" de Android (WhatsApp, Drive, explorador, etc.)
-   El service worker los deja en un caché; acá los levantamos.
-   ============================================================ */
 async function cargarCompartidos(){
   try{
     const cache = await caches.open("lector-md-share");
@@ -5311,14 +4944,13 @@ async function cargarCompartidos(){
       archivos.push(new File([blob], nombre, {type:"text/markdown"}));
     }
 
-    // vaciar el caché: ya tenemos los archivos en memoria
     for(const k of keys) await cache.delete(k);
 
     if(archivos.length) await addFiles(archivos);
   }catch(e){
     console.error("No se pudieron leer los archivos compartidos:", e);
   }finally{
-    // sacar el ?compartido=1 para que un refresh no reintente
+
     history.replaceState(null, "", location.pathname);
   }
 }
@@ -5327,15 +4959,13 @@ if(new URLSearchParams(location.search).has("compartido")){
   if(navigator.serviceWorker && navigator.serviceWorker.controller){
     cargarCompartidos();
   }else{
-    // el SW todavía no tomó control: esperamos a que lo haga
+
     navigator.serviceWorker
       ? navigator.serviceWorker.ready.then(cargarCompartidos)
       : null;
   }
 }
 
-/* Service worker: habilita instalación como PWA (requisito de file_handlers)
-   y mantiene la app actualizada sin que nadie tenga que limpiar el caché. */
 let recargaSolicitada = false;
 let recargandoPorActualizacion = false;
 
@@ -5343,24 +4973,21 @@ if("serviceWorker" in navigator){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").then(reg => {
 
-      // Puede haber una actualización esperando desde una sesión anterior.
       if(reg.waiting && navigator.serviceWorker.controller){
         avisarActualizacion(reg);
       }
 
-      // Si aparece una versión nueva mientras la app está abierta, avisamos.
       reg.addEventListener("updatefound", () => {
         const nuevo = reg.installing;
         if(!nuevo) return;
         nuevo.addEventListener("statechange", () => {
-          // "installed" + controller existente = hay una versión previa corriendo
+
           if(nuevo.state === "installed" && navigator.serviceWorker.controller){
             avisarActualizacion(reg);
           }
         });
       });
 
-      // Buscar actualizaciones al volver a la app (PWA instalada no recarga sola)
       document.addEventListener("visibilitychange", () => {
         if(document.visibilityState === "visible") reg.update();
       });
@@ -5369,8 +4996,6 @@ if("serviceWorker" in navigator){
       console.error("No se pudo registrar el service worker:", e);
     });
 
-    // Un cambio de controller nunca recarga por sí solo. Sólo recargamos cuando
-    // el usuario eligió "Actualizar ahora" y la sesión ya quedó guardada.
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       if(!recargaSolicitada || recargandoPorActualizacion) return;
       recargandoPorActualizacion = true;
