@@ -350,9 +350,11 @@ article > .tablewrap{
   margin-left:calc(-1 * var(--bleed));
 }
 table{border-collapse:collapse; width:100%; font-size:13.5px}
+table:not(:has(th:nth-child(4))){ width:auto; max-width:100% }
 th,td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-align:top}
 th{background:var(--surface-2); font-weight:600; font-size:12.5px}
 td{font-variant-numeric:tabular-nums}
+.ayuda-version{margin-top:var(--sp-blk); font-size:11.5px; color:var(--muted)}
 
 .mathblock.katex-on{
   font-family:inherit; font-size:inherit; line-height:1.3;
@@ -932,6 +934,7 @@ const TEXTOS = {
       "local. La app no aplicará una actualización mientras haya documentos abiertos.",
     ayudaDocname: "ayuda · ejemplo.md",
     ayudaTitulo: "Lector MD — ejemplo",
+    ayudaVersion: v => "Versión " + v,
     indiceAria: "Tabla de contenidos",
     indiceTitulo: "Contenido",
     diagramaError: detalle => "No se pudo dibujar este diagrama" + (detalle ? ": " + detalle : "."),
@@ -1097,6 +1100,7 @@ const TEXTOS = {
       "The app won't apply an update while documents are open.",
     ayudaDocname: "help · example.md",
     ayudaTitulo: "Lector MD — example",
+    ayudaVersion: v => "Version " + v,
     indiceAria: "Table of contents",
     indiceTitulo: "Contents",
     diagramaError: detalle => "This diagram could not be drawn" + (detalle ? ": " + detalle : "."),
@@ -4781,6 +4785,14 @@ function pintarAyuda(){
   $("hits").textContent = "";
   $("main").scrollTop = 0;
   dibujarIndice(heads);
+
+  obtenerVersionSW().then(v => {
+    if(!v || !viendoAyuda) return;
+    const p = document.createElement("p");
+    p.className = "ayuda-version";
+    p.textContent = t("ayudaVersion", v);
+    $("doc").appendChild(p);
+  });
 }
 
 function alternarAyuda(){
