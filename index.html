@@ -600,13 +600,19 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   z-index:50; display:flex; align-items:center; justify-content:space-between;
   gap:12px; width:fit-content; max-width:calc(100vw - 32px);
   padding:10px 12px 10px 16px; border-radius:6px;
-  background:var(--accent); color:#fff;
-  font-size:13px; line-height:1.35; box-shadow:0 4px 16px #0004;
+  background:var(--good); color:#fff; font-weight:600;
+  font-size:13px; line-height:1.35; box-shadow:0 6px 24px #0006;
+  animation:updPop .35s ease-out;
 }
+@keyframes updPop{
+  from{transform:translateY(14px); opacity:0}
+  to{transform:none; opacity:1}
+}
+@media (prefers-reduced-motion:reduce){#updBar{animation:none}}
 #updBar button{
-  font:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+  font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
   padding:6px 12px; border-radius:4px; white-space:nowrap;
-  border:1px solid #fff6; background:#fff2; color:#fff;
+  border:1px solid #fff8; background:#fff2; color:#fff;
 }
 #updBar button:hover{background:#fff3}
 #updBar button:disabled{cursor:default; opacity:.72}
@@ -935,7 +941,7 @@ const TEXTOS = {
     errNoNumero: (celda, fila, serie) =>
       "\"" + celda + "\" no es un número (fila " + fila + ", " + serie + ")",
     errSinValores: "no hay ningún valor numérico",
-    updLista: "Nueva versión lista. Se aplicará al cerrar la app.",
+    updLista: version => "Nueva versión disponible" + (version ? " (" + version + ")" : "") + ".",
     updBoton: "Actualizar ahora",
     updGuardando: "Guardando los documentos abiertos…",
     updFallo: "No se pudo guardar la sesión. La actualización quedó en espera.",
@@ -1096,7 +1102,7 @@ const TEXTOS = {
     errNoNumero: (celda, fila, serie) =>
       "\"" + celda + "\" is not a number (row " + fila + ", " + serie + ")",
     errSinValores: "there are no numeric values",
-    updLista: "New version ready. It will apply when you close the app.",
+    updLista: version => "New version available" + (version ? " (" + version + ")" : "") + ".",
     updBoton: "Update now",
     updGuardando: "Saving open documents…",
     updFallo: "Couldn't save the session. The update is on hold.",
@@ -5036,12 +5042,26 @@ if("serviceWorker" in navigator){
   });
 }
 
-function avisarActualizacion(reg){
+async function obtenerVersionSW(){
+  try{
+    const res = await fetch("/sw.js", {cache:"no-store"});
+    const texto = await res.text();
+    const m = texto.match(/VERSION\s*=\s*"([^"]+)"/);
+    return m ? m[1] : null;
+  }catch{
+    return null;
+  }
+}
+
+async function avisarActualizacion(reg){
   if(document.getElementById("updBar")) return;
+  const version = await obtenerVersionSW();
+  if(document.getElementById("updBar")) return;
+
   const bar = document.createElement("div");
   bar.id = "updBar";
   bar.innerHTML =
-    '<span>' + t("updLista") + '</span>' +
+    '<span>' + t("updLista", version) + '</span>' +
     '<button type="button" id="updBtn">' + t("updBoton") + '</button>';
   document.body.appendChild(bar);
   document.getElementById("updBtn").onclick = async () => {
