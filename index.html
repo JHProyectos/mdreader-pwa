@@ -4325,22 +4325,12 @@ function decodificarBase64Utf8(b64){
   return new TextDecoder("utf-8").decode(bytes);
 }
 
-async function obtenerContenidoGithub(owner, repo, rama, path, token){
-  if(!token){
-
-    const url = "https://raw.githubusercontent.com/" + owner + "/" + repo + "/" +
-      encodeURIComponent(rama) + "/" + path.split("/").map(encodeURIComponent).join("/");
-    let res;
-    try{
-      res = await fetch(sinCacheGithub(url), {cache:"no-store"});
-    }catch{
-      throw new ErrorGithub("ghErrRed");
-    }
-    if(!res.ok) throw new ErrorGithub("ghErrNoEncontrado");
-    return res.text();
-  }
-  const url = "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" +
-    path.split("/").map(encodeURIComponent).join("/") + "?ref=" + encodeURIComponent(rama);
+async function obtenerContenidoGithub(owner, repo, sha, token){
+  // por SHA de blob, no por rama+ruta: el contenido queda direccionado por
+  // hash, así que siempre es exacto y nunca cae en el caché de un par
+  // rama/ruta que raw.githubusercontent.com puede tardar unos minutos en
+  // renovar después de un push.
+  const url = "https://api.github.com/repos/" + owner + "/" + repo + "/git/blobs/" + sha;
   const data = await pedirGithub(url, token);
   return decodificarBase64Utf8(data.content || "");
 }
@@ -4370,7 +4360,7 @@ function cerrarModalGithub(){
 async function traerArchivosGithub(owner, repo, rama, token){
   const {archivos, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
   const resultados = await Promise.allSettled(
-    archivos.map(a => obtenerContenidoGithub(owner, repo, rama, a.path, token)
+    archivos.map(a => obtenerContenidoGithub(owner, repo, a.sha, token)
       .then(text => ({
         name: a.path.split("/").pop(),
         path: owner + "/" + repo + "/" + a.path,
