@@ -23,6 +23,7 @@ A standalone, offline-first Markdown reader, installable as a PWA. Single HTML f
 - **Bar, line, area, scatter and pie charts.** A ` ```grafico ` (or ` ```chart `) block turns a small comma-, semicolon- or tab-separated table into a chart, drawn by the reader itself as SVG — no library, so it works offline too. It follows the theme, prints in light colors, shows every value on hover, and has a **Ver datos** table view. The scatter uses a numeric horizontal axis when the categories are numbers, and the pie labels each slice with its share.
 - **In-document table of contents.** A `[TOC]` line is replaced by a linked list of the document's headings. Unlike the side panel, it prints.
 - **Open entire folders.** Browse multiple `.md` files from a project in a side panel, without uploading anything to a server.
+- **Import from a GitHub repo.** Point it at `owner/repo` (or paste the repo URL) and it pulls every `.md`/`.markdown`/`.txt` file from the latest commit of a branch — no git clone, no history. Private repos work too, with a personal access token you paste once and can choose to remember in the browser. A **↻ Actualizar** button re-fetches the latest commit on demand.
 - **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from WhatsApp, Drive, Telegram, or a file manager straight into the reader. On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
 - **Keeps your workspace.** Loaded documents, the selected file, and the reading position are stored locally and restored after closing, restarting, or updating the app. A document stays loaded until you remove it explicitly.
 - **Updates itself.** New deploys reach installed copies automatically — no cache clearing, no reinstalling. See [Updates](#updates).
@@ -45,6 +46,14 @@ Try it right now at **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyectos
 On narrow screens the side panel collapses; the **☰** button in the top bar opens it, and the same pickers are also available on the empty state, next to **See an example**, which opens the built-in help.
 
 This mode requires no hosting and no internet connection, and is the simplest option if you only need to read files you pick yourself from within the app.
+
+### Import from a GitHub repo
+
+Click **Importar de GitHub**, paste `owner/repo` or the repo's URL, and (optionally) a branch — it defaults to the repo's default branch. This does not clone the repository: it reads the file tree of the latest commit through GitHub's API and downloads only the `.md`, `.markdown` and `.txt` files it finds.
+
+- **Public repos** need nothing else.
+- **Private repos** need a personal access token with read-only access to the repo's contents — the dialog links straight to creating one, scoped to just that repo. The token stays in this browser only, and only if you tick "remember".
+- Once imported, a **↻ Actualizar** button appears next to the file list: it re-fetches the latest commit, updating changed files, adding new ones, and removing files that no longer exist upstream.
 
 ## Installable PWA usage (opening `.md` from other apps)
 
@@ -141,6 +150,7 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 - **The help document is embedded, not fetched.** There is one `<script type="text/markdown">` block per language, where the Markdown stays raw and readable without escaping the backticks of its own code fences. Fetching `ejemplo.md` instead would break the portable case: opened over `file://`, the browser refuses to read the file next to it, which is exactly the situation where built-in help matters most. The help is a separate view — it never enters the file list or IndexedDB, since that list means *your* files. `ejemplo.md` and `example.md` at the repo root are copies of those two blocks, kept for reading on GitHub. The embedded blocks are the source: edit them and copy the text over.
 - **Every visible string lives in one table.** `TEXTOS` holds a Spanish and an English entry per key. Static elements carry `data-t`, `data-t-title`, `data-t-placeholder` or `data-t-aria`, and a small script placed before the help blocks fills them in before the first paint. The language is the first entry of `navigator.languages` that is Spanish or English (English if none is) unless the user picked one. Only user-facing text is translated; code comments and identifiers stay in Spanish. A web app manifest can't vary by language, so the installed app keeps the name *Lector MD* and its Spanish description.
 - **Diagrams are redrawn in light colors for printing.** Mermaid bakes colors into the SVG, so a diagram rendered in dark theme would print as pale strokes on white paper. The ⎙ PDF button redraws them light, prints, and restores the screen theme. Pressing Ctrl+P directly bypasses this and prints with the current theme.
+- **GitHub import reads the API, not a clone.** It resolves the default branch when none is given, asks for the recursive tree of that one commit, filters it down to `.md`/`.markdown`/`.txt`, and downloads each file — from `raw.githubusercontent.com` for public repos, or the `contents` API (decoded from base64) when a token is supplied, since raw URLs don't accept one consistently. Every request carries a timestamp and `cache: "no-store"`, and the service worker leaves `api.github.com`/`raw.githubusercontent.com` uncached, so **Actualizar** always sees the real latest commit instead of a stale local copy.
 
 ## License
 
@@ -166,6 +176,7 @@ Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un 
 - **Gráficos de barras, líneas, área, dispersión y torta.** Un bloque ` ```grafico ` (o ` ```chart `) convierte una tabla chica, separada por comas, punto y coma o tabulaciones, en un gráfico que dibuja el propio lector en SVG: sin librerías, así que funciona también sin conexión. Sigue el tema, se imprime en claro, muestra los valores al pasar el mouse y tiene una vista de tabla en **Ver datos**. La dispersión usa eje horizontal numérico cuando las categorías son números, y la torta muestra el porcentaje de cada porción.
 - **Índice dentro del documento.** Una línea `[TOC]` se reemplaza por la lista de encabezados con enlaces a cada sección. A diferencia del panel lateral, sale impresa.
 - **Abrir carpetas completas.** Navegá varios `.md` de un proyecto desde un panel lateral, sin subir nada a un servidor.
+- **Importar un repo de GitHub.** Apuntalo a `usuario/repo` (o pegá la URL) y trae todos los `.md`/`.markdown`/`.txt` del último commit de una rama — sin clonar, sin historial. También funciona con repos privados, con un personal access token que se pega una vez y se puede recordar en el navegador. Un botón **↻ Actualizar** vuelve a traer el último commit cuando quieras.
 - **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde WhatsApp, Drive, Telegram o el explorador directo al lector. En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
 - **Conserva el área de trabajo.** Los documentos cargados, el archivo seleccionado y la posición de lectura se guardan localmente y se restauran después de cerrar, reiniciar o actualizar la app. Un documento permanece cargado hasta que lo quitás explícitamente.
 - **Se actualiza sola.** Los deploys nuevos llegan solos a las copias instaladas, sin limpiar caché ni reinstalar. Ver [Actualizaciones](#actualizaciones).
@@ -188,6 +199,14 @@ Probalo ahora mismo en **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyec
 En pantallas angostas el panel lateral se pliega; el botón **☰** de la barra superior lo abre, y los mismos selectores están también en la pantalla de inicio, junto a **Ver un ejemplo**, que abre la ayuda incorporada.
 
 Esta forma de uso no requiere hosting, no requiere conexión, y es la más simple si solo necesitás leer archivos que ya elegís vos mismo desde la app.
+
+### Importar un repo de GitHub
+
+Tocá **Importar de GitHub**, pegá `usuario/repo` o la URL del repo, y opcionalmente una rama (si no ponés nada, usa la rama por defecto). Esto no clona el repositorio: lee el árbol de archivos del último commit a través de la API de GitHub y descarga sólo los `.md`, `.markdown` y `.txt` que encuentra.
+
+- **Repos públicos** no necesitan nada más.
+- **Repos privados** necesitan un personal access token con acceso de solo lectura al contenido del repo — el diálogo trae un enlace directo para crear uno, limitado a ese repositorio. El token queda solo en este navegador, y solo si tildás "recordar".
+- Una vez importado, aparece un botón **↻ Actualizar** junto a la lista de archivos: vuelve a traer el último commit, actualiza lo que cambió, agrega lo nuevo y saca lo que ya no está en el repo.
 
 ## Uso como PWA instalable (abrir `.md` desde otras apps)
 
@@ -284,6 +303,7 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 - **El documento de ayuda va embebido, no se baja.** Hay un bloque `<script type="text/markdown">` por idioma, donde el Markdown queda crudo y legible sin tener que escapar los acentos graves de sus propios bloques de código. Bajar `ejemplo.md` rompería el caso portátil: abierto con `file://` el navegador no deja leer el archivo de al lado, que es justo la situación donde una ayuda incorporada más sirve. La ayuda es una vista aparte: nunca entra en la lista de archivos ni en IndexedDB, porque esa lista es de *tus* archivos. `ejemplo.md` y `example.md`, en la raíz, son copias de esos dos bloques para poder leerlos en GitHub. El original son los bloques embebidos: se editan ahí y se copia el texto.
 - **Todos los textos visibles están en una tabla.** `TEXTOS` tiene una entrada en español y otra en inglés por clave. Los elementos fijos llevan `data-t`, `data-t-title`, `data-t-placeholder` o `data-t-aria`, y un script chico ubicado antes de los bloques de ayuda los completa antes del primer cuadro. El idioma es el primero de `navigator.languages` que sea español o inglés (inglés si no hay ninguno), salvo que el usuario haya elegido otro. Sólo se traduce lo que ve el usuario; los comentarios y los nombres del código siguen en español. El manifest de una PWA no puede variar según el idioma, así que la app instalada conserva el nombre *Lector MD* y su descripción en español.
 - **Los diagramas se redibujan en claro para imprimir.** Mermaid hornea los colores dentro del SVG, así que un diagrama renderizado en tema oscuro saldría con trazos pálidos sobre papel blanco. El botón ⎙ PDF los redibuja en claro, imprime y restaura el tema de pantalla. Con Ctrl+P directo eso no se puede interceptar y sale con el tema actual.
+- **La importación de GitHub lee la API, no clona nada.** Resuelve la rama por defecto si no se indica ninguna, pide el árbol recursivo de ese commit puntual, lo filtra a `.md`/`.markdown`/`.txt`, y descarga cada archivo — desde `raw.githubusercontent.com` para repos públicos, o la API de `contents` (decodificada de base64) cuando hay token, porque el raw no lo acepta de forma consistente. Cada pedido lleva marca de tiempo y `cache: "no-store"`, y el service worker deja `api.github.com`/`raw.githubusercontent.com` sin cachear, así que **Actualizar** siempre ve el último commit real en vez de una copia local vieja.
 
 ## Licencia
 
