@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.14.0";
+const VERSION = "v0.14.1";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -113,14 +113,21 @@ self.addEventListener("fetch", (event) => {
 
   if (request.method !== "GET") return;
 
+  // Pedidos de extensiones del navegador (chrome-extension://, moz-extension://,
+  // etc.): la Cache API sólo acepta http/https, así que ni se interceptan.
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
+
   const sameOrigin = url.origin === self.location.origin;
 
   // 1. Documento HTML -> network-first.
-  // Si hay red, siempre gana la versión del servidor.
-  // El caché se utiliza como respaldo offline.
+  // Si hay red, siempre gana la versión del servidor. cache:"no-store" es lo
+  // que hace ese "siempre" cierto: sin eso, este fetch podía resolverse
+  // contra el caché HTTP del propio navegador y servir un index.html viejo
+  // aunque hubiera conexión.
+  // El caché del service worker se usa sólo como respaldo offline.
   if (sameOrigin && isDocument(request)) {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: "no-store" })
         .then((response) => {
           const copy = response.clone();
 
@@ -147,7 +154,7 @@ self.addEventListener("fetch", (event) => {
   if (sameOrigin) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        const network = fetch(request)
+        const network = fetch(request, { cache: "no-store" })
           .then((response) => {
             const copy = response.clone();
 
