@@ -350,6 +350,7 @@ article > .tablewrap{
   margin-left:calc(-1 * var(--bleed));
 }
 table{border-collapse:collapse; width:100%; font-size:13.5px}
+table:not(:has(th:nth-child(4))){ width:auto; max-width:100% }
 th,td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-align:top}
 th{background:var(--surface-2); font-weight:600; font-size:12.5px}
 td{font-variant-numeric:tabular-nums}
