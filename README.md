@@ -151,6 +151,26 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 - **Every visible string lives in one table.** `TEXTOS` holds a Spanish and an English entry per key. Static elements carry `data-t`, `data-t-title`, `data-t-placeholder` or `data-t-aria`, and a small script placed before the help blocks fills them in before the first paint. The language is the first entry of `navigator.languages` that is Spanish or English (English if none is) unless the user picked one. Only user-facing text is translated; code comments and identifiers stay in Spanish. A web app manifest can't vary by language, so the installed app keeps the name *Lector MD* and its Spanish description.
 - **Diagrams are redrawn in light colors for printing.** Mermaid bakes colors into the SVG, so a diagram rendered in dark theme would print as pale strokes on white paper. The ⎙ PDF button redraws them light, prints, and restores the screen theme. Pressing Ctrl+P directly bypasses this and prints with the current theme.
 - **GitHub import reads the API, not a clone.** It resolves the default branch when none is given, asks for the recursive tree of that one commit, filters it down to `.md`/`.markdown`/`.txt`, and downloads each file's content by blob SHA (Git's own content-addressed hash, listed in the tree response) rather than by branch name and path. `raw.githubusercontent.com` is a CDN that can lag a few minutes behind a fresh push for a given branch/path, no matter what the client does — a SHA-addressed request has no such window, since the hash only ever means one exact content. Every request also carries a timestamp and `cache: "no-store"`, and the service worker leaves `api.github.com` uncached, so **Actualizar** always sees the real latest commit.
+- **Images inside an imported `.md` are cached by content, not by URL.** An `<img>` pointing at `raw.githubusercontent.com` is a fixed URL that never tells you whether the file behind it changed, so a naive cache would either serve stale images forever or re-fetch every one of them on every open. The reader avoids both: the recursive tree call it already makes for `.md` files also returns the blob SHA of every image in the repo, at no extra request cost, and the page hands that SHA map to the service worker through IndexedDB — the one store the origin's worker can read directly, without `postMessage`. On each image request the worker compares the known SHA against the one stored alongside its cached response; a match is served straight from that cache, and only a mismatch (or a first-time image) touches the network. This is the same content-addressing principle already used for `.md` blobs, just applied one layer further down, and it keeps `raw.githubusercontent.com` traffic proportional to what actually changed in the repo, not to how many times a document gets reopened:
+
+    ```mermaid
+    sequenceDiagram
+      participant P as Page
+      participant API as api.github.com
+      participant SW as Service Worker
+      participant IDB as IndexedDB
+
+      P->>API: GET /git/trees/branch?recursive=1
+      API-->>P: full tree (SHAs for .md files and images)
+      P->>API: GET /git/blobs/{sha} for each .md
+      Note over P,API: this always happens, whether content changed or not
+      P->>IDB: store image SHAs
+      Note over SW,IDB: images have NOT been requested yet
+      Note over P: the browser repaints the <img>
+      P->>SW: fetch image (same SHA it already had cached)
+      SW->>IDB: look up known SHA for that URL -> same SHA
+      SW-->>P: serve from IMG_CACHE, no network request
+    ```
 
 ## License
 
@@ -304,8 +324,27 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 - **Todos los textos visibles están en una tabla.** `TEXTOS` tiene una entrada en español y otra en inglés por clave. Los elementos fijos llevan `data-t`, `data-t-title`, `data-t-placeholder` o `data-t-aria`, y un script chico ubicado antes de los bloques de ayuda los completa antes del primer cuadro. El idioma es el primero de `navigator.languages` que sea español o inglés (inglés si no hay ninguno), salvo que el usuario haya elegido otro. Sólo se traduce lo que ve el usuario; los comentarios y los nombres del código siguen en español. El manifest de una PWA no puede variar según el idioma, así que la app instalada conserva el nombre *Lector MD* y su descripción en español.
 - **Los diagramas se redibujan en claro para imprimir.** Mermaid hornea los colores dentro del SVG, así que un diagrama renderizado en tema oscuro saldría con trazos pálidos sobre papel blanco. El botón ⎙ PDF los redibuja en claro, imprime y restaura el tema de pantalla. Con Ctrl+P directo eso no se puede interceptar y sale con el tema actual.
 - **La importación de GitHub lee la API, no clona nada.** Resuelve la rama por defecto si no se indica ninguna, pide el árbol recursivo de ese commit puntual, lo filtra a `.md`/`.markdown`/`.txt`, y descarga el contenido de cada archivo por su SHA de blob (el hash de contenido propio de Git, que ya viene en la respuesta del árbol), no por rama+ruta. `raw.githubusercontent.com` es un CDN que puede tardar unos minutos en reflejar un push reciente para una rama/ruta dada, sin importar lo que haga el cliente; un pedido direccionado por SHA no tiene esa ventana, porque el hash sólo puede significar un contenido exacto. Cada pedido además lleva marca de tiempo y `cache: "no-store"`, y el service worker deja `api.github.com` sin cachear, así que **Actualizar** siempre ve el último commit real.
+- **Las imágenes de un `.md` importado se cachean por contenido, no por URL.** Un `<img>` que apunta a `raw.githubusercontent.com` es una URL fija que nunca dice si el archivo detrás cambió, así que un caché ingenuo terminaría sirviendo imágenes viejas para siempre, o volviendo a pedir todas en cada apertura. El lector evita las dos cosas: el mismo pedido de árbol recursivo que ya hace para los `.md` también devuelve el SHA de blob de cada imagen del repo, sin ningún pedido extra, y la página le pasa ese mapa de SHAs al service worker a través de IndexedDB —el único almacén que el worker del origen puede leer directo, sin `postMessage`—. En cada pedido de imagen, el worker compara el SHA conocido contra el que quedó guardado junto a la respuesta cacheada: si coincide, la sirve directo de ese caché, y sólo un SHA distinto (o una imagen nunca vista) toca la red. Es el mismo principio de direccionamiento por contenido que ya se usa para los blobs de los `.md`, aplicado una capa más abajo, y mantiene el tráfico contra `raw.githubusercontent.com` proporcional a lo que realmente cambió en el repo, no a cuántas veces se reabre un documento:
+
+    ```mermaid
+    sequenceDiagram
+      participant P as Página
+      participant API as api.github.com
+      participant SW as Service Worker
+      participant IDB as IndexedDB
+
+      P->>API: GET /git/trees/rama?recursive=1
+      API-->>P: árbol completo (SHAs de .md e imágenes)
+      P->>API: GET /git/blobs/{sha} por cada .md
+      Note over P,API: esto SIEMPRE pasa, cambie o no el contenido
+      P->>IDB: guardarShaImagenesGithub (nuevos SHAs de imagen)
+      Note over SW,IDB: las imágenes NO se pidieron todavía
+      Note over P: el navegador vuelve a pintar el <img>
+      P->>SW: fetch imagen (mismo SHA que ya tenía cacheado)
+      SW->>IDB: shaConocidoDe(url) -> mismo SHA
+      SW-->>P: responde desde IMG_CACHE, sin ir a la red
+    ```
 
 ## Licencia
 
 MIT — usalo, modificalo, y adaptalo a lo que necesites.
-
