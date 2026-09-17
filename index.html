@@ -619,6 +619,25 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 @media print{ #updBar{display:none!important} }
 
+#ghRateBar{
+  position:fixed; left:16px; right:16px; top:16px; margin:0 auto;
+  z-index:80; display:flex; align-items:center; justify-content:space-between;
+  gap:12px; max-width:560px; width:fit-content;
+  padding:10px 12px 10px 16px; border-radius:6px;
+  background:var(--warm); color:#fff; font-weight:500;
+  font-size:13px; line-height:1.4; box-shadow:0 6px 24px #0006;
+  animation:updPop .35s ease-out;
+}
+@media (prefers-reduced-motion:reduce){#ghRateBar{animation:none}}
+#ghRateBar button{
+  flex:none; font:inherit; font-size:15px; line-height:1; cursor:pointer;
+  padding:2px 8px; border-radius:4px; white-space:nowrap;
+  border:1px solid #fff8; background:#fff2; color:#fff;
+}
+#ghRateBar button:hover{background:#fff3}
+
+@media print{ #ghRateBar{display:none!important} }
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -819,6 +838,10 @@ const TEXTOS = {
     ghErrAuth: "El token no es válido o no tiene permiso para leer este repositorio.",
     ghErrLimite: "Se alcanzó el límite de pedidos a la API de GitHub. Probá de nuevo en un rato" +
       ", o agregá un token para tener más margen.",
+    rateLimiteAviso: mins => "Llegaste al límite de 60 pedidos por hora de GitHub" +
+      (mins ? " (podés reintentar en unos " + mins + " min)" : "") +
+      ". Esperá, o agregá un token personal en \"Importar de GitHub\" (sube el límite a 5000/hora).",
+    rateLimiteCerrar: "Cerrar aviso",
     ghErrTruncado: "El repositorio es muy grande y GitHub no devolvió el árbol completo de archivos" +
       ": puede que falten algunos.",
     ghErrSinArchivos: "No encontré archivos .md, .markdown o .txt en ese repositorio.",
@@ -982,6 +1005,10 @@ const TEXTOS = {
     ghErrAuth: "The token is invalid or doesn't have access to this repository.",
     ghErrLimite: "GitHub's API rate limit was reached. Try again in a while, or add a token for a " +
       "higher limit.",
+    rateLimiteAviso: mins => "You hit GitHub's limit of 60 requests per hour" +
+      (mins ? " (you can retry in about " + mins + " min)" : "") +
+      ". Wait, or add a personal token in \"Import from GitHub\" (raises the limit to 5000/hour).",
+    rateLimiteCerrar: "Close notice",
     ghErrTruncado: "This repository is very large and GitHub didn't return the full file tree: " +
       "some files may be missing.",
     ghErrSinArchivos: "No .md, .markdown or .txt files were found in that repository.",
@@ -2710,10 +2737,14 @@ const REPOS_GITHUB = [];
 const $ = id => document.getElementById(id);
 
 const DB_NAME = "lector-md-datos";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const DOC_STORE = "documentos";
 const STATE_STORE = "estado";
 const STATE_KEY = "workspace";
+// Mapa URL de imagen de GitHub -> SHA de su blob. Lo lee directamente el
+// service worker (misma IndexedDB del origen) para decidir si puede servir
+// esa imagen del caché sin pedirla de nuevo. Ver sw.js.
+const IMG_STORE = "imagenesGithub";
 
 const scrollPorRuta = Object.create(null);
 let restaurandoWorkspace = false;
@@ -2736,6 +2767,9 @@ function abrirBaseDeDatos(){
       }
       if(!db.objectStoreNames.contains(STATE_STORE)){
         db.createObjectStore(STATE_STORE, {keyPath:"key"});
+      }
+      if(!db.objectStoreNames.contains(IMG_STORE)){
+        db.createObjectStore(IMG_STORE, {keyPath:"url"});
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -2855,14 +2889,56 @@ async function eliminarDocumentoPersistido(path){
 async function vaciarWorkspacePersistido(){
   try{
     const db = await DB_READY;
-    const tx = db.transaction([DOC_STORE, STATE_STORE], "readwrite");
+    const tx = db.transaction([DOC_STORE, STATE_STORE, IMG_STORE], "readwrite");
     tx.objectStore(DOC_STORE).clear();
     tx.objectStore(STATE_STORE).clear();
+    tx.objectStore(IMG_STORE).clear();
     await esperarTransaccion(tx);
     return true;
   }catch(error){
     console.error("No se pudo vaciar el área de trabajo guardada:", error);
     return false;
+  }
+}
+
+// Guarda (o pisa) el SHA de blob conocido para cada URL de imagen de GitHub.
+// El service worker lee esto mismo para decidir si puede servir del caché
+// sin pedir la imagen de nuevo (ver sw.js).
+async function guardarShaImagenesGithub(entradas){
+  if(!entradas || !entradas.length) return;
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction(IMG_STORE, "readwrite");
+    const store = tx.objectStore(IMG_STORE);
+    entradas.forEach(e => store.put(e));
+    await esperarTransaccion(tx);
+  }catch(error){
+    console.error("No se pudo guardar el mapa de imágenes de GitHub:", error);
+  }
+}
+
+// Al actualizar un repo, reemplaza todas las entradas de imagen que le
+// pertenecían (por prefijo de URL owner/repo) por el set fresco del árbol.
+// Así una imagen borrada del repo no queda cacheada para siempre.
+async function reemplazarShaImagenesRepo(prefijoUrl, entradas){
+  try{
+    const db = await DB_READY;
+    const tx = db.transaction(IMG_STORE, "readwrite");
+    const store = tx.objectStore(IMG_STORE);
+    await new Promise((resolve, reject) => {
+      const req = store.openCursor();
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if(!cursor){ resolve(); return; }
+        if(cursor.value.url.startsWith(prefijoUrl)) cursor.delete();
+        cursor.continue();
+      };
+      req.onerror = () => reject(req.error);
+    });
+    (entradas || []).forEach(e => store.put(e));
+    await esperarTransaccion(tx);
+  }catch(error){
+    console.error("No se pudo actualizar el mapa de imágenes de GitHub:", error);
   }
 }
 
@@ -4304,7 +4380,10 @@ async function pedirGithub(url, token){
   }
   if(res.status === 401) throw new ErrorGithub("ghErrAuth");
   if(res.status === 403 && res.headers.get("x-ratelimit-remaining") === "0"){
-    throw new ErrorGithub("ghErrLimite");
+    const reset = Number(res.headers.get("x-ratelimit-reset"));
+    const err = new ErrorGithub("ghErrLimite");
+    err.resetEn = Number.isFinite(reset) ? reset * 1000 : null;
+    throw err;
   }
   if(res.status === 404) throw new ErrorGithub("ghErrNoEncontrado");
   if(!res.ok) throw new ErrorGithub("ghErrGenerico");
@@ -4316,13 +4395,27 @@ async function obtenerRamaPorDefecto(owner, repo, token){
   return info.default_branch;
 }
 
+const RE_IMAGEN_GITHUB = /\.(png|jpe?g|gif|svg|webp|bmp|ico|avif)$/i;
+
+function urlRawGithub(owner, repo, rama, path){
+  return "https://raw.githubusercontent.com/" + owner + "/" + repo + "/" +
+    encodeURI(rama) + "/" + encodeURI(path);
+}
+
 async function obtenerArbolGithub(owner, repo, rama, token){
   const url = "https://api.github.com/repos/" + owner + "/" + repo +
     "/git/trees/" + encodeURIComponent(rama) + "?recursive=1";
   const data = await pedirGithub(url, token);
-  const archivos = (data.tree || [])
-    .filter(it => it.type === "blob" && /\.(md|markdown|txt)$/i.test(it.path));
-  return {archivos, truncado: !!data.truncated};
+  const tree = data.tree || [];
+  const archivos = tree.filter(it => it.type === "blob" && /\.(md|markdown|txt)$/i.test(it.path));
+
+  // El SHA de las imágenes ya viene en esta misma respuesta: no hace falta
+  // ningún pedido extra para saber qué imágenes cambiaron de contenido.
+  const imagenes = tree
+    .filter(it => it.type === "blob" && RE_IMAGEN_GITHUB.test(it.path))
+    .map(it => ({url: urlRawGithub(owner, repo, rama, it.path), sha: it.sha}));
+
+  return {archivos, imagenes, truncado: !!data.truncated};
 }
 
 function decodificarBase64Utf8(b64){
@@ -4364,7 +4457,7 @@ function cerrarModalGithub(){
 }
 
 async function traerArchivosGithub(owner, repo, rama, token){
-  const {archivos, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
+  const {archivos, imagenes, truncado} = await obtenerArbolGithub(owner, repo, rama, token);
   const resultados = await Promise.allSettled(
     archivos.map(a => obtenerContenidoGithub(owner, repo, a.sha, token)
       .then(text => ({
@@ -4376,7 +4469,7 @@ async function traerArchivosGithub(owner, repo, rama, token){
   const leidos = resultados.filter(r => r.status === "fulfilled").map(r => r.value);
   resultados.filter(r => r.status === "rejected")
     .forEach(r => console.error("No se pudo leer un archivo de GitHub:", r.reason));
-  return {leidos, truncado};
+  return {leidos, imagenes, truncado};
 }
 
 function registrarRepoGithub(owner, repo, rama){
@@ -4403,7 +4496,7 @@ async function importarDesdeGithub(){
     const rama = ramaEscrita || repoInfo.rama ||
       await obtenerRamaPorDefecto(owner, repo, token);
 
-    const {leidos, truncado} = await traerArchivosGithub(owner, repo, rama, token);
+    const {leidos, imagenes, truncado} = await traerArchivosGithub(owner, repo, rama, token);
     if(!leidos.length){ mostrarMensajeGithub(t("ghErrSinArchivos")); return; }
 
     if($("ghRecordar").checked) localStorage.setItem(GH_TOKEN_KEY, token);
@@ -4418,6 +4511,7 @@ async function importarDesdeGithub(){
     registrarRepoGithub(owner, repo, rama);
     afterLoad(rutaActiva);
     await guardarDocumentosPersistidos(leidos);
+    await guardarShaImagenesGithub(imagenes);
     await guardarEstadoPersistido();
     if(navigator.storage && navigator.storage.persist){
       navigator.storage.persist().catch(() => {});
@@ -4426,10 +4520,33 @@ async function importarDesdeGithub(){
     cerrarModalGithub();
     if(truncado) alert(t("ghErrTruncado"));
   }catch(error){
+    if(error instanceof ErrorGithub && error.claveTexto === "ghErrLimite"){
+      mostrarAvisoRateLimit(error.resetEn);
+    }
     mostrarMensajeGithub(error instanceof ErrorGithub ? t(error.claveTexto) : t("ghErrGenerico"));
   }finally{
     submit.disabled = false;
   }
+}
+
+function ocultarAvisoRateLimit(){
+  const bar = document.getElementById("ghRateBar");
+  if(bar) bar.remove();
+}
+
+function mostrarAvisoRateLimit(resetEn){
+  ocultarAvisoRateLimit();
+
+  const restanteMs = resetEn ? resetEn - Date.now() : null;
+  const mins = restanteMs && restanteMs > 0 ? Math.ceil(restanteMs / 60000) : null;
+
+  const bar = document.createElement("div");
+  bar.id = "ghRateBar";
+  bar.innerHTML =
+    '<span>' + t("rateLimiteAviso", mins) + '</span>' +
+    '<button type="button" id="ghRateCerrar" aria-label="' + t("rateLimiteCerrar") + '">&times;</button>';
+  document.body.appendChild(bar);
+  document.getElementById("ghRateCerrar").onclick = ocultarAvisoRateLimit;
 }
 
 async function actualizarGithub(){
@@ -4446,7 +4563,7 @@ async function actualizarGithub(){
 
   for(const repoInfo of REPOS_GITHUB){
     try{
-      const {leidos, truncado} = await traerArchivosGithub(
+      const {leidos, imagenes, truncado} = await traerArchivosGithub(
         repoInfo.owner, repoInfo.repo, repoInfo.rama, token
       );
       if(truncado) huboError = true;
@@ -4466,9 +4583,17 @@ async function actualizarGithub(){
         if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
       });
       leidosTotal.push(...leidos);
+
+      const prefijoImg = "https://raw.githubusercontent.com/" +
+        repoInfo.owner + "/" + repoInfo.repo + "/";
+      await reemplazarShaImagenesRepo(prefijoImg, imagenes);
     }catch(error){
       console.error("No se pudo actualizar " + repoInfo.prefijo + ":", error);
       huboError = true;
+      if(error instanceof ErrorGithub && error.claveTexto === "ghErrLimite"){
+        mostrarAvisoRateLimit(error.resetEn);
+        break;
+      }
     }
   }
 
@@ -4559,6 +4684,7 @@ function resetWorkspace(persistir = true){
   $("listHd").hidden = true;
   $("fileCount").textContent = "";
   $("ghActualizar").hidden = true;
+  ocultarAvisoRateLimit();
 
   $("files").innerHTML = '<p class="empty" data-t="vacioReset">' + t("vacioReset") + "</p>";
 

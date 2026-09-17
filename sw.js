@@ -13,12 +13,88 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.15.1";
+const VERSION = "v0.16.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
 // por el menú "Compartir" de Android hasta que la página los levanta.
 const SHARE_CACHE = "lector-md-share";
+
+// Caché de las imágenes de GitHub, indexada por SHA de blob (ver más abajo).
+// No lleva el sufijo de VERSION: tiene que sobrevivir a cada actualización
+// del service worker, si no se perdería y se volvería a descargar todo.
+const IMG_CACHE = "lector-md-img-github";
+
+// Misma base de datos que usa la página (mdreader-pwa/index.html) para guardar
+// el mapeo URL de imagen -> SHA de blob de GitHub. No se comparte por
+// postMessage: como IndexedDB es del origen, no de la pestaña, el service
+// worker la lee directamente y siempre ve el último árbol importado/actualizado.
+const IMG_DB_NAME = "lector-md-datos";
+const IMG_STORE = "imagenesGithub";
+
+function abrirBaseDeDatosImagenes(){
+  return new Promise((resolve, reject) => {
+    if(!("indexedDB" in self)){ reject(new Error("Sin IndexedDB")); return; }
+    const req = indexedDB.open(IMG_DB_NAME);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(IMG_STORE)){
+        db.createObjectStore(IMG_STORE, {keyPath:"url"});
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error("No se pudo abrir IndexedDB."));
+  });
+}
+
+async function shaConocidoDe(url){
+  try{
+    const db = await abrirBaseDeDatosImagenes();
+    if(!db.objectStoreNames.contains(IMG_STORE)) return null;
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IMG_STORE, "readonly");
+      const req = tx.objectStore(IMG_STORE).get(url);
+      req.onsuccess = () => resolve(req.result ? req.result.sha : null);
+      req.onerror = () => reject(req.error);
+    });
+  }catch{
+    return null;
+  }
+}
+
+// Imagen de GitHub identificada por contenido: si el SHA de blob que trae el
+// árbol (guardado por la página al importar/actualizar un repo) coincide con
+// el que quedó grabado junto a la respuesta cacheada, se sirve del caché sin
+// tocar la red. Si cambió (o nunca se conoció), se pide de nuevo y se
+// re-cachea con el SHA nuevo. Así una imagen que no cambió no vuelve a pedirse
+// nunca, sin importar cuántas veces se reabra el documento.
+async function manejarImagenGithub(request){
+  const shaConocido = await shaConocidoDe(request.url);
+  const cache = await caches.open(IMG_CACHE);
+  const cacheada = await cache.match(request);
+
+  if(shaConocido && cacheada && cacheada.headers.get("x-lector-md-sha") === shaConocido){
+    return cacheada;
+  }
+
+  try{
+    const response = await fetch(request);
+    if(response.ok && shaConocido){
+      const cuerpo = await response.clone().arrayBuffer();
+      const headers = new Headers(response.headers);
+      headers.set("x-lector-md-sha", shaConocido);
+      cache.put(request, new Response(cuerpo, {
+        status: response.status,
+        statusText: response.statusText,
+        headers
+      }));
+    }
+    return response;
+  }catch(e){
+    if(cacheada) return cacheada;
+    throw e;
+  }
+}
 
 // La imagen de la ayuda entra acá y no en la revalidación perezosa: si no,
 // la primera vez que abrís la ayuda sin conexión saldría sin ilustración.
@@ -43,7 +119,8 @@ self.addEventListener("activate", (event) => {
               (k) =>
                 k.startsWith("lector-md-") &&
                 k !== CACHE_NAME &&
-                k !== SHARE_CACHE
+                k !== SHARE_CACHE &&
+                k !== IMG_CACHE
             )
             .map((k) => caches.delete(k))
         )
@@ -177,8 +254,16 @@ self.addEventListener("fetch", (event) => {
   // tiempo (import/actualizar desde GitHub) para no servir contenido viejo;
   // guardarlo en el caché del service worker solo acumularía entradas que
   // nunca se reutilizan.
-  if (url.hostname === "api.github.com" || url.hostname === "raw.githubusercontent.com") {
+  if (url.hostname === "api.github.com") {
     event.respondWith(fetch(request));
+    return;
+  }
+
+  // 3a-bis. Imágenes de GitHub (raw.githubusercontent.com): cache-first por
+  // SHA de blob. A diferencia de la API, acá sí conviene cachear agresivo,
+  // porque el contenido de una imagen ya viene identificado por su hash.
+  if (url.hostname === "raw.githubusercontent.com") {
+    event.respondWith(manejarImagenGithub(request));
     return;
   }
 
