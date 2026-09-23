@@ -238,6 +238,11 @@ stays cached. They follow the reader's theme and print with the light theme's
 colors. Offline, or with any other language, the block looks the same but in a
 single color.
 
+At the top right of every block there's a button that **copies the whole
+snippet** to the clipboard. It shows up on hover, and stays visible on touch
+screens. It copies the text exactly as written in the file, without the
+colors. It doesn't print.
+
 A block indented with four spaces also works, and stays uncolored:
 
 ~~~markdown

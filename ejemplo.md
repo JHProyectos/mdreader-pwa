@@ -238,6 +238,11 @@ guardado. Siguen el tema del lector y al imprimir salen con los del tema
 claro. Sin conexión, o con cualquier otro lenguaje, el bloque se ve igual pero
 en un solo color.
 
+Arriba a la derecha de cada bloque hay un botón para **copiar todo el código**
+al portapapeles. Aparece al pasar el mouse por encima, y en pantallas táctiles
+queda siempre a la vista. Copia el texto tal cual está escrito en el archivo,
+sin los colores. Al imprimir no sale.
+
 También sirve un bloque indentado con cuatro espacios, que queda sin colores:
 
 ~~~markdown

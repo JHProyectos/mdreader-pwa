@@ -343,6 +343,31 @@ pre{
 }
 pre code{background:none; padding:0; font-size:inherit}
 
+.bloque-codigo{position:relative; margin:0 0 var(--sp-blk)}
+.bloque-codigo > pre{margin:0}
+.bloque-codigo > .copiar{
+  position:absolute; top:6px; right:6px;
+  display:grid; place-items:center; width:28px; height:28px; padding:0;
+  border:1px solid var(--line); border-radius:4px;
+  background:var(--surface); color:var(--muted); cursor:pointer;
+  opacity:0; transition:opacity .12s, color .12s, border-color .12s;
+}
+.bloque-codigo:hover > .copiar,
+.bloque-codigo > .copiar:focus-visible{opacity:1}
+.bloque-codigo > .copiar:hover{color:var(--ink); border-color:var(--muted)}
+.copiar svg{display:block; width:15px; height:15px}
+.copiar .ic-ok,.copiar .ic-error{display:none}
+.bloque-codigo > .copiar[data-copiado="si"]{opacity:1; color:var(--good); border-color:var(--good)}
+.copiar[data-copiado="si"] .ic-copia{display:none}
+.copiar[data-copiado="si"] .ic-ok{display:inline}
+.bloque-codigo > .copiar[data-copiado="no"]{opacity:1; color:var(--warm); border-color:var(--warm)}
+.copiar[data-copiado="no"] .ic-copia{display:none}
+.copiar[data-copiado="no"] .ic-error{display:inline}
+@media (hover:none){
+  .bloque-codigo > .copiar{opacity:.55}
+  .bloque-codigo > pre{padding-right:44px}
+}
+
 .tablewrap{overflow-x:auto; margin:0 0 var(--sp-blk)}
 article > .tablewrap{
   --bleed:clamp(0px, (100cqw - 2 * var(--art-x) - 16px - 100%) / 2, 240px);
@@ -566,7 +591,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     --art-x:0px; --art-pad:0; --katex-disp:.08em;
   }
   @page{margin:14mm}
-  aside,.topbar,.scrim,.ampliar,.zoom{display:none!important}
+  aside,.topbar,.scrim,.ampliar,.zoom,.copiar{display:none!important}
 
   .diagram[data-diagram="listo"],.chart[data-chart="listo"]{--bleed:0px}
   .app{display:block; height:auto}
@@ -860,6 +885,9 @@ const TEXTOS = {
     vacioReset: "Área de trabajo vacía.<br><br>Volvé a usar <b>Abrir carpeta</b> cuando quieras. " +
       "Nada de esto borra archivos del disco.",
     enEsteArchivo: "En este archivo",
+    copiarCodigo: "Copiar todo el bloque",
+    codigoCopiado: "Copiado",
+    codigoNoCopiado: "No se pudo copiar",
     katexSum: (estado, ver) => ({
       espera: "fórmulas: modo simple (Unicode)", on: "fórmulas: KaTeX " + ver,
       off: "fórmulas: no se pudo cargar KaTeX, modo simple"
@@ -1027,6 +1055,9 @@ const TEXTOS = {
     vacioReset: "Workspace cleared.<br><br>Use <b>Open folder</b> again whenever you like. " +
       "None of this deletes files from disk.",
     enEsteArchivo: "In this file",
+    copiarCodigo: "Copy the whole block",
+    codigoCopiado: "Copied",
+    codigoNoCopiado: "Couldn't copy",
     katexSum: (estado, ver) => ({
       espera: "formulas: simple mode (Unicode)", on: "formulas: KaTeX " + ver,
       off: "formulas: KaTeX failed to load, simple mode"
@@ -1443,6 +1474,11 @@ que abrís un archivo con código de alguno de estos lenguajes; después queda
 guardado. Siguen el tema del lector y al imprimir salen con los del tema
 claro. Sin conexión, o con cualquier otro lenguaje, el bloque se ve igual pero
 en un solo color.
+
+Arriba a la derecha de cada bloque hay un botón para **copiar todo el código**
+al portapapeles. Aparece al pasar el mouse por encima, y en pantallas táctiles
+queda siempre a la vista. Copia el texto tal cual está escrito en el archivo,
+sin los colores. Al imprimir no sale.
 
 También sirve un bloque indentado con cuatro espacios, que queda sin colores:
 
@@ -2208,6 +2244,11 @@ first time you open a file with code in one of these languages; after that it
 stays cached. They follow the reader's theme and print with the light theme's
 colors. Offline, or with any other language, the block looks the same but in a
 single color.
+
+At the top right of every block there's a button that **copies the whole
+snippet** to the clipboard. It shows up on hover, and stays visible on touch
+screens. It copies the text exactly as written in the file, without the
+colors. It doesn't print.
 
 A block indented with four spaces also works, and stays uncolored:
 
@@ -3195,7 +3236,7 @@ function render(md){
         body.push(L[i].replace(/^ {4}/,""));
         i++;
       }
-      out.push("<pre><code>"+esc(body.join("\n"))+"</code></pre>");
+      out.push(conBotonCopiar("<pre><code>"+esc(body.join("\n"))+"</code></pre>"));
       continue;
     }
 
@@ -3322,11 +3363,34 @@ const LENGUAJES = {
   cs:"csharp", csharp:"csharp", "c#":"csharp"
 };
 
+// Botón "copiar todo", arriba a la derecha del bloque. Va en un envoltorio con
+// position:relative y no adentro del <pre>, que scrollea en horizontal.
+// Es solo ícono: así el buscador del documento no lo encuentra como texto.
+function botonCopiar(){
+  const rotulo = esc(t("copiarCodigo"));
+  return '<button type="button" class="copiar" data-t-title="copiarCodigo" '
+       +   'data-t-aria="copiarCodigo" title="'+rotulo+'" aria-label="'+rotulo+'">'
+       +   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+       +     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
+       +     '<g class="ic-copia">'
+       +       '<rect x="9" y="9" width="11" height="11" rx="2"/>'
+       +       '<path d="M5 15V6a2 2 0 0 1 2-2h8"/>'
+       +     '</g>'
+       +     '<path class="ic-ok" d="m5 12.5 4.5 4.5L19 7"/>'
+       +     '<g class="ic-error"><path d="m7 7 10 10"/><path d="m17 7-10 10"/></g>'
+       +   '</svg>'
+       + '</button>';
+}
+
+function conBotonCopiar(pre){
+  return '<div class="bloque-codigo">' + pre + botonCopiar() + '</div>';
+}
+
 function renderCodigo(src, lang){
   const gramatica = LENGUAJES[lang.toLowerCase()];
-  return gramatica
+  return conBotonCopiar(gramatica
     ? '<pre data-lang="'+gramatica+'"><code>'+esc(src)+"</code></pre>"
-    : "<pre><code>"+esc(src)+"</code></pre>";
+    : "<pre><code>"+esc(src)+"</code></pre>");
 }
 
 function renderGrafico(src){
@@ -3539,6 +3603,47 @@ async function pintarCodigo(){
     pre.dataset.resaltado = "";
   }
 }
+
+// El portapapeles moderno pide contexto seguro; abierto desde un pendrive
+// (file://) algunos navegadores lo niegan, así que queda el camino viejo.
+async function copiarAlPortapapeles(texto){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(texto);
+      return true;
+    }
+  }catch(e){  }
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = texto;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed; top:0; left:-9999px; opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  }catch(e){ return false; }
+}
+
+$("doc").addEventListener("click", async e => {
+  const btn = e.target.closest(".copiar");
+  if(!btn) return;
+  const code = btn.parentElement.querySelector("pre > code");
+  if(!code) return;
+
+  const avisar = (estado, clave) => {
+    if(estado) btn.dataset.copiado = estado;
+    else       delete btn.dataset.copiado;
+    btn.title = t(clave);
+    btn.setAttribute("aria-label", btn.title);
+  };
+  const ok = await copiarAlPortapapeles(code.textContent);
+  avisar(ok ? "si" : "no", ok ? "codigoCopiado" : "codigoNoCopiado");
+  clearTimeout(btn.volverTimer);
+  btn.volverTimer = setTimeout(() => avisar("", "copiarCodigo"), 1600);
+});
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const GRAF_MAX_SERIES = 8;
