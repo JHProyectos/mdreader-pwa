@@ -5240,6 +5240,16 @@ function textoDiagnostico(diag){
       : "• " + c.clave + ": archivo «" + c.nombre + "», " + (c.tipo || "sin tipo") + ", " + c.tamano + " bytes");
   }
   if(diag.error) lineas.push("Error: " + diag.error);
+  lineas.push("", "Cuerpo: " + (diag.bytes ?? "?") + " bytes, " + (diag.partes ? diag.partes.length : "?") + " partes");
+  for(const p of diag.partes || []) lineas.push("◦ " + p.encabezados + " → " + p.bytes + " bytes");
+  if(diag.errorCuerpo) lineas.push("Error del cuerpo: " + diag.errorCuerpo);
+  const chrome = (navigator.userAgent.match(/Chrome\/([\d.]+)/) || [])[1];
+  lineas.push(
+    "",
+    "Service worker: " + (diag.version || "anterior a v0.18.1"),
+    "Chrome: " + (chrome || navigator.userAgent),
+    "Abierto como app: " + (matchMedia("(display-mode: standalone)").matches ? "sí" : "no")
+  );
   return lineas.join("\n");
 }
 

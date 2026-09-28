@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.18.0";
+const VERSION = "v0.18.1";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -160,7 +160,36 @@ self.addEventListener("fetch", (event) => {
           contentType: request.headers.get("content-type") || "",
           contentLength: request.headers.get("content-length") || "",
           campos: [],
+          version: VERSION,
         };
+
+        // El cuerpo crudo, parte por parte, tal como lo armó Chrome: si una
+        // parte de archivo llegara malformada, formData() la perdería sin
+        // avisar. De cada parte se guardan sólo los encabezados y el tamaño.
+        try {
+          const cuerpo = await request.clone().arrayBuffer();
+          diag.bytes = cuerpo.byteLength;
+
+          const m = diag.contentType.match(/boundary=("?)([^";]+)\1/i);
+          if (m) {
+            const crudo = new TextDecoder("iso-8859-1").decode(cuerpo);
+            diag.partes = crudo
+              .split("--" + m[2])
+              .slice(1, -1)
+              .map((parte) => {
+                const corte = parte.indexOf("\r\n\r\n");
+                const encabezados = (corte >= 0 ? parte.slice(0, corte) : parte)
+                  .trim()
+                  .replace(/\r\n/g, " | ");
+                return {
+                  encabezados: encabezados.slice(0, 300),
+                  bytes: corte >= 0 ? parte.length - corte - 6 : 0,
+                };
+              });
+          }
+        } catch (e) {
+          diag.errorCuerpo = String(e);
+        }
 
         try {
           const cache = await caches.open(SHARE_CACHE);
