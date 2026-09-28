@@ -24,8 +24,8 @@ leer tus `.md` en cualquier computadora con navegador.
 Instalado como app tiene dos cosas más:
 
 - En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
-  Drive u otra app y se abre acá. Desde el chat de WhatsApp no: ahí no llega el
-  archivo. Descargalo y compartilo desde el explorador (abajo, el paso a paso).
+  Drive u otra app y se abre acá. Desde el chat de WhatsApp no llega el archivo;
+  para eso, mirá *Archivos que te mandan por WhatsApp*, más abajo.
 - En **escritorio** aparece en *Abrir con*.
 
 ## Todo lo que hace, de un vistazo
@@ -59,23 +59,32 @@ Tenés tres caminos, todos equivalentes:
 2. **Abrir archivos sueltos** — elegís uno o varios archivos puntuales.
 3. **Arrastrar y soltar** — tirás los archivos sobre la zona de lectura.
 
+Si en la carpeta aparecen archivos nuevos, **↻ Actualizar carpeta**, debajo de
+**Abrir carpeta**, vuelve a abrir el selector: elegís la misma carpeta y se suman.
+
 En pantallas chicas el panel lateral se esconde; el botón **☰** de la barra
 superior lo abre.
+
+### Archivos que te mandan por WhatsApp
+
+WhatsApp guarda los documentos en una carpeta del celular. Abrila una vez desde el
+lector y después sólo hace falta actualizarla:
+
+1. En el chat, tocá el archivo para descargarlo.
+2. En el lector, tocá **Abrir carpeta** y entrá a **Almacenamiento interno** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tocá
+   **Usar esta carpeta** y confirmá.
+3. Cuando te llegue otro, descargalo, tocá **↻ Actualizar carpeta** (en el panel
+   **☰**, debajo de **Abrir carpeta**) y elegí la misma carpeta.
+
+Para un solo archivo también sirve **Abrir archivos sueltos**: lo buscás en esa
+misma carpeta.
 
 ### Desde otra app, en el celular
 
 En el explorador de archivos, tocá el ícono de **compartir** del archivo y
-elegí **Lector MD** en la lista.
-
-Si te lo mandaron por WhatsApp, no lo compartas desde el chat: al lector sólo le
-llega el nombre del archivo, no el contenido. En cambio:
-
-1. En el chat de WhatsApp, tocá el archivo sólo para descargarlo.
-2. Salí de WhatsApp, abrí el explorador de archivos del celular y entrá a
-   **Almacenamiento interno** ›
-   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
-3. Ahí, en el explorador, mantené apretado el archivo, tocá **Compartir** y elegí
-   **Lector MD**.
+elegí **Lector MD** en la lista. Desde WhatsApp no funciona: para eso está el
+paso a paso de arriba.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.

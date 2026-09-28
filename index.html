@@ -688,6 +688,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <summary data-t="abrirArchivosSum"></summary>
       <div class="actions">
         <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec"></button>
+        <button class="btn" id="carpetaActualizar" data-t="carpetaActualizarBtn" data-t-title="carpetaActualizarTitle" hidden></button>
         <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
         <button class="btn" id="pickGithub" data-t="importarGithub"></button>
         <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
@@ -875,6 +876,8 @@ const TEXTOS = {
       ": puede que falten algunos.",
     ghErrSinArchivos: "No encontré archivos .md, .markdown o .txt en ese repositorio.",
     ghErrGenerico: "No se pudo completar la importación.",
+    carpetaActualizarBtn: "↻ Actualizar carpeta",
+    carpetaActualizarTitle: "Volvé a elegir la misma carpeta para sumar los archivos que llegaron después.",
     ghActualizarBtn: "↻ Actualizar",
     ghActualizando: "↻ Actualizando…",
     ghErrActualizar: "Algunos repositorios de GitHub no se pudieron actualizar. Revisá la consola " +
@@ -918,13 +921,14 @@ const TEXTOS = {
     dropBig: "Arrastrá tus archivos acá",
     dropTxt: "O elegilos directamente. Nada sale de tu máquina: el archivo se lee y se muestra " +
       "localmente, sin subir nada a ningún lado.",
-    tipMovilTitulo: "¿Te mandaron un <code>.md</code> por WhatsApp?",
-    tipMovil1: "En el chat de WhatsApp, tocá el archivo sólo para descargarlo. No lo compartas desde ahí.",
-    tipMovil2: "Salí de WhatsApp, abrí el explorador de archivos del celular y entrá a <b>Almacenamiento interno</b> › " +
-      "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>.",
-    tipMovil3: "Ahí, en el explorador, mantené apretado el archivo, tocá <b>Compartir</b> y elegí <b>Lector MD</b>.",
-    tipMovilFine: "Si lo compartís desde el chat de WhatsApp, al lector sólo le llega el nombre del archivo, " +
-      "no el contenido. Por eso el paso 3 es desde el explorador.",
+    tipMovilTitulo: "¿Te mandan archivos <code>.md</code> por WhatsApp?",
+    tipMovil1: "En el chat, tocá el archivo para descargarlo.",
+    tipMovil2: "Acá, tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › " +
+      "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. " +
+      "Tocá <b>Usar esta carpeta</b> y confirmá.",
+    tipMovil3: "Cuando te llegue otro, descargalo, tocá <b>↻&nbsp;Actualizar carpeta</b> (en el panel <b>☰</b>, debajo de <b>Abrir carpeta</b>) " +
+      "y elegí la misma carpeta.",
+    tipMovilFine: "Para un solo archivo también sirve <b>Abrir archivos sueltos</b>: buscalo en esa misma carpeta.",
 
     abrirSueltosIOS: "Abrir archivos",
     vacioInicialIOS: "Todavía no cargaste nada.<br><br>Usá <b>Abrir archivos</b> y buscá tus " +
@@ -962,7 +966,7 @@ const TEXTOS = {
     alertSinMd: "No encontré archivos .md en lo que elegiste.",
     alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
     alertBinario: nombres => "No son texto, así que no se abrieron: " + nombres + ".\n\nSi vienen de Google Drive, probablemente sean documentos de Google con nombre .md: Drive los entrega como PDF. Abrilos en Documentos y usá Archivo → Descargar → Markdown (.md).",
-    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nSi viene de WhatsApp: descargalo en el chat, salí de WhatsApp y, en el explorador de archivos, entrá a Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. Ahí mantené apretado el archivo, tocá Compartir y elegí Lector MD.",
+    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nSi viene de WhatsApp: descargalo en el chat y, acá, tocá «Abrir carpeta» y elegí Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. Cuando te llegue otro, tocá «↻ Actualizar carpeta».",
     diagCompartir: "Diagnóstico: esto es lo que llegó al lector.",
     alertPersistencia: "Los archivos se abrieron, pero el navegador no pudo guardar la sesión " +
       "local. La app no aplicará una actualización mientras haya documentos abiertos.",
@@ -1050,6 +1054,8 @@ const TEXTOS = {
       "some files may be missing.",
     ghErrSinArchivos: "No .md, .markdown or .txt files were found in that repository.",
     ghErrGenerico: "The import could not be completed.",
+    carpetaActualizarBtn: "↻ Refresh folder",
+    carpetaActualizarTitle: "Pick the same folder again to add the files that arrived since.",
     ghActualizarBtn: "↻ Refresh",
     ghActualizando: "↻ Refreshing…",
     ghErrActualizar: "Some GitHub repositories could not be refreshed. Check the console for details.",
@@ -1091,13 +1097,14 @@ const TEXTOS = {
     dropBig: "Drop your files here",
     dropTxt: "Or pick them directly. Nothing leaves your machine: the file is read and shown " +
       "locally, without uploading anything anywhere.",
-    tipMovilTitulo: "Got a <code>.md</code> on WhatsApp?",
-    tipMovil1: "In the WhatsApp chat, tap the file only to download it. Don't share it from there.",
-    tipMovil2: "Leave WhatsApp, open your phone's file manager and go to <b>Internal storage</b> › " +
-      "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>.",
-    tipMovil3: "There, in the file manager, long-press the file, tap <b>Share</b> and choose <b>Lector MD</b>.",
-    tipMovilFine: "If you share it from the WhatsApp chat, the reader only gets the file's name, " +
-      "not its content. That's why step 3 happens in the file manager.",
+    tipMovilTitulo: "Getting <code>.md</code> files on WhatsApp?",
+    tipMovil1: "In the chat, tap the file to download it.",
+    tipMovil2: "Here, tap <b>Open folder</b> and go to <b>Internal storage</b> › " +
+      "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. " +
+      "Tap <b>Use this folder</b> and confirm.",
+    tipMovil3: "When another one arrives, download it, tap <b>↻&nbsp;Refresh folder</b> (in the <b>☰</b> panel, below <b>Open folder</b>) " +
+      "and pick the same folder.",
+    tipMovilFine: "For a single file, <b>Open individual files</b> works too: look for it in that same folder.",
 
     abrirSueltosIOS: "Open files",
     vacioInicialIOS: "Nothing loaded yet.<br><br>Tap <b>Open files</b> and look for your " +
@@ -1135,7 +1142,7 @@ const TEXTOS = {
     alertSinMd: "No .md files found in what you picked.",
     alertNoLeidos: "None of the selected files could be read.",
     alertBinario: names => "These aren't text, so they weren't opened: " + names + ".\n\nIf they come from Google Drive, they're probably Google Docs named .md: Drive delivers them as PDF. Open them in Docs and use File → Download → Markdown (.md).",
-    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nIf it comes from WhatsApp: download it in the chat, leave WhatsApp and, in the file manager, go to Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. There, long-press the file, tap Share and choose Lector MD.",
+    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nIf it comes from WhatsApp: download it in the chat and, here, tap \"Open folder\" and pick Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. When another one arrives, tap \"↻ Refresh folder\".",
     diagCompartir: "Diagnostics: this is what reached the reader.",
     alertPersistencia: "The files were opened, but the browser couldn't save the local session. " +
       "The app won't apply an update while documents are open.",
@@ -1270,8 +1277,8 @@ leer tus `.md` en cualquier computadora con navegador.
 Instalado como app tiene dos cosas más:
 
 - En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
-  Drive u otra app y se abre acá. Desde el chat de WhatsApp no: ahí no llega el
-  archivo. Descargalo y compartilo desde el explorador (abajo, el paso a paso).
+  Drive u otra app y se abre acá. Desde el chat de WhatsApp no llega el archivo;
+  para eso, mirá *Archivos que te mandan por WhatsApp*, más abajo.
 - En **escritorio** aparece en *Abrir con*.
 
 ## Todo lo que hace, de un vistazo
@@ -1305,23 +1312,32 @@ Tenés tres caminos, todos equivalentes:
 2. **Abrir archivos sueltos** — elegís uno o varios archivos puntuales.
 3. **Arrastrar y soltar** — tirás los archivos sobre la zona de lectura.
 
+Si en la carpeta aparecen archivos nuevos, **↻ Actualizar carpeta**, debajo de
+**Abrir carpeta**, vuelve a abrir el selector: elegís la misma carpeta y se suman.
+
 En pantallas chicas el panel lateral se esconde; el botón **☰** de la barra
 superior lo abre.
+
+### Archivos que te mandan por WhatsApp
+
+WhatsApp guarda los documentos en una carpeta del celular. Abrila una vez desde el
+lector y después sólo hace falta actualizarla:
+
+1. En el chat, tocá el archivo para descargarlo.
+2. En el lector, tocá **Abrir carpeta** y entrá a **Almacenamiento interno** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tocá
+   **Usar esta carpeta** y confirmá.
+3. Cuando te llegue otro, descargalo, tocá **↻ Actualizar carpeta** (en el panel
+   **☰**, debajo de **Abrir carpeta**) y elegí la misma carpeta.
+
+Para un solo archivo también sirve **Abrir archivos sueltos**: lo buscás en esa
+misma carpeta.
 
 ### Desde otra app, en el celular
 
 En el explorador de archivos, tocá el ícono de **compartir** del archivo y
-elegí **Lector MD** en la lista.
-
-Si te lo mandaron por WhatsApp, no lo compartas desde el chat: al lector sólo le
-llega el nombre del archivo, no el contenido. En cambio:
-
-1. En el chat de WhatsApp, tocá el archivo sólo para descargarlo.
-2. Salí de WhatsApp, abrí el explorador de archivos del celular y entrá a
-   **Almacenamiento interno** ›
-   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
-3. Ahí, en el explorador, mantené apretado el archivo, tocá **Compartir** y elegí
-   **Lector MD**.
+elegí **Lector MD** en la lista. Desde WhatsApp no funciona: para eso está el
+paso a paso de arriba.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.
@@ -2051,8 +2067,8 @@ files on any computer with a browser.
 Installed as an app, it does two more things:
 
 - On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
-  Drive or another app and it opens here. Not from the WhatsApp chat: the file doesn't
-  arrive. Download it and share it from the file manager (step by step below).
+  Drive or another app and it opens here. From the WhatsApp chat the file doesn't
+  arrive; for that, see *Files you get on WhatsApp* below.
 - On **desktop** it shows up in *Open with*.
 
 ## Everything it does, at a glance
@@ -2086,23 +2102,32 @@ There are three ways, all equivalent:
 2. **Open individual files** — pick one or more specific files.
 3. **Drag and drop** — drop the files onto the reading area.
 
+If new files show up in the folder, **↻ Refresh folder**, below **Open folder**,
+opens the picker again: pick the same folder and they're added.
+
 On small screens the side panel is hidden; the **☰** button in the top bar
 opens it.
+
+### Files you get on WhatsApp
+
+WhatsApp keeps documents in a folder on the phone. Open it once from the reader
+and after that you only need to refresh it:
+
+1. In the chat, tap the file to download it.
+2. In the reader, tap **Open folder** and go to **Internal storage** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tap
+   **Use this folder** and confirm.
+3. When another one arrives, download it, tap **↻ Refresh folder** (in the **☰**
+   panel, below **Open folder**) and pick the same folder.
+
+For a single file, **Open individual files** works too: look for it in that
+same folder.
 
 ### From another app, on your phone
 
 In the file manager, tap the file's **share** icon and choose
-**Lector MD** from the list.
-
-If you got it on WhatsApp, don't share it from the chat: the reader only gets
-the file's name, not its content. Instead:
-
-1. In the WhatsApp chat, tap the file only to download it.
-2. Leave WhatsApp, open your phone's file manager and go to
-   **Internal storage** ›
-   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
-3. There, in the file manager, long-press the file, tap **Share** and choose
-   **Lector MD**.
+**Lector MD** from the list. It doesn't work from WhatsApp: for that, use the
+steps above.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.
@@ -2811,6 +2836,18 @@ const DOCS = [];
 let current = -1;
 const REPOS_GITHUB = [];
 
+// Carpetas abiertas con "Abrir carpeta" (el primer tramo de webkitRelativePath).
+// El selector sólo entrega una foto de la carpeta y no deja volver a leerla,
+// así que "Actualizar carpeta" vuelve a abrirlo para elegir la misma.
+const CARPETAS = [];
+
+function podarCarpetas(){
+  for(let i = CARPETAS.length - 1; i >= 0; i--){
+    if(!DOCS.some(d => d.path.startsWith(CARPETAS[i] + "/"))) CARPETAS.splice(i, 1);
+  }
+  $("carpetaActualizar").hidden = !CARPETAS.length;
+}
+
 const $ = id => document.getElementById(id);
 
 const DB_NAME = "lector-md-datos";
@@ -2923,6 +2960,7 @@ function crearEstadoPersistible(){
     currentPath: activo >= 0 && DOCS[activo] ? DOCS[activo].path : null,
     scrollPorRuta: posiciones,
     reposGithub: REPOS_GITHUB,
+    carpetas: CARPETAS,
     guardadoEn: new Date().toISOString()
   };
 }
@@ -3063,6 +3101,11 @@ async function restaurarWorkspace(){
           typeof r.rama === "string" && typeof r.prefijo === "string"
         ));
         $("ghActualizar").hidden = !REPOS_GITHUB.length;
+      }
+
+      if(Array.isArray(state && state.carpetas)){
+        CARPETAS.splice(0, CARPETAS.length, ...state.carpetas.filter(c => typeof c === "string" && c));
+        podarCarpetas();
       }
 
       const recordado = state && typeof state.currentPath === "string"
@@ -4810,6 +4853,8 @@ function removeDoc(i){
 
   if(!DOCS.length){ resetWorkspace(); return; }
 
+  podarCarpetas();
+
   if(i === current){
 
     open(Math.min(i, DOCS.length - 1), {guardarAnterior:false});
@@ -4828,6 +4873,7 @@ function resetWorkspace(persistir = true){
   DOCS.length = 0;
   current = -1;
   REPOS_GITHUB.length = 0;
+  CARPETAS.length = 0;
   Object.keys(scrollPorRuta).forEach(path => delete scrollPorRuta[path]);
 
   if(viendoAyuda) cerrarAyuda();
@@ -4835,6 +4881,7 @@ function resetWorkspace(persistir = true){
   $("listHd").hidden = true;
   $("fileCount").textContent = "";
   $("ghActualizar").hidden = true;
+  $("carpetaActualizar").hidden = true;
   ocultarAvisoRateLimit();
 
   $("files").innerHTML = '<p class="empty" data-t="vacioReset">' + t("vacioReset") + "</p>";
@@ -5016,11 +5063,23 @@ $("pickFiles").onclick  = () => $("inFiles").click();
 $("pickFolder2").onclick = () => $("inFolder").click();
 $("pickFiles2").onclick  = () => $("inFiles").click();
 
-$("inFolder").onchange = e => {
+$("inFolder").onchange = async e => {
   const files = [...e.target.files];
   e.target.value = "";
-  void addFiles(files);
+  await addFiles(files);
+
+  const raices = new Set(files.map(f => (f.webkitRelativePath || "").split("/")[0]).filter(Boolean));
+  let nuevas = false;
+  for(const r of raices){
+    if(!CARPETAS.includes(r) && DOCS.some(d => d.path.startsWith(r + "/"))){
+      CARPETAS.push(r);
+      nuevas = true;
+    }
+  }
+  $("carpetaActualizar").hidden = !CARPETAS.length;
+  if(nuevas) void guardarEstadoPersistido();
 };
+$("carpetaActualizar").onclick = () => $("inFolder").click();
 $("inFiles").onchange = e => {
   const files = [...e.target.files];
   e.target.value = "";

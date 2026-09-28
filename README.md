@@ -24,7 +24,7 @@ A standalone, offline-first Markdown reader, installable as a PWA. Single HTML f
 - **In-document table of contents.** A `[TOC]` line is replaced by a linked list of the document's headings. Unlike the side panel, it prints.
 - **Open entire folders.** Browse multiple `.md` files from a project in a side panel, without uploading anything to a server.
 - **Import from a GitHub repo.** Point it at `owner/repo` (or paste the repo URL) and it pulls every `.md`/`.markdown`/`.txt` file from the latest commit of a branch — no git clone, no history. Private repos work too, with a personal access token you paste once and can choose to remember in the browser. A **↻ Actualizar** button re-fetches the latest commit on demand.
-- **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from a file manager, Drive, or Telegram straight into the reader. WhatsApp is the exception: it doesn't hand over the file (see known limitations). On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
+- **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from a file manager, Drive, or Telegram straight into the reader. WhatsApp is the exception: it doesn't hand over the file, so its files are opened with **Open folder** instead (see below). On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
 - **Keeps your workspace.** Loaded documents, the selected file, and the reading position are stored locally and restored after closing, restarting, or updating the app. A document stays loaded until you remove it explicitly.
 - **Updates itself.** New deploys reach installed copies automatically — no cache clearing, no reinstalling. See [Updates](#updates).
 - **Dedicated print styles.** A separate `@media print` stylesheet so what you read on screen prints cleanly.
@@ -39,7 +39,7 @@ Online Markdown readers usually require uploading the file to some service, or a
 
 Try it right now at **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyectos.com.ar)**, or open `index.html` locally in any modern browser — double-click it, or "Open with Chrome" from the file explorer. From there:
 
-- **Open folder** — select an entire folder; it lists every `.md`/`.markdown`/`.txt` file it contains.
+- **Open folder** — select an entire folder; it lists every `.md`/`.markdown`/`.txt` file it contains. **↻ Refresh folder** opens the picker again to add files that arrived since: the browser only hands over a snapshot of the folder, so the reader can't re-read it on its own.
 - **Open individual files** — select one or several specific files.
 - **Drag and drop** — drop files anywhere on the reading pane.
 
@@ -78,7 +78,7 @@ If you deploy somewhere other than Vercel, port the two rules in `vercel.json`: 
 ### Install on your phone
 
 1. With the URL open in Chrome, tap the **⋮ menu → "Install app"** (or the banner Chrome offers automatically).
-2. Once installed, find a `.md` file in a file manager or Drive and tap **Share**. For a file you got on WhatsApp, don't share it from the chat (the file doesn't arrive): download it there, then in the file manager go to `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents` and share it from there.
+2. Once installed, find a `.md` file in a file manager or Drive and tap **Share**. For files you get on WhatsApp, download them in the chat, then in the reader tap **Open folder** and pick `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. When a new one arrives, tap **↻ Refresh folder** and pick the same folder.
 3. Choose **Lector MD** from the share sheet. The file opens straight in the reader.
 
 On Android the entry point is **Share**, not "Open with" — Chrome for Android does not implement the File Handling API, so an installed PWA cannot register itself as a handler for a file extension there.
@@ -99,7 +99,7 @@ Installing matters more here than on other platforms: WebKit wipes a plain websi
 - **Android: Share sheet only, not "Open with".** The File Handling API is desktop-only. Getting into the "Open with" menu on Android would require packaging the PWA as a TWA/APK, which this repo does not do.
 - **Desktop "Open with" requires Chromium ≥102.** Firefox and Safari do not implement the File Handling API.
 - **`.md` MIME types are inconsistent.** Android apps report Markdown files under several types, so `share_target` accepts a broad list including `application/octet-stream`. The trade-off is that the reader may also appear when sharing unrelated binary files.
-- **WhatsApp doesn't hand files over to the reader.** Sharing from a WhatsApp chat delivers only the subject and the caption, never the file, not even for a photo (checked with Chrome 153 in September 2026). The reader says so in a notice. The way around it is to download the file in the chat and share it from the file manager, in `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+- **WhatsApp doesn't hand files over to the reader.** Sharing from a WhatsApp chat delivers only the subject and the caption, never the file, not even for a photo (checked with Chrome 153 in September 2026). The reader says so in a notice. The way around it is to download the file in the chat and open the folder where WhatsApp keeps documents, `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`, with **Open folder**; **↻ Refresh folder** picks up the ones that arrive later.
 - **Google Docs named `.md` arrive as PDF.** If Drive converted an uploaded `.md` into a Google Doc, Drive delivers it as a PDF. The reader detects it and doesn't open it; the fix is **File → Download → Markdown (.md)** in Docs.
 
 ## Updates
@@ -199,7 +199,7 @@ Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un 
 - **Índice dentro del documento.** Una línea `[TOC]` se reemplaza por la lista de encabezados con enlaces a cada sección. A diferencia del panel lateral, sale impresa.
 - **Abrir carpetas completas.** Navegá varios `.md` de un proyecto desde un panel lateral, sin subir nada a un servidor.
 - **Importar un repo de GitHub.** Apuntalo a `usuario/repo` (o pegá la URL) y trae todos los `.md`/`.markdown`/`.txt` del último commit de una rama — sin clonar, sin historial. También funciona con repos privados, con un personal access token que se pega una vez y se puede recordar en el navegador. Un botón **↻ Actualizar** vuelve a traer el último commit cuando quieras.
-- **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde el explorador, Drive o Telegram directo al lector. WhatsApp es la excepción: no entrega el archivo (ver limitaciones conocidas). En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
+- **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde el explorador, Drive o Telegram directo al lector. WhatsApp es la excepción: no entrega el archivo, así que sus archivos se abren con **Abrir carpeta** (ver más abajo). En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
 - **Conserva el área de trabajo.** Los documentos cargados, el archivo seleccionado y la posición de lectura se guardan localmente y se restauran después de cerrar, reiniciar o actualizar la app. Un documento permanece cargado hasta que lo quitás explícitamente.
 - **Se actualiza sola.** Los deploys nuevos llegan solos a las copias instaladas, sin limpiar caché ni reinstalar. Ver [Actualizaciones](#actualizaciones).
 - **Impresión con estilos dedicados.** Hoja de estilos `@media print` propia para que lo que se lee en pantalla se imprima limpio.
@@ -214,7 +214,7 @@ Los lectores de Markdown online suelen requerir subir el archivo a algún servic
 
 Probalo ahora mismo en **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyectos.com.ar)**, o abrí `index.html` localmente en cualquier navegador moderno — doble clic, o "Ver con Chrome" desde el explorador de archivos. Desde ahí:
 
-- **Abrir carpeta** — selecciona una carpeta completa; lista todos los `.md`/`.markdown`/`.txt` que contenga.
+- **Abrir carpeta** — selecciona una carpeta completa; lista todos los `.md`/`.markdown`/`.txt` que contenga. **↻ Actualizar carpeta** vuelve a abrir el selector para sumar los archivos que llegaron después: el navegador sólo entrega una foto de la carpeta, así que el lector no puede releerla por su cuenta.
 - **Abrir archivos sueltos** — selecciona uno o varios archivos puntuales.
 - **Arrastrar y soltar** — soltá los archivos sobre el panel de lectura.
 
@@ -253,7 +253,7 @@ Si lo desplegás fuera de Vercel, replicá las dos reglas de `vercel.json`: el h
 ### Instalar en el celular
 
 1. Con la URL abierta en Chrome, tocá el menú **⋮ → "Instalar app"** (o el banner que ofrece Chrome automáticamente).
-2. Una vez instalada, buscá un `.md` en el explorador de archivos o en Drive y tocá **Compartir**. Si te lo mandaron por WhatsApp, no lo compartas desde el chat (el archivo no llega): descargalo ahí y, en el explorador, entrá a `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents` y compartilo desde ahí.
+2. Una vez instalada, buscá un `.md` en el explorador de archivos o en Drive y tocá **Compartir**. Para los archivos que te mandan por WhatsApp, descargalos en el chat y, en el lector, tocá **Abrir carpeta** y elegí `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Cuando llegue uno nuevo, tocá **↻ Actualizar carpeta** y elegí la misma carpeta.
 3. Elegí **Lector MD** en el menú de compartir. El archivo se abre directo en el lector.
 
 En Android el punto de entrada es **Compartir**, no "Abrir con": Chrome para Android no implementa la File Handling API, así que una PWA instalada no puede registrarse como handler de una extensión de archivo.
@@ -274,7 +274,7 @@ Acá instalarla pesa más que en otras plataformas: WebKit borra el IndexedDB y 
 - **Android: sólo menú Compartir, no "Abrir con".** La File Handling API es exclusiva de escritorio. Entrar al menú "Abrir con" en Android requeriría empaquetar la PWA como TWA/APK, cosa que este repo no hace.
 - **El "Abrir con" de escritorio requiere Chromium ≥102.** Firefox y Safari no implementan la File Handling API.
 - **Los MIME types de `.md` son inconsistentes.** Las apps de Android reportan los Markdown con varios tipos distintos, así que `share_target` acepta una lista amplia que incluye `application/octet-stream`. El costo es que el lector puede aparecer también al compartir otros archivos binarios.
-- **WhatsApp no le entrega archivos al lector.** Al compartir desde un chat de WhatsApp sólo llegan el asunto y el epígrafe, nunca el archivo, ni siquiera una foto (probado con Chrome 153 en septiembre de 2026). El lector lo avisa. La salida es descargar el archivo en el chat y compartirlo desde el explorador, en `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+- **WhatsApp no le entrega archivos al lector.** Al compartir desde un chat de WhatsApp sólo llegan el asunto y el epígrafe, nunca el archivo, ni siquiera una foto (probado con Chrome 153 en septiembre de 2026). El lector lo avisa. La salida es descargar el archivo en el chat y abrir con **Abrir carpeta** la carpeta donde WhatsApp guarda los documentos, `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`; **↻ Actualizar carpeta** suma los que lleguen después.
 - **Los documentos de Google con nombre `.md` llegan como PDF.** Si Drive convirtió un `.md` subido en un documento de Google, lo entrega como PDF. El lector lo detecta y no lo abre; la solución es **Archivo → Descargar → Markdown (.md)** en Documentos.
 
 ## Actualizaciones

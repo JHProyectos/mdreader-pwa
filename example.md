@@ -24,8 +24,8 @@ files on any computer with a browser.
 Installed as an app, it does two more things:
 
 - On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
-  Drive or another app and it opens here. Not from the WhatsApp chat: the file doesn't
-  arrive. Download it and share it from the file manager (step by step below).
+  Drive or another app and it opens here. From the WhatsApp chat the file doesn't
+  arrive; for that, see *Files you get on WhatsApp* below.
 - On **desktop** it shows up in *Open with*.
 
 ## Everything it does, at a glance
@@ -59,23 +59,32 @@ There are three ways, all equivalent:
 2. **Open individual files** — pick one or more specific files.
 3. **Drag and drop** — drop the files onto the reading area.
 
+If new files show up in the folder, **↻ Refresh folder**, below **Open folder**,
+opens the picker again: pick the same folder and they're added.
+
 On small screens the side panel is hidden; the **☰** button in the top bar
 opens it.
+
+### Files you get on WhatsApp
+
+WhatsApp keeps documents in a folder on the phone. Open it once from the reader
+and after that you only need to refresh it:
+
+1. In the chat, tap the file to download it.
+2. In the reader, tap **Open folder** and go to **Internal storage** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tap
+   **Use this folder** and confirm.
+3. When another one arrives, download it, tap **↻ Refresh folder** (in the **☰**
+   panel, below **Open folder**) and pick the same folder.
+
+For a single file, **Open individual files** works too: look for it in that
+same folder.
 
 ### From another app, on your phone
 
 In the file manager, tap the file's **share** icon and choose
-**Lector MD** from the list.
-
-If you got it on WhatsApp, don't share it from the chat: the reader only gets
-the file's name, not its content. Instead:
-
-1. In the WhatsApp chat, tap the file only to download it.
-2. Leave WhatsApp, open your phone's file manager and go to
-   **Internal storage** ›
-   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
-3. There, in the file manager, long-press the file, tap **Share** and choose
-   **Lector MD**.
+**Lector MD** from the list. It doesn't work from WhatsApp: for that, use the
+steps above.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.
