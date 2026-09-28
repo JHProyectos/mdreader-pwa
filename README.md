@@ -24,7 +24,7 @@ A standalone, offline-first Markdown reader, installable as a PWA. Single HTML f
 - **In-document table of contents.** A `[TOC]` line is replaced by a linked list of the document's headings. Unlike the side panel, it prints.
 - **Open entire folders.** Browse multiple `.md` files from a project in a side panel, without uploading anything to a server.
 - **Import from a GitHub repo.** Point it at `owner/repo` (or paste the repo URL) and it pulls every `.md`/`.markdown`/`.txt` file from the latest commit of a branch — no git clone, no history. Private repos work too, with a personal access token you paste once and can choose to remember in the browser. A **↻ Actualizar** button re-fetches the latest commit on demand.
-- **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from WhatsApp, Drive, Telegram, or a file manager straight into the reader. On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
+- **Open files from other apps.** On **Android**, the installed app appears in the system **Share** sheet — send a `.md` from a file manager, Drive, or Telegram straight into the reader. WhatsApp is the exception: it doesn't hand over the file (see known limitations). On **desktop** (Windows, macOS, Linux, ChromeOS), it registers as a file handler and appears in the **"Open with"** menu.
 - **Keeps your workspace.** Loaded documents, the selected file, and the reading position are stored locally and restored after closing, restarting, or updating the app. A document stays loaded until you remove it explicitly.
 - **Updates itself.** New deploys reach installed copies automatically — no cache clearing, no reinstalling. See [Updates](#updates).
 - **Dedicated print styles.** A separate `@media print` stylesheet so what you read on screen prints cleanly.
@@ -78,7 +78,7 @@ If you deploy somewhere other than Vercel, port the two rules in `vercel.json`: 
 ### Install on your phone
 
 1. With the URL open in Chrome, tap the **⋮ menu → "Install app"** (or the banner Chrome offers automatically).
-2. Once installed, find a `.md` file in WhatsApp, Drive, or a file manager and tap **Share**.
+2. Once installed, find a `.md` file in a file manager or Drive and tap **Share**. For a file you got on WhatsApp, don't share it from the chat (the file doesn't arrive): download it there, then in the file manager go to `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents` and share it from there.
 3. Choose **Lector MD** from the share sheet. The file opens straight in the reader.
 
 On Android the entry point is **Share**, not "Open with" — Chrome for Android does not implement the File Handling API, so an installed PWA cannot register itself as a handler for a file extension there.
@@ -99,6 +99,8 @@ Installing matters more here than on other platforms: WebKit wipes a plain websi
 - **Android: Share sheet only, not "Open with".** The File Handling API is desktop-only. Getting into the "Open with" menu on Android would require packaging the PWA as a TWA/APK, which this repo does not do.
 - **Desktop "Open with" requires Chromium ≥102.** Firefox and Safari do not implement the File Handling API.
 - **`.md` MIME types are inconsistent.** Android apps report Markdown files under several types, so `share_target` accepts a broad list including `application/octet-stream`. The trade-off is that the reader may also appear when sharing unrelated binary files.
+- **WhatsApp doesn't hand files over to the reader.** Sharing from a WhatsApp chat delivers only the subject and the caption, never the file, not even for a photo (checked with Chrome 153 in September 2026). The reader says so in a notice. The way around it is to download the file in the chat and share it from the file manager, in `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+- **Google Docs named `.md` arrive as PDF.** If Drive converted an uploaded `.md` into a Google Doc, Drive delivers it as a PDF. The reader detects it and doesn't open it; the fix is **File → Download → Markdown (.md)** in Docs.
 
 ## Updates
 
@@ -138,7 +140,7 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 
 ## Technical notes
 
-- **Shared files travel through a cache.** Android delivers a shared file as a `POST` to `/share-target`, but static hosting can't accept a POST. The service worker intercepts it, writes the file into a short-lived cache, and redirects to the app, which picks it up and empties the cache. The manifest also declares `title` and `text`: apps like WhatsApp send a caption along with the file, and without those params Chrome turns it into an extra "shared text" file that hides the real one. The text is only used when no file arrives, and a file without a `.md` extension gets one added.
+- **Shared files travel through a cache.** Android delivers a shared file as a `POST` to `/share-target`, but static hosting can't accept a POST. The service worker intercepts it, writes the file into a short-lived cache, and redirects to the app, which picks it up and empties the cache. The manifest also declares `title` and `text`: apps like WhatsApp send a subject and a caption, and without those params Chrome turns them into a fake "shared text" file that looks like the document. The text is only opened as a document when no file arrives and it looks like content (several lines, or long); a bare file name only triggers a notice. A file without a `.md` extension gets one added.
 - **The open workspace is stored locally in IndexedDB.** Markdown contents are never sent to the server. The browser may remove them only if the user clears site data or the device removes site storage; the app requests persistent storage when the browser supports it.
 - **The maskable icon** has its content scaled to 80% and centered, inside the "safe zone" Android respects when cropping icons into different shapes (circle, squircle, etc. depending on the manufacturer).
 - **`"launch_type": "single-client"`** in `file_handlers` means each opened file reuses the same app window instead of spawning one instance per file.
@@ -197,7 +199,7 @@ Lector de archivos Markdown standalone, offline-first e instalable como PWA. Un 
 - **Índice dentro del documento.** Una línea `[TOC]` se reemplaza por la lista de encabezados con enlaces a cada sección. A diferencia del panel lateral, sale impresa.
 - **Abrir carpetas completas.** Navegá varios `.md` de un proyecto desde un panel lateral, sin subir nada a un servidor.
 - **Importar un repo de GitHub.** Apuntalo a `usuario/repo` (o pegá la URL) y trae todos los `.md`/`.markdown`/`.txt` del último commit de una rama — sin clonar, sin historial. También funciona con repos privados, con un personal access token que se pega una vez y se puede recordar en el navegador. Un botón **↻ Actualizar** vuelve a traer el último commit cuando quieras.
-- **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde WhatsApp, Drive, Telegram o el explorador directo al lector. En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
+- **Abrir archivos desde otras apps.** En **Android**, la app instalada aparece en el menú **Compartir** del sistema: mandá un `.md` desde el explorador, Drive o Telegram directo al lector. WhatsApp es la excepción: no entrega el archivo (ver limitaciones conocidas). En **escritorio** (Windows, macOS, Linux, ChromeOS) se registra como file handler y aparece en **"Abrir con"**.
 - **Conserva el área de trabajo.** Los documentos cargados, el archivo seleccionado y la posición de lectura se guardan localmente y se restauran después de cerrar, reiniciar o actualizar la app. Un documento permanece cargado hasta que lo quitás explícitamente.
 - **Se actualiza sola.** Los deploys nuevos llegan solos a las copias instaladas, sin limpiar caché ni reinstalar. Ver [Actualizaciones](#actualizaciones).
 - **Impresión con estilos dedicados.** Hoja de estilos `@media print` propia para que lo que se lee en pantalla se imprima limpio.
@@ -251,7 +253,7 @@ Si lo desplegás fuera de Vercel, replicá las dos reglas de `vercel.json`: el h
 ### Instalar en el celular
 
 1. Con la URL abierta en Chrome, tocá el menú **⋮ → "Instalar app"** (o el banner que ofrece Chrome automáticamente).
-2. Una vez instalada, buscá un `.md` en WhatsApp, Drive o el explorador de archivos y tocá **Compartir**.
+2. Una vez instalada, buscá un `.md` en el explorador de archivos o en Drive y tocá **Compartir**. Si te lo mandaron por WhatsApp, no lo compartas desde el chat (el archivo no llega): descargalo ahí y, en el explorador, entrá a `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents` y compartilo desde ahí.
 3. Elegí **Lector MD** en el menú de compartir. El archivo se abre directo en el lector.
 
 En Android el punto de entrada es **Compartir**, no "Abrir con": Chrome para Android no implementa la File Handling API, así que una PWA instalada no puede registrarse como handler de una extensión de archivo.
@@ -272,6 +274,8 @@ Acá instalarla pesa más que en otras plataformas: WebKit borra el IndexedDB y 
 - **Android: sólo menú Compartir, no "Abrir con".** La File Handling API es exclusiva de escritorio. Entrar al menú "Abrir con" en Android requeriría empaquetar la PWA como TWA/APK, cosa que este repo no hace.
 - **El "Abrir con" de escritorio requiere Chromium ≥102.** Firefox y Safari no implementan la File Handling API.
 - **Los MIME types de `.md` son inconsistentes.** Las apps de Android reportan los Markdown con varios tipos distintos, así que `share_target` acepta una lista amplia que incluye `application/octet-stream`. El costo es que el lector puede aparecer también al compartir otros archivos binarios.
+- **WhatsApp no le entrega archivos al lector.** Al compartir desde un chat de WhatsApp sólo llegan el asunto y el epígrafe, nunca el archivo, ni siquiera una foto (probado con Chrome 153 en septiembre de 2026). El lector lo avisa. La salida es descargar el archivo en el chat y compartirlo desde el explorador, en `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+- **Los documentos de Google con nombre `.md` llegan como PDF.** Si Drive convirtió un `.md` subido en un documento de Google, lo entrega como PDF. El lector lo detecta y no lo abre; la solución es **Archivo → Descargar → Markdown (.md)** en Documentos.
 
 ## Actualizaciones
 
@@ -311,7 +315,7 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 
 ## Notas técnicas
 
-- **Los archivos compartidos viajan por un caché.** Android entrega el archivo compartido como un `POST` a `/share-target`, pero un hosting estático no puede recibir POST. El service worker lo intercepta, escribe el archivo en un caché de vida corta y redirige a la app, que lo levanta y vacía el caché. El manifest también declara `title` y `text`: apps como WhatsApp mandan un epígrafe junto al archivo, y sin esos parámetros Chrome lo convierte en un archivo extra ("texto compartido") que tapa al real. El texto sólo se usa si no llegó ningún archivo, y a un archivo sin extensión `.md` se le agrega.
+- **Los archivos compartidos viajan por un caché.** Android entrega el archivo compartido como un `POST` a `/share-target`, pero un hosting estático no puede recibir POST. El service worker lo intercepta, escribe el archivo en un caché de vida corta y redirige a la app, que lo levanta y vacía el caché. El manifest también declara `title` y `text`: apps como WhatsApp mandan un asunto y un epígrafe, y sin esos parámetros Chrome los convierte en un archivo falso ("texto compartido") que parece el documento. El texto sólo se abre como documento si no llegó ningún archivo y tiene pinta de contenido (varias líneas, o largo); un nombre de archivo suelto sólo muestra un aviso. A un archivo sin extensión `.md` se le agrega.
 - **El área de trabajo abierta se guarda localmente en IndexedDB.** El contenido Markdown nunca se envía al servidor. Sólo puede desaparecer si el usuario borra los datos del sitio o si el dispositivo elimina ese almacenamiento; la app solicita almacenamiento persistente cuando el navegador lo permite.
 - **El ícono maskable** tiene el contenido escalado al 80% y centrado, dentro de la "zona segura" que Android respeta al recortar los íconos en distintas formas (círculo, squircle, etc. según el fabricante).
 - **`"launch_type": "single-client"`** en `file_handlers` hace que cada archivo abierto reutilice la misma ventana de la app en vez de abrir una instancia nueva por archivo.

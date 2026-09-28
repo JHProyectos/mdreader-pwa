@@ -283,6 +283,7 @@ main{overflow-y:auto; min-height:0; position:relative; container-type:inline-siz
   letter-spacing:-.01em;
 }
 .tip ol{margin:8px 0 0; padding-left:20px; max-width:none}
+.tip li code{overflow-wrap:anywhere}
 .tip .fine{
   margin:10px 0 0; max-width:none; font-size:12.5px;
   text-align:left; color:var(--muted);
@@ -919,10 +920,11 @@ const TEXTOS = {
       "localmente, sin subir nada a ningún lado.",
     tipMovilTitulo: "¿Te mandaron un <code>.md</code> por WhatsApp?",
     tipMovil1: "En el chat, tocá el archivo para descargarlo.",
-    tipMovil2: "Tocá el ícono de <b>compartir</b> <span class=\"k\">⤴</span> del archivo (no \"Abrir con\").",
-    tipMovil3: "Elegí <b>Lector MD</b> en la lista de apps. El archivo se abre acá.",
-    tipMovilFine: "Funciona igual desde Drive, Telegram, Gmail o el explorador de archivos: siempre " +
-      "por <b>compartir</b>.",
+    tipMovil2: "Abrí el explorador de archivos y entrá a <b>Almacenamiento interno</b> › " +
+      "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>.",
+    tipMovil3: "Seleccioná el archivo, tocá <b>compartir</b> <span class=\"k\">⤴</span> (no \"Abrir con\") y elegí <b>Lector MD</b>.",
+    tipMovilFine: "No lo compartas desde el chat de WhatsApp: WhatsApp no le pasa el archivo al lector " +
+      "y sólo llega el nombre. Tiene que ser desde el explorador de archivos.",
 
     abrirSueltosIOS: "Abrir archivos",
     vacioInicialIOS: "Todavía no cargaste nada.<br><br>Usá <b>Abrir archivos</b> y buscá tus " +
@@ -960,7 +962,7 @@ const TEXTOS = {
     alertSinMd: "No encontré archivos .md en lo que elegiste.",
     alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
     alertBinario: nombres => "No son texto, así que no se abrieron: " + nombres + ".\n\nSi vienen de Google Drive, probablemente sean documentos de Google con nombre .md: Drive los entrega como PDF. Abrilos en Documentos y usá Archivo → Descargar → Markdown (.md).",
-    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nProbá descargarlo primero y abrirlo con «Abrir archivos».",
+    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nSi viene de WhatsApp: descargalo en el chat, en el explorador de archivos entrá a Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents y compartilo desde ahí.",
     diagCompartir: "Diagnóstico: esto es lo que llegó al lector.",
     alertPersistencia: "Los archivos se abrieron, pero el navegador no pudo guardar la sesión " +
       "local. La app no aplicará una actualización mientras haya documentos abiertos.",
@@ -1091,10 +1093,11 @@ const TEXTOS = {
       "locally, without uploading anything anywhere.",
     tipMovilTitulo: "Got a <code>.md</code> on WhatsApp?",
     tipMovil1: "In the chat, tap the file to download it.",
-    tipMovil2: "Tap the file's <b>share</b> icon <span class=\"k\">⤴</span> (not \"Open with\").",
-    tipMovil3: "Choose <b>Lector MD</b> from the list of apps. The file opens here.",
-    tipMovilFine: "It works the same from Drive, Telegram, Gmail or the file manager: always " +
-      "through <b>share</b>.",
+    tipMovil2: "Open the file manager and go to <b>Internal storage</b> › " +
+      "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>.",
+    tipMovil3: "Select the file, tap <b>share</b> <span class=\"k\">⤴</span> (not \"Open with\") and choose <b>Lector MD</b>.",
+    tipMovilFine: "Don't share it from the WhatsApp chat: WhatsApp doesn't hand the file to the reader, " +
+      "only its name arrives. It has to be from the file manager.",
 
     abrirSueltosIOS: "Open files",
     vacioInicialIOS: "Nothing loaded yet.<br><br>Tap <b>Open files</b> and look for your " +
@@ -1132,7 +1135,7 @@ const TEXTOS = {
     alertSinMd: "No .md files found in what you picked.",
     alertNoLeidos: "None of the selected files could be read.",
     alertBinario: names => "These aren't text, so they weren't opened: " + names + ".\n\nIf they come from Google Drive, they're probably Google Docs named .md: Drive delivers them as PDF. Open them in Docs and use File → Download → Markdown (.md).",
-    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nTry downloading it first and opening it with \"Open files\".",
+    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nIf it comes from WhatsApp: download it in the chat, go to Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents in the file manager and share it from there.",
     diagCompartir: "Diagnostics: this is what reached the reader.",
     alertPersistencia: "The files were opened, but the browser couldn't save the local session. " +
       "The app won't apply an update while documents are open.",
@@ -1266,8 +1269,9 @@ leer tus `.md` en cualquier computadora con navegador.
 
 Instalado como app tiene dos cosas más:
 
-- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde WhatsApp,
-  Drive o el explorador y se abre acá.
+- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
+  Drive u otra app y se abre acá. Desde el chat de WhatsApp no: ahí no llega el
+  archivo. Descargalo y compartilo desde el explorador (abajo, el paso a paso).
 - En **escritorio** aparece en *Abrir con*.
 
 ## Todo lo que hace, de un vistazo
@@ -1306,8 +1310,14 @@ superior lo abre.
 
 ### Desde otra app, en el celular
 
-En el chat o en el explorador, tocá el ícono de **compartir** del archivo y
+En el explorador de archivos, tocá el ícono de **compartir** del archivo y
 elegí **Lector MD** en la lista.
+
+Si te lo mandaron por WhatsApp, no lo compartas desde el chat: WhatsApp no le
+pasa el archivo al lector y sólo llega el nombre. Descargalo en el chat y, en el
+explorador, entrá a **Almacenamiento interno** ›
+`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Compartilo
+desde ahí.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.
@@ -1545,7 +1555,7 @@ Una valla con lenguaje `mermaid` se dibuja como diagrama:
 ~~~markdown
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|compartir| SW[Service worker]
+  W[Explorador] -->|compartir| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
@@ -1556,7 +1566,7 @@ Se ve así:
 
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|compartir| SW[Service worker]
+  W[Explorador] -->|compartir| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
@@ -2036,8 +2046,9 @@ files on any computer with a browser.
 
 Installed as an app, it does two more things:
 
-- On **Android** it shows up in the *Share* menu: send a `.md` from WhatsApp,
-  Drive or the file manager and it opens here.
+- On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
+  Drive or another app and it opens here. Not from the WhatsApp chat: the file doesn't
+  arrive. Download it and share it from the file manager (step by step below).
 - On **desktop** it shows up in *Open with*.
 
 ## Everything it does, at a glance
@@ -2076,8 +2087,14 @@ opens it.
 
 ### From another app, on your phone
 
-In the chat or the file manager, tap the file's **share** icon and choose
+In the file manager, tap the file's **share** icon and choose
 **Lector MD** from the list.
+
+If you got it on WhatsApp, don't share it from the chat: WhatsApp doesn't hand
+the file to the reader, only its name arrives. Download it in the chat and, in
+the file manager, go to **Internal storage** ›
+`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Share it from
+there.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.
@@ -2314,7 +2331,7 @@ A fence with the language `mermaid` is drawn as a diagram:
 ~~~markdown
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|share| SW[Service worker]
+  W[File manager] -->|share| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
@@ -2325,7 +2342,7 @@ It looks like this:
 
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|share| SW[Service worker]
+  W[File manager] -->|share| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
@@ -5227,9 +5244,9 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
   });
 }
 
-// Diagnóstico temporal del menú Compartir: muestra qué entregó la otra app.
-// Sacarlo (dejarlo en false) cuando se entienda el caso de WhatsApp.
-const DIAG_COMPARTIR = true;
+// Diagnóstico del menú Compartir: muestra en un aviso qué entregó la otra app.
+// Apagado; se prende para investigar un caso nuevo.
+const DIAG_COMPARTIR = false;
 
 function textoDiagnostico(diag){
   const lineas = ["Tipo: " + (diag.contentType || "(sin tipo)"), "Tamaño: " + (diag.contentLength || "?")];

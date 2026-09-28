@@ -23,8 +23,9 @@ files on any computer with a browser.
 
 Installed as an app, it does two more things:
 
-- On **Android** it shows up in the *Share* menu: send a `.md` from WhatsApp,
-  Drive or the file manager and it opens here.
+- On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
+  Drive or another app and it opens here. Not from the WhatsApp chat: the file doesn't
+  arrive. Download it and share it from the file manager (step by step below).
 - On **desktop** it shows up in *Open with*.
 
 ## Everything it does, at a glance
@@ -63,8 +64,14 @@ opens it.
 
 ### From another app, on your phone
 
-In the chat or the file manager, tap the file's **share** icon and choose
+In the file manager, tap the file's **share** icon and choose
 **Lector MD** from the list.
+
+If you got it on WhatsApp, don't share it from the chat: WhatsApp doesn't hand
+the file to the reader, only its name arrives. Download it in the chat and, in
+the file manager, go to **Internal storage** ›
+`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Share it from
+there.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.
@@ -301,7 +308,7 @@ A fence with the language `mermaid` is drawn as a diagram:
 ~~~markdown
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|share| SW[Service worker]
+  W[File manager] -->|share| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
@@ -312,7 +319,7 @@ It looks like this:
 
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|share| SW[Service worker]
+  W[File manager] -->|share| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]

@@ -23,8 +23,9 @@ leer tus `.md` en cualquier computadora con navegador.
 
 Instalado como app tiene dos cosas más:
 
-- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde WhatsApp,
-  Drive o el explorador y se abre acá.
+- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
+  Drive u otra app y se abre acá. Desde el chat de WhatsApp no: ahí no llega el
+  archivo. Descargalo y compartilo desde el explorador (abajo, el paso a paso).
 - En **escritorio** aparece en *Abrir con*.
 
 ## Todo lo que hace, de un vistazo
@@ -63,8 +64,14 @@ superior lo abre.
 
 ### Desde otra app, en el celular
 
-En el chat o en el explorador, tocá el ícono de **compartir** del archivo y
+En el explorador de archivos, tocá el ícono de **compartir** del archivo y
 elegí **Lector MD** en la lista.
+
+Si te lo mandaron por WhatsApp, no lo compartas desde el chat: WhatsApp no le
+pasa el archivo al lector y sólo llega el nombre. Descargalo en el chat y, en el
+explorador, entrá a **Almacenamiento interno** ›
+`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Compartilo
+desde ahí.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.
@@ -302,7 +309,7 @@ Una valla con lenguaje `mermaid` se dibuja como diagrama:
 ~~~markdown
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|compartir| SW[Service worker]
+  W[Explorador] -->|compartir| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
@@ -313,7 +320,7 @@ Se ve así:
 
 ```mermaid
 flowchart LR
-  W[WhatsApp] -->|compartir| SW[Service worker]
+  W[Explorador] -->|compartir| SW[Service worker]
   SW --> C[(Cache)]
   C --> APP[Lector MD]
   APP --> IDB[(IndexedDB)]
