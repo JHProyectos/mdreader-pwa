@@ -5,15 +5,15 @@
 //     la versión más nueva del servidor; el caché sólo se usa como respaldo
 //     offline. Esto evita que una versión vieja quede congelada para siempre
 //     en los dispositivos que ya visitaron el sitio.
-//   - Los íconos y el manifest usan STALE-WHILE-REVALIDATE: se sirve el caché
-//     al instante (rápido) y en paralelo se baja la versión nueva para la
-//     próxima carga.
+//   - El manifest también es NETWORK-FIRST. Los íconos usan
+//     STALE-WHILE-REVALIDATE: se sirve el caché al instante (rápido) y en
+//     paralelo se baja la versión nueva para la próxima carga.
 //
 // Una versión nueva se instala en segundo plano y queda esperando mientras
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.17.1";
+const VERSION = "v0.17.2";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -224,7 +224,14 @@ self.addEventListener("fetch", (event) => {
   // contra el caché HTTP del propio navegador y servir un index.html viejo
   // aunque hubiera conexión.
   // El caché del service worker se usa sólo como respaldo offline.
-  if (sameOrigin && isDocument(request)) {
+  // El manifest va igual que el documento. Chrome lo pide a través del service
+  // worker al instalar la PWA y al revisar si la WebAPK necesita actualizarse:
+  // con stale-while-revalidate le llegaba la copia del caché, y un cambio en
+  // share_target no se aplicaba ni reinstalando.
+  if (
+    sameOrigin &&
+    (isDocument(request) || url.pathname === "/manifest.json")
+  ) {
     event.respondWith(
       fetch(request, { cache: "no-store" })
         .then((response) => {
