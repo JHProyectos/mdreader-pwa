@@ -63,6 +63,7 @@
             "application/x-markdown",
             "text/*",
             "application/octet-stream",
+            "*/*",
             ".md",
             ".markdown",
             ".txt"
