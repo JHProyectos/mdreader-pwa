@@ -59,8 +59,10 @@ There are three ways, all equivalent:
 2. **Open individual files** — pick one or more specific files.
 3. **Drag and drop** — drop the files onto the reading area.
 
-If new files show up in the folder, **↻ Refresh folder**, below **Open folder**,
-opens the picker again: pick the same folder and they're added.
+If new files show up in the folder, tap **↻ Refresh folder**, below **Open folder**.
+On a computer (Chrome or Edge) it re-reads the folder on its own: new files are
+added, changed ones updated and deleted ones removed. On a phone it opens the
+picker again: pick the same folder and confirm.
 
 On small screens the side panel is hidden; the **☰** button in the top bar
 opens it.
@@ -75,7 +77,7 @@ and after that you only need to refresh it:
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tap
    **Use this folder** and confirm.
 3. When another one arrives, download it, tap **↻ Refresh folder** (in the **☰**
-   panel, below **Open folder**) and pick the same folder.
+   panel, below **Open folder**), pick the same folder and confirm.
 
 For a single file, **Open individual files** works too: look for it in that
 same folder.

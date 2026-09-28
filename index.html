@@ -877,7 +877,9 @@ const TEXTOS = {
     ghErrSinArchivos: "No encontré archivos .md, .markdown o .txt en ese repositorio.",
     ghErrGenerico: "No se pudo completar la importación.",
     carpetaActualizarBtn: "↻ Actualizar carpeta",
-    carpetaActualizarTitle: "Volvé a elegir la misma carpeta para sumar los archivos que llegaron después.",
+    carpetaActualizarTitle: "Suma los archivos que llegaron a la carpeta después de abrirla.",
+    alertCarpetaNoDisponible: nombres => "No se pudo volver a leer: " + nombres + ". Puede que la carpeta se " +
+      "haya movido o borrado; abrila de nuevo con «Abrir carpeta».",
     ghActualizarBtn: "↻ Actualizar",
     ghActualizando: "↻ Actualizando…",
     ghErrActualizar: "Algunos repositorios de GitHub no se pudieron actualizar. Revisá la consola " +
@@ -926,8 +928,8 @@ const TEXTOS = {
     tipMovil2: "Acá, tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › " +
       "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. " +
       "Tocá <b>Usar esta carpeta</b> y confirmá.",
-    tipMovil3: "Cuando te llegue otro, descargalo, tocá <b>↻&nbsp;Actualizar carpeta</b> (en el panel <b>☰</b>, debajo de <b>Abrir carpeta</b>) " +
-      "y elegí la misma carpeta.",
+    tipMovil3: "Cuando te llegue otro, descargalo, tocá <b>↻&nbsp;Actualizar carpeta</b> (en el panel <b>☰</b>, debajo de <b>Abrir carpeta</b>), " +
+      "elegí la misma carpeta y confirmá.",
     tipMovilFine: "Para un solo archivo también sirve <b>Abrir archivos sueltos</b>: buscalo en esa misma carpeta.",
 
     abrirSueltosIOS: "Abrir archivos",
@@ -1055,7 +1057,9 @@ const TEXTOS = {
     ghErrSinArchivos: "No .md, .markdown or .txt files were found in that repository.",
     ghErrGenerico: "The import could not be completed.",
     carpetaActualizarBtn: "↻ Refresh folder",
-    carpetaActualizarTitle: "Pick the same folder again to add the files that arrived since.",
+    carpetaActualizarTitle: "Adds the files that reached the folder after you opened it.",
+    alertCarpetaNoDisponible: names => "Couldn't read again: " + names + ". The folder may have been " +
+      "moved or deleted; open it again with \"Open folder\".",
     ghActualizarBtn: "↻ Refresh",
     ghActualizando: "↻ Refreshing…",
     ghErrActualizar: "Some GitHub repositories could not be refreshed. Check the console for details.",
@@ -1102,8 +1106,8 @@ const TEXTOS = {
     tipMovil2: "Here, tap <b>Open folder</b> and go to <b>Internal storage</b> › " +
       "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. " +
       "Tap <b>Use this folder</b> and confirm.",
-    tipMovil3: "When another one arrives, download it, tap <b>↻&nbsp;Refresh folder</b> (in the <b>☰</b> panel, below <b>Open folder</b>) " +
-      "and pick the same folder.",
+    tipMovil3: "When another one arrives, download it, tap <b>↻&nbsp;Refresh folder</b> (in the <b>☰</b> panel, below <b>Open folder</b>), " +
+      "pick the same folder and confirm.",
     tipMovilFine: "For a single file, <b>Open individual files</b> works too: look for it in that same folder.",
 
     abrirSueltosIOS: "Open files",
@@ -1312,8 +1316,10 @@ Tenés tres caminos, todos equivalentes:
 2. **Abrir archivos sueltos** — elegís uno o varios archivos puntuales.
 3. **Arrastrar y soltar** — tirás los archivos sobre la zona de lectura.
 
-Si en la carpeta aparecen archivos nuevos, **↻ Actualizar carpeta**, debajo de
-**Abrir carpeta**, vuelve a abrir el selector: elegís la misma carpeta y se suman.
+Si en la carpeta aparecen archivos nuevos, tocá **↻ Actualizar carpeta**, debajo de
+**Abrir carpeta**. En la computadora (Chrome o Edge) la relee sola: suma los
+nuevos, actualiza los que cambiaron y saca los que borraste. En el celular vuelve
+a abrir el selector: elegís la misma carpeta y confirmás.
 
 En pantallas chicas el panel lateral se esconde; el botón **☰** de la barra
 superior lo abre.
@@ -1328,7 +1334,7 @@ lector y después sólo hace falta actualizarla:
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tocá
    **Usar esta carpeta** y confirmá.
 3. Cuando te llegue otro, descargalo, tocá **↻ Actualizar carpeta** (en el panel
-   **☰**, debajo de **Abrir carpeta**) y elegí la misma carpeta.
+   **☰**, debajo de **Abrir carpeta**), elegí la misma carpeta y confirmá.
 
 Para un solo archivo también sirve **Abrir archivos sueltos**: lo buscás en esa
 misma carpeta.
@@ -2102,8 +2108,10 @@ There are three ways, all equivalent:
 2. **Open individual files** — pick one or more specific files.
 3. **Drag and drop** — drop the files onto the reading area.
 
-If new files show up in the folder, **↻ Refresh folder**, below **Open folder**,
-opens the picker again: pick the same folder and they're added.
+If new files show up in the folder, tap **↻ Refresh folder**, below **Open folder**.
+On a computer (Chrome or Edge) it re-reads the folder on its own: new files are
+added, changed ones updated and deleted ones removed. On a phone it opens the
+picker again: pick the same folder and confirm.
 
 On small screens the side panel is hidden; the **☰** button in the top bar
 opens it.
@@ -2118,7 +2126,7 @@ and after that you only need to refresh it:
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tap
    **Use this folder** and confirm.
 3. When another one arrives, download it, tap **↻ Refresh folder** (in the **☰**
-   panel, below **Open folder**) and pick the same folder.
+   panel, below **Open folder**), pick the same folder and confirm.
 
 For a single file, **Open individual files** works too: look for it in that
 same folder.
@@ -2837,15 +2845,112 @@ let current = -1;
 const REPOS_GITHUB = [];
 
 // Carpetas abiertas con "Abrir carpeta" (el primer tramo de webkitRelativePath).
-// El selector sólo entrega una foto de la carpeta y no deja volver a leerla,
-// así que "Actualizar carpeta" vuelve a abrirlo para elegir la misma.
+// Donde el navegador tiene showDirectoryPicker (Chrome y Edge de escritorio),
+// el lector guarda el acceso a la carpeta en ACCESO_CARPETAS y "Actualizar
+// carpeta" la relee sin volver a elegirla. Chrome para Android no lo tiene: ahí
+// el selector clásico (webkitdirectory) sólo entrega una foto de la carpeta, y
+// actualizar es volver a abrirlo para elegir la misma.
 const CARPETAS = [];
+const ACCESO_CARPETAS = {};
+const PUEDE_GUARDAR_CARPETA = "showDirectoryPicker" in window && !ES_IOS;
 
 function podarCarpetas(){
   for(let i = CARPETAS.length - 1; i >= 0; i--){
     if(!DOCS.some(d => d.path.startsWith(CARPETAS[i] + "/"))) CARPETAS.splice(i, 1);
   }
+  for(const nombre of Object.keys(ACCESO_CARPETAS)){
+    if(!CARPETAS.includes(nombre)) delete ACCESO_CARPETAS[nombre];
+  }
   $("carpetaActualizar").hidden = !CARPETAS.length;
+}
+
+// Sólo se leen los .md, .markdown y .txt: el resto de la carpeta ni se abre.
+async function leerCarpetaConAcceso(handle){
+  const archivos = [];
+  const recorrer = async (dir, ruta) => {
+    for await (const entrada of dir.values()){
+      if(entrada.kind === "directory"){
+        await recorrer(entrada, ruta + entrada.name + "/");
+      }else if(/\.(md|markdown|txt)$/i.test(entrada.name)){
+        const file = await entrada.getFile();
+        Object.defineProperty(file, "webkitRelativePath", {value: ruta + entrada.name});
+        archivos.push(file);
+      }
+    }
+  };
+  await recorrer(handle, handle.name + "/");
+  return archivos;
+}
+
+function registrarCarpetas(nombres, accesos = {}){
+  let cambio = false;
+  for(const nombre of nombres){
+    if(!DOCS.some(d => d.path.startsWith(nombre + "/"))) continue;
+    if(!CARPETAS.includes(nombre)){ CARPETAS.push(nombre); cambio = true; }
+    if(accesos[nombre]){ ACCESO_CARPETAS[nombre] = accesos[nombre]; cambio = true; }
+  }
+  $("carpetaActualizar").hidden = !CARPETAS.length;
+  if(cambio) void guardarEstadoPersistido();
+}
+
+function abrirCarpeta(){
+  if(!PUEDE_GUARDAR_CARPETA){ $("inFolder").click(); return; }
+  void (async () => {
+    let handle;
+    try{
+      handle = await window.showDirectoryPicker({id:"lector-md-carpeta", mode:"read"});
+    }catch(e){
+      if(e && e.name !== "AbortError") console.error("No se pudo abrir la carpeta:", e);
+      return;
+    }
+    await addFiles(await leerCarpetaConAcceso(handle));
+    registrarCarpetas([handle.name], {[handle.name]: handle});
+  })();
+}
+
+function actualizarCarpetas(){
+  const conAcceso = CARPETAS.filter(nombre => ACCESO_CARPETAS[nombre]);
+  // Sin acceso guardado (Android, o una carpeta abierta antes con el selector
+  // clásico) no hay forma de releerla: se vuelve a abrir el selector.
+  if(!conAcceso.length){ $("inFolder").click(); return; }
+
+  void (async () => {
+    const boton = $("carpetaActualizar");
+    boton.disabled = true;
+    const archivos = [];
+    const leidas = [];
+    const fallidas = [];
+    try{
+      for(const nombre of conAcceso){
+        const handle = ACCESO_CARPETAS[nombre];
+        try{
+          // Tras recargar, Chrome vuelve a pedir permiso con un aviso corto.
+          if(await handle.queryPermission({mode:"read"}) !== "granted" &&
+             await handle.requestPermission({mode:"read"}) !== "granted") continue;
+          archivos.push(...await leerCarpetaConAcceso(handle));
+          leidas.push(nombre);
+        }catch(e){
+          console.error("No se pudo releer la carpeta " + nombre + ":", e);
+          fallidas.push(nombre);
+        }
+      }
+
+      if(archivos.length) await addFiles(archivos);
+
+      // Lo que se borró de la carpeta también sale de la lista.
+      const vigentes = new Set(archivos.map(f => f.webkitRelativePath));
+      const borrados = DOCS.filter(d =>
+        leidas.some(nombre => d.path.startsWith(nombre + "/")) && !vigentes.has(d.path));
+      for(const doc of borrados){
+        const i = DOCS.indexOf(doc);
+        if(i >= 0) removeDoc(i);
+      }
+
+      if(fallidas.length) alert(t("alertCarpetaNoDisponible", fallidas.join(", ")));
+    }finally{
+      boton.disabled = false;
+    }
+  })();
 }
 
 const $ = id => document.getElementById(id);
@@ -2961,6 +3066,7 @@ function crearEstadoPersistible(){
     scrollPorRuta: posiciones,
     reposGithub: REPOS_GITHUB,
     carpetas: CARPETAS,
+    accesoCarpetas: ACCESO_CARPETAS,
     guardadoEn: new Date().toISOString()
   };
 }
@@ -3105,6 +3211,11 @@ async function restaurarWorkspace(){
 
       if(Array.isArray(state && state.carpetas)){
         CARPETAS.splice(0, CARPETAS.length, ...state.carpetas.filter(c => typeof c === "string" && c));
+        if(state.accesoCarpetas && typeof state.accesoCarpetas === "object"){
+          for(const [nombre, handle] of Object.entries(state.accesoCarpetas)){
+            if(handle && handle.kind === "directory") ACCESO_CARPETAS[nombre] = handle;
+          }
+        }
         podarCarpetas();
       }
 
@@ -4874,6 +4985,7 @@ function resetWorkspace(persistir = true){
   current = -1;
   REPOS_GITHUB.length = 0;
   CARPETAS.length = 0;
+  Object.keys(ACCESO_CARPETAS).forEach(nombre => delete ACCESO_CARPETAS[nombre]);
   Object.keys(scrollPorRuta).forEach(path => delete scrollPorRuta[path]);
 
   if(viendoAyuda) cerrarAyuda();
@@ -5057,10 +5169,10 @@ function search(q){
   if(first) $("main").scrollTo({top: first.offsetTop - 90, behavior:"smooth"});
 }
 
-$("pickFolder").onclick = () => $("inFolder").click();
+$("pickFolder").onclick = abrirCarpeta;
 $("pickFiles").onclick  = () => $("inFiles").click();
 
-$("pickFolder2").onclick = () => $("inFolder").click();
+$("pickFolder2").onclick = abrirCarpeta;
 $("pickFiles2").onclick  = () => $("inFiles").click();
 
 $("inFolder").onchange = async e => {
@@ -5068,18 +5180,9 @@ $("inFolder").onchange = async e => {
   e.target.value = "";
   await addFiles(files);
 
-  const raices = new Set(files.map(f => (f.webkitRelativePath || "").split("/")[0]).filter(Boolean));
-  let nuevas = false;
-  for(const r of raices){
-    if(!CARPETAS.includes(r) && DOCS.some(d => d.path.startsWith(r + "/"))){
-      CARPETAS.push(r);
-      nuevas = true;
-    }
-  }
-  $("carpetaActualizar").hidden = !CARPETAS.length;
-  if(nuevas) void guardarEstadoPersistido();
+  registrarCarpetas(new Set(files.map(f => (f.webkitRelativePath || "").split("/")[0]).filter(Boolean)));
 };
-$("carpetaActualizar").onclick = () => $("inFolder").click();
+$("carpetaActualizar").onclick = actualizarCarpetas;
 $("inFiles").onchange = e => {
   const files = [...e.target.files];
   e.target.value = "";

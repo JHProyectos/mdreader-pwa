@@ -39,7 +39,7 @@ Online Markdown readers usually require uploading the file to some service, or a
 
 Try it right now at **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyectos.com.ar)**, or open `index.html` locally in any modern browser — double-click it, or "Open with Chrome" from the file explorer. From there:
 
-- **Open folder** — select an entire folder; it lists every `.md`/`.markdown`/`.txt` file it contains. **↻ Refresh folder** opens the picker again to add files that arrived since: the browser only hands over a snapshot of the folder, so the reader can't re-read it on its own.
+- **Open folder** — select an entire folder; it lists every `.md`/`.markdown`/`.txt` file it contains. **↻ Refresh folder** picks up what changed since. In desktop Chrome and Edge the reader keeps access to the folder (`showDirectoryPicker`, stored in IndexedDB) and re-reads it on its own: new files are added, changed ones updated and deleted ones removed. Chrome for Android doesn't have that API, so there it falls back to the classic picker (see known limitations).
 - **Open individual files** — select one or several specific files.
 - **Drag and drop** — drop files anywhere on the reading pane.
 
@@ -100,6 +100,7 @@ Installing matters more here than on other platforms: WebKit wipes a plain websi
 - **Desktop "Open with" requires Chromium ≥102.** Firefox and Safari do not implement the File Handling API.
 - **`.md` MIME types are inconsistent.** Android apps report Markdown files under several types, so `share_target` accepts a broad list including `application/octet-stream`. The trade-off is that the reader may also appear when sharing unrelated binary files.
 - **WhatsApp doesn't hand files over to the reader.** Sharing from a WhatsApp chat delivers only the subject and the caption, never the file, not even for a photo (checked with Chrome 153 in September 2026). The reader says so in a notice. The way around it is to download the file in the chat and open the folder where WhatsApp keeps documents, `Internal storage/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`, with **Open folder**; **↻ Refresh folder** picks up the ones that arrive later.
+- **Android: refreshing a folder means picking it again.** Chrome for Android only offers the classic folder picker (`webkitdirectory`), which hands the page a one-time snapshot and never the folder's path. **↻ Refresh folder** reopens that picker, and Chrome asks every time whether to upload all the folder's files, counting everything in it, not just the `.md`. Neither can be avoided from the page.
 - **Google Docs named `.md` arrive as PDF.** If Drive converted an uploaded `.md` into a Google Doc, Drive delivers it as a PDF. The reader detects it and doesn't open it; the fix is **File → Download → Markdown (.md)** in Docs.
 
 ## Updates
@@ -214,7 +215,7 @@ Los lectores de Markdown online suelen requerir subir el archivo a algún servic
 
 Probalo ahora mismo en **[mdreader.jhproyectos.com.ar](https://mdreader.jhproyectos.com.ar)**, o abrí `index.html` localmente en cualquier navegador moderno — doble clic, o "Ver con Chrome" desde el explorador de archivos. Desde ahí:
 
-- **Abrir carpeta** — selecciona una carpeta completa; lista todos los `.md`/`.markdown`/`.txt` que contenga. **↻ Actualizar carpeta** vuelve a abrir el selector para sumar los archivos que llegaron después: el navegador sólo entrega una foto de la carpeta, así que el lector no puede releerla por su cuenta.
+- **Abrir carpeta** — selecciona una carpeta completa; lista todos los `.md`/`.markdown`/`.txt` que contenga. **↻ Actualizar carpeta** suma lo que cambió desde entonces. En Chrome y Edge de escritorio el lector guarda el acceso a la carpeta (`showDirectoryPicker`, en IndexedDB) y la relee solo: suma los nuevos, actualiza los que cambiaron y saca los borrados. Chrome para Android no tiene esa API, así que ahí usa el selector clásico (ver limitaciones conocidas).
 - **Abrir archivos sueltos** — selecciona uno o varios archivos puntuales.
 - **Arrastrar y soltar** — soltá los archivos sobre el panel de lectura.
 
@@ -275,6 +276,7 @@ Acá instalarla pesa más que en otras plataformas: WebKit borra el IndexedDB y 
 - **El "Abrir con" de escritorio requiere Chromium ≥102.** Firefox y Safari no implementan la File Handling API.
 - **Los MIME types de `.md` son inconsistentes.** Las apps de Android reportan los Markdown con varios tipos distintos, así que `share_target` acepta una lista amplia que incluye `application/octet-stream`. El costo es que el lector puede aparecer también al compartir otros archivos binarios.
 - **WhatsApp no le entrega archivos al lector.** Al compartir desde un chat de WhatsApp sólo llegan el asunto y el epígrafe, nunca el archivo, ni siquiera una foto (probado con Chrome 153 en septiembre de 2026). El lector lo avisa. La salida es descargar el archivo en el chat y abrir con **Abrir carpeta** la carpeta donde WhatsApp guarda los documentos, `Almacenamiento interno/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`; **↻ Actualizar carpeta** suma los que lleguen después.
+- **Android: actualizar una carpeta es volver a elegirla.** Chrome para Android sólo ofrece el selector de carpetas clásico (`webkitdirectory`), que le entrega a la página una foto de una sola vez y nunca la ruta de la carpeta. **↻ Actualizar carpeta** vuelve a abrir ese selector, y Chrome pregunta cada vez si cargar todos los archivos de la carpeta, contando todo lo que hay adentro y no sólo los `.md`. Ninguna de las dos cosas se puede evitar desde la página.
 - **Los documentos de Google con nombre `.md` llegan como PDF.** Si Drive convirtió un `.md` subido en un documento de Google, lo entrega como PDF. El lector lo detecta y no lo abre; la solución es **Archivo → Descargar → Markdown (.md)** en Documentos.
 
 ## Actualizaciones

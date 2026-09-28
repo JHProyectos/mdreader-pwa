@@ -59,8 +59,10 @@ Tenés tres caminos, todos equivalentes:
 2. **Abrir archivos sueltos** — elegís uno o varios archivos puntuales.
 3. **Arrastrar y soltar** — tirás los archivos sobre la zona de lectura.
 
-Si en la carpeta aparecen archivos nuevos, **↻ Actualizar carpeta**, debajo de
-**Abrir carpeta**, vuelve a abrir el selector: elegís la misma carpeta y se suman.
+Si en la carpeta aparecen archivos nuevos, tocá **↻ Actualizar carpeta**, debajo de
+**Abrir carpeta**. En la computadora (Chrome o Edge) la relee sola: suma los
+nuevos, actualiza los que cambiaron y saca los que borraste. En el celular vuelve
+a abrir el selector: elegís la misma carpeta y confirmás.
 
 En pantallas chicas el panel lateral se esconde; el botón **☰** de la barra
 superior lo abre.
@@ -75,7 +77,7 @@ lector y después sólo hace falta actualizarla:
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tocá
    **Usar esta carpeta** y confirmá.
 3. Cuando te llegue otro, descargalo, tocá **↻ Actualizar carpeta** (en el panel
-   **☰**, debajo de **Abrir carpeta**) y elegí la misma carpeta.
+   **☰**, debajo de **Abrir carpeta**), elegí la misma carpeta y confirmá.
 
 Para un solo archivo también sirve **Abrir archivos sueltos**: lo buscás en esa
 misma carpeta.
