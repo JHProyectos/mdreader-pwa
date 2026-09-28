@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.17.0";
+const VERSION = "v0.17.1";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -156,9 +156,22 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const formData = await request.formData();
+          // El nombre puede venir vacío o sin extensión (WhatsApp, por
+          // ejemplo): la página se lo completa, acá no se descarta nada.
           const files = formData
             .getAll("file")
-            .filter((f) => f && f.name);
+            .filter((f) => f && typeof f !== "string");
+
+          // Apps como WhatsApp mandan, junto al archivo, un texto (el
+          // epígrafe, que suele ser el nombre del archivo). Si el manifest no
+          // declara "text", Chrome convierte ese texto en un archivo más
+          // ("texto compartido.txt") y el documento real puede quedar tapado.
+          // Por eso el texto sólo se usa cuando no llegó ningún archivo.
+          const title = String(formData.get("title") || "").trim();
+          const text = [formData.get("text"), formData.get("url")]
+            .map((v) => String(v || "").trim())
+            .filter(Boolean)
+            .join("\n\n");
 
           const cache = await caches.open(SHARE_CACHE);
 
@@ -172,9 +185,18 @@ self.addEventListener("fetch", (event) => {
           for (const f of files) {
             await cache.put(
               new Request(
-                "/__shared__/" + i++ + "/" + encodeURIComponent(f.name)
+                "/__shared__/" + i++ + "/" + encodeURIComponent(f.name || "")
               ),
               new Response(f)
+            );
+          }
+
+          if (!files.length && text) {
+            await cache.put(
+              new Request(
+                "/__shared__/" + i++ + "/" + encodeURIComponent(title)
+              ),
+              new Response(text)
             );
           }
         } catch (e) {

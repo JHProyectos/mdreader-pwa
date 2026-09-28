@@ -138,7 +138,7 @@ The share-target cache and the IndexedDB workspace are excluded from that cleanu
 
 ## Technical notes
 
-- **Shared files travel through a cache.** Android delivers a shared file as a `POST` to `/share-target`, but static hosting can't accept a POST. The service worker intercepts it, writes the file into a short-lived cache, and redirects to the app, which picks it up and empties the cache.
+- **Shared files travel through a cache.** Android delivers a shared file as a `POST` to `/share-target`, but static hosting can't accept a POST. The service worker intercepts it, writes the file into a short-lived cache, and redirects to the app, which picks it up and empties the cache. The manifest also declares `title` and `text`: apps like WhatsApp send a caption along with the file, and without those params Chrome turns it into an extra "shared text" file that hides the real one. The text is only used when no file arrives, and a file without a `.md` extension gets one added.
 - **The open workspace is stored locally in IndexedDB.** Markdown contents are never sent to the server. The browser may remove them only if the user clears site data or the device removes site storage; the app requests persistent storage when the browser supports it.
 - **The maskable icon** has its content scaled to 80% and centered, inside the "safe zone" Android respects when cropping icons into different shapes (circle, squircle, etc. depending on the manufacturer).
 - **`"launch_type": "single-client"`** in `file_handlers` means each opened file reuses the same app window instead of spawning one instance per file.
@@ -311,7 +311,7 @@ El caché del share target y el área de trabajo guardada en IndexedDB quedan fu
 
 ## Notas técnicas
 
-- **Los archivos compartidos viajan por un caché.** Android entrega el archivo compartido como un `POST` a `/share-target`, pero un hosting estático no puede recibir POST. El service worker lo intercepta, escribe el archivo en un caché de vida corta y redirige a la app, que lo levanta y vacía el caché.
+- **Los archivos compartidos viajan por un caché.** Android entrega el archivo compartido como un `POST` a `/share-target`, pero un hosting estático no puede recibir POST. El service worker lo intercepta, escribe el archivo en un caché de vida corta y redirige a la app, que lo levanta y vacía el caché. El manifest también declara `title` y `text`: apps como WhatsApp mandan un epígrafe junto al archivo, y sin esos parámetros Chrome lo convierte en un archivo extra ("texto compartido") que tapa al real. El texto sólo se usa si no llegó ningún archivo, y a un archivo sin extensión `.md` se le agrega.
 - **El área de trabajo abierta se guarda localmente en IndexedDB.** El contenido Markdown nunca se envía al servidor. Sólo puede desaparecer si el usuario borra los datos del sitio o si el dispositivo elimina ese almacenamiento; la app solicita almacenamiento persistente cuando el navegador lo permite.
 - **El ícono maskable** tiene el contenido escalado al 80% y centrado, dentro de la "zona segura" que Android respeta al recortar los íconos en distintas formas (círculo, squircle, etc. según el fabricante).
 - **`"launch_type": "single-client"`** en `file_handlers` hace que cada archivo abierto reutilice la misma ventana de la app en vez de abrir una instancia nueva por archivo.

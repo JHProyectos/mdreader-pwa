@@ -50,6 +50,9 @@
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
       "files": [
         {
           "name": "file",
@@ -57,6 +60,8 @@
             "text/markdown",
             "text/plain",
             "text/x-markdown",
+            "application/x-markdown",
+            "text/*",
             "application/octet-stream",
             ".md",
             ".markdown",
