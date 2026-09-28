@@ -919,12 +919,12 @@ const TEXTOS = {
     dropTxt: "O elegilos directamente. Nada sale de tu máquina: el archivo se lee y se muestra " +
       "localmente, sin subir nada a ningún lado.",
     tipMovilTitulo: "¿Te mandaron un <code>.md</code> por WhatsApp?",
-    tipMovil1: "En el chat, tocá el archivo para descargarlo.",
-    tipMovil2: "Abrí el explorador de archivos y entrá a <b>Almacenamiento interno</b> › " +
+    tipMovil1: "En el chat de WhatsApp, tocá el archivo sólo para descargarlo. No lo compartas desde ahí.",
+    tipMovil2: "Salí de WhatsApp, abrí el explorador de archivos del celular y entrá a <b>Almacenamiento interno</b> › " +
       "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>.",
-    tipMovil3: "Seleccioná el archivo, tocá <b>compartir</b> <span class=\"k\">⤴</span> (no \"Abrir con\") y elegí <b>Lector MD</b>.",
-    tipMovilFine: "No lo compartas desde el chat de WhatsApp: WhatsApp no le pasa el archivo al lector " +
-      "y sólo llega el nombre. Tiene que ser desde el explorador de archivos.",
+    tipMovil3: "Ahí, en el explorador, mantené apretado el archivo, tocá <b>Compartir</b> y elegí <b>Lector MD</b>.",
+    tipMovilFine: "Si lo compartís desde el chat de WhatsApp, al lector sólo le llega el nombre del archivo, " +
+      "no el contenido. Por eso el paso 3 es desde el explorador.",
 
     abrirSueltosIOS: "Abrir archivos",
     vacioInicialIOS: "Todavía no cargaste nada.<br><br>Usá <b>Abrir archivos</b> y buscá tus " +
@@ -962,7 +962,7 @@ const TEXTOS = {
     alertSinMd: "No encontré archivos .md en lo que elegiste.",
     alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
     alertBinario: nombres => "No son texto, así que no se abrieron: " + nombres + ".\n\nSi vienen de Google Drive, probablemente sean documentos de Google con nombre .md: Drive los entrega como PDF. Abrilos en Documentos y usá Archivo → Descargar → Markdown (.md).",
-    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nSi viene de WhatsApp: descargalo en el chat, en el explorador de archivos entrá a Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents y compartilo desde ahí.",
+    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nSi viene de WhatsApp: descargalo en el chat, salí de WhatsApp y, en el explorador de archivos, entrá a Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. Ahí mantené apretado el archivo, tocá Compartir y elegí Lector MD.",
     diagCompartir: "Diagnóstico: esto es lo que llegó al lector.",
     alertPersistencia: "Los archivos se abrieron, pero el navegador no pudo guardar la sesión " +
       "local. La app no aplicará una actualización mientras haya documentos abiertos.",
@@ -1092,12 +1092,12 @@ const TEXTOS = {
     dropTxt: "Or pick them directly. Nothing leaves your machine: the file is read and shown " +
       "locally, without uploading anything anywhere.",
     tipMovilTitulo: "Got a <code>.md</code> on WhatsApp?",
-    tipMovil1: "In the chat, tap the file to download it.",
-    tipMovil2: "Open the file manager and go to <b>Internal storage</b> › " +
+    tipMovil1: "In the WhatsApp chat, tap the file only to download it. Don't share it from there.",
+    tipMovil2: "Leave WhatsApp, open your phone's file manager and go to <b>Internal storage</b> › " +
       "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>.",
-    tipMovil3: "Select the file, tap <b>share</b> <span class=\"k\">⤴</span> (not \"Open with\") and choose <b>Lector MD</b>.",
-    tipMovilFine: "Don't share it from the WhatsApp chat: WhatsApp doesn't hand the file to the reader, " +
-      "only its name arrives. It has to be from the file manager.",
+    tipMovil3: "There, in the file manager, long-press the file, tap <b>Share</b> and choose <b>Lector MD</b>.",
+    tipMovilFine: "If you share it from the WhatsApp chat, the reader only gets the file's name, " +
+      "not its content. That's why step 3 happens in the file manager.",
 
     abrirSueltosIOS: "Open files",
     vacioInicialIOS: "Nothing loaded yet.<br><br>Tap <b>Open files</b> and look for your " +
@@ -1135,7 +1135,7 @@ const TEXTOS = {
     alertSinMd: "No .md files found in what you picked.",
     alertNoLeidos: "None of the selected files could be read.",
     alertBinario: names => "These aren't text, so they weren't opened: " + names + ".\n\nIf they come from Google Drive, they're probably Google Docs named .md: Drive delivers them as PDF. Open them in Docs and use File → Download → Markdown (.md).",
-    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nIf it comes from WhatsApp: download it in the chat, go to Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents in the file manager and share it from there.",
+    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nIf it comes from WhatsApp: download it in the chat, leave WhatsApp and, in the file manager, go to Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. There, long-press the file, tap Share and choose Lector MD.",
     diagCompartir: "Diagnostics: this is what reached the reader.",
     alertPersistencia: "The files were opened, but the browser couldn't save the local session. " +
       "The app won't apply an update while documents are open.",
@@ -1313,11 +1313,15 @@ superior lo abre.
 En el explorador de archivos, tocá el ícono de **compartir** del archivo y
 elegí **Lector MD** en la lista.
 
-Si te lo mandaron por WhatsApp, no lo compartas desde el chat: WhatsApp no le
-pasa el archivo al lector y sólo llega el nombre. Descargalo en el chat y, en el
-explorador, entrá a **Almacenamiento interno** ›
-`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Compartilo
-desde ahí.
+Si te lo mandaron por WhatsApp, no lo compartas desde el chat: al lector sólo le
+llega el nombre del archivo, no el contenido. En cambio:
+
+1. En el chat de WhatsApp, tocá el archivo sólo para descargarlo.
+2. Salí de WhatsApp, abrí el explorador de archivos del celular y entrá a
+   **Almacenamiento interno** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+3. Ahí, en el explorador, mantené apretado el archivo, tocá **Compartir** y elegí
+   **Lector MD**.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.
@@ -2090,11 +2094,15 @@ opens it.
 In the file manager, tap the file's **share** icon and choose
 **Lector MD** from the list.
 
-If you got it on WhatsApp, don't share it from the chat: WhatsApp doesn't hand
-the file to the reader, only its name arrives. Download it in the chat and, in
-the file manager, go to **Internal storage** ›
-`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Share it from
-there.
+If you got it on WhatsApp, don't share it from the chat: the reader only gets
+the file's name, not its content. Instead:
+
+1. In the WhatsApp chat, tap the file only to download it.
+2. Leave WhatsApp, open your phone's file manager and go to
+   **Internal storage** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+3. There, in the file manager, long-press the file, tap **Share** and choose
+   **Lector MD**.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.

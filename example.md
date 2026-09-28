@@ -67,11 +67,15 @@ opens it.
 In the file manager, tap the file's **share** icon and choose
 **Lector MD** from the list.
 
-If you got it on WhatsApp, don't share it from the chat: WhatsApp doesn't hand
-the file to the reader, only its name arrives. Download it in the chat and, in
-the file manager, go to **Internal storage** ›
-`Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Share it from
-there.
+If you got it on WhatsApp, don't share it from the chat: the reader only gets
+the file's name, not its content. Instead:
+
+1. In the WhatsApp chat, tap the file only to download it.
+2. Leave WhatsApp, open your phone's file manager and go to
+   **Internal storage** ›
+   `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`.
+3. There, in the file manager, long-press the file, tap **Share** and choose
+   **Lector MD**.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.
