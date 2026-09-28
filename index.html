@@ -959,6 +959,9 @@ const TEXTOS = {
     resultados: n => n ? n + (n === 1 ? " resultado" : " resultados") : "sin resultados",
     alertSinMd: "No encontré archivos .md en lo que elegiste.",
     alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
+    alertBinario: nombres => "No son texto, así que no se abrieron: " + nombres + ".\n\nSi vienen de Google Drive, probablemente sean documentos de Google con nombre .md: Drive los entrega como PDF. Abrilos en Documentos y usá Archivo → Descargar → Markdown (.md).",
+    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nProbá descargarlo primero y abrirlo con «Abrir archivos».",
+    diagCompartir: "Diagnóstico: esto es lo que llegó al lector.",
     alertPersistencia: "Los archivos se abrieron, pero el navegador no pudo guardar la sesión " +
       "local. La app no aplicará una actualización mientras haya documentos abiertos.",
     ayudaDocname: "ayuda · ejemplo.md",
@@ -1128,6 +1131,9 @@ const TEXTOS = {
     resultados: n => n ? n + (n === 1 ? " result" : " results") : "no results",
     alertSinMd: "No .md files found in what you picked.",
     alertNoLeidos: "None of the selected files could be read.",
+    alertBinario: names => "These aren't text, so they weren't opened: " + names + ".\n\nIf they come from Google Drive, they're probably Google Docs named .md: Drive delivers them as PDF. Open them in Docs and use File → Download → Markdown (.md).",
+    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nTry downloading it first and opening it with \"Open files\".",
+    diagCompartir: "Diagnostics: this is what reached the reader.",
     alertPersistencia: "The files were opened, but the browser couldn't save the local session. " +
       "The app won't apply an update while documents are open.",
     ayudaDocname: "help · example.md",
@@ -4430,9 +4436,19 @@ async function addFiles(list){
 
   const rutaActiva = current >= 0 && DOCS[current] ? DOCS[current].path : null;
   const resultados = await Promise.allSettled(md.map(leerArchivoComoTexto));
-  const leidos = resultados
+  const todos = resultados
     .filter(r => r.status === "fulfilled")
     .map(r => r.value);
+
+  // Un PDF o cualquier binario con nombre .md (Google Drive exporta así los
+  // documentos de Google que se llaman "algo.md") se vería como basura.
+  const esBinario = texto => texto.startsWith("%PDF-") || texto.includes("\u0000") ||
+    (texto.match(/�/g) || []).length > Math.max(3, texto.length / 100);
+  const binarios = todos.filter(doc => esBinario(doc.text));
+  const leidos = todos.filter(doc => !esBinario(doc.text));
+
+  if(binarios.length) alert(t("alertBinario", binarios.map(doc => doc.name).join(", ")));
+  if(binarios.length && !leidos.length) return;
 
   resultados
     .filter(r => r.status === "rejected")
@@ -5211,11 +5227,28 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
   });
 }
 
+// Diagnóstico temporal del menú Compartir: muestra qué entregó la otra app.
+// Sacarlo (dejarlo en false) cuando se entienda el caso de WhatsApp.
+const DIAG_COMPARTIR = true;
+
+function textoDiagnostico(diag){
+  const lineas = ["Tipo: " + (diag.contentType || "(sin tipo)"), "Tamaño: " + (diag.contentLength || "?")];
+  if(!diag.campos.length) lineas.push("(no llegó ningún campo)");
+  for(const c of diag.campos){
+    lineas.push("texto" in c
+      ? "• " + c.clave + ": «" + c.texto + "»"
+      : "• " + c.clave + ": archivo «" + c.nombre + "», " + (c.tipo || "sin tipo") + ", " + c.tamano + " bytes");
+  }
+  if(diag.error) lineas.push("Error: " + diag.error);
+  return lineas.join("\n");
+}
+
 async function cargarCompartidos(){
   try{
     const cache = await caches.open("lector-md-share");
-    const keys  = await cache.keys();
-    if(!keys.length) return;
+    const resDiag = await cache.match("/__share_diag__");
+    const diag = resDiag ? await resDiag.json() : null;
+    const keys = (await cache.keys()).filter(k => new URL(k.url).pathname.startsWith("/__shared__/"));
 
     const archivos = [];
     for(const [i, k] of keys.entries()){
@@ -5230,9 +5263,16 @@ async function cargarCompartidos(){
       archivos.push(new File([blob], nombre, {type:"text/markdown"}));
     }
 
-    for(const k of keys) await cache.delete(k);
+    for(const k of await cache.keys()) await cache.delete(k);
 
-    if(archivos.length) await addFiles(archivos);
+    if(diag && DIAG_COMPARTIR) alert(t("diagCompartir") + "\n\n" + textoDiagnostico(diag));
+
+    if(archivos.length){
+      await addFiles(archivos);
+    }else if(diag){
+      const texto = diag.campos.filter(c => c.clave === "text" && c.texto).map(c => c.texto).join(" ");
+      alert(t("alertCompartidoSinArchivo", texto));
+    }
   }catch(e){
     console.error("No se pudieron leer los archivos compartidos:", e);
   }finally{

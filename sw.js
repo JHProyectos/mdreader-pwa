@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.17.2";
+const VERSION = "v0.18.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -154,25 +154,15 @@ self.addEventListener("fetch", (event) => {
   if (request.method === "POST" && url.pathname === "/share-target") {
     event.respondWith(
       (async () => {
+        // Qué llegó exactamente, para mostrarlo en la página: la mayoría de
+        // los problemas al compartir son de la app que manda, no del lector.
+        const diag = {
+          contentType: request.headers.get("content-type") || "",
+          contentLength: request.headers.get("content-length") || "",
+          campos: [],
+        };
+
         try {
-          const formData = await request.formData();
-          // El nombre puede venir vacío o sin extensión (WhatsApp, por
-          // ejemplo): la página se lo completa, acá no se descarta nada.
-          const files = formData
-            .getAll("file")
-            .filter((f) => f && typeof f !== "string");
-
-          // Apps como WhatsApp mandan, junto al archivo, un texto (el
-          // epígrafe, que suele ser el nombre del archivo). Si el manifest no
-          // declara "text", Chrome convierte ese texto en un archivo más
-          // ("texto compartido.txt") y el documento real puede quedar tapado.
-          // Por eso el texto sólo se usa cuando no llegó ningún archivo.
-          const title = String(formData.get("title") || "").trim();
-          const text = [formData.get("text"), formData.get("url")]
-            .map((v) => String(v || "").trim())
-            .filter(Boolean)
-            .join("\n\n");
-
           const cache = await caches.open(SHARE_CACHE);
 
           // Limpiar restos de una compartida anterior.
@@ -180,25 +170,67 @@ self.addEventListener("fetch", (event) => {
             await cache.delete(k);
           }
 
-          let i = 0;
+          try {
+            const formData = await request.formData();
 
-          for (const f of files) {
-            await cache.put(
-              new Request(
-                "/__shared__/" + i++ + "/" + encodeURIComponent(f.name || "")
-              ),
-              new Response(f)
-            );
+            for (const [clave, valor] of formData.entries()) {
+              diag.campos.push(
+                typeof valor === "string"
+                  ? { clave, texto: valor.slice(0, 300) }
+                  : {
+                      clave,
+                      nombre: valor.name,
+                      tipo: valor.type,
+                      tamano: valor.size,
+                    }
+              );
+            }
+
+            // El nombre puede venir vacío o sin extensión: la página se lo
+            // completa, acá no se descarta nada.
+            const files = formData
+              .getAll("file")
+              .filter((f) => f && typeof f !== "string");
+
+            // Apps como WhatsApp mandan, junto al archivo, un asunto y un
+            // epígrafe (que suele ser el nombre del archivo). Si el manifest
+            // no declara "text", Chrome convierte ese texto en un archivo más
+            // ("texto compartido.txt"). El texto sólo se abre como documento
+            // si no llegó ningún archivo y tiene pinta de contenido: varias
+            // líneas o largo. Un nombre de archivo suelto no lo es.
+            const title = String(formData.get("title") || "").trim();
+            const text = [formData.get("text"), formData.get("url")]
+              .map((v) => String(v || "").trim())
+              .filter(Boolean)
+              .join("\n\n");
+
+            let i = 0;
+
+            for (const f of files) {
+              await cache.put(
+                new Request(
+                  "/__shared__/" + i++ + "/" + encodeURIComponent(f.name || "")
+                ),
+                new Response(f)
+              );
+            }
+
+            if (!files.length && (text.includes("\n") || text.length > 200)) {
+              await cache.put(
+                new Request(
+                  "/__shared__/" + i++ + "/" + encodeURIComponent(title)
+                ),
+                new Response(text)
+              );
+            }
+          } catch (e) {
+            diag.error = String(e);
           }
 
-          if (!files.length && text) {
-            await cache.put(
-              new Request(
-                "/__shared__/" + i++ + "/" + encodeURIComponent(title)
-              ),
-              new Response(text)
-            );
-          }
+          await cache.put(
+            new Request("/__share_diag__"),
+            new Response(JSON.stringify(diag))
+          );
         } catch (e) {
           // Si algo falla, igual abrimos la app sin archivo.
         }
