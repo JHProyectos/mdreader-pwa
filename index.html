@@ -288,6 +288,8 @@ main{overflow-y:auto; min-height:0; position:relative; container-type:inline-siz
   margin:10px 0 0; max-width:none; font-size:12.5px;
   text-align:left; color:var(--muted);
 }
+.tip-pwa p{margin:0 0 12px; max-width:none; font-size:13.5px}
+.tip-pwa[hidden], #instalarFoot[hidden]{display:none}
 .tip-movil{display:none}
 @media (max-width:820px){
   .tip-movil{display:block}
@@ -714,6 +716,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     </details>
 
     <div class="foot">
+      <button class="icon" id="instalarFoot" data-t="instalarBtn" hidden></button>
       <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle"></button>
       <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
       <button class="icon" id="density"></button>
@@ -742,6 +745,12 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
         <button class="btn" id="pickFiles2" data-t="abrirSueltos"></button>
         <button class="btn" id="pickGithub2" data-t="importarGithub"></button>
         <button class="btn" id="help2" data-t="verEjemplo"></button>
+      </div>
+
+      <div class="tip tip-pwa" id="instalarTip" hidden>
+        <h3 data-t="instalarTitulo"></h3>
+        <p data-t="instalarTxt"></p>
+        <button class="btn primary" id="instalarApp" data-t="instalarBtn"></button>
       </div>
 
       <div class="tip tip-movil">
@@ -960,6 +969,10 @@ const TEXTOS = {
     tipEsc1: "Hacé clic en <b>Abrir carpeta</b> y elegí la carpeta donde guardás tus <code>.md</code>.",
     tipEsc2: "Cuando agregues o cambies archivos, hacé clic en <b>↻&nbsp;Actualizar carpeta</b>: en Chrome o " +
       "Edge la relee sin volver a elegirla.",
+    instalarTitulo: "Instalá Lector MD en tu compu",
+    instalarTxt: "Así se abre como una app propia, anda sin internet y los <code>.md</code> se abren " +
+      "con clic derecho → <b>Abrir con</b> → <b>Lector MD</b>.",
+    instalarBtn: "⬇ Instalar app",
     tipEsc3: "Instalalo desde la barra de direcciones y los <code>.md</code> se abren con clic derecho → " +
       "<b>Abrir con</b> → <b>Lector MD</b>, también sin internet.",
     raizCarpeta: "raíz de la carpeta",
@@ -1140,6 +1153,10 @@ const TEXTOS = {
     tipEsc1: "Click <b>Open folder</b> and pick the folder where you keep your <code>.md</code> files.",
     tipEsc2: "When you add or change files, click <b>↻&nbsp;Refresh folder</b>: in Chrome or Edge it " +
       "re-reads the folder without picking it again.",
+    instalarTitulo: "Install Lector MD on your computer",
+    instalarTxt: "It opens as its own app, works offline, and <code>.md</code> files open with " +
+      "right-click → <b>Open with</b> → <b>Lector MD</b>.",
+    instalarBtn: "⬇ Install app",
     tipEsc3: "Install it from the address bar and <code>.md</code> files open with right-click → " +
       "<b>Open with</b> → <b>Lector MD</b>, offline too.",
     raizCarpeta: "folder root",
@@ -5492,6 +5509,33 @@ if(new URLSearchParams(location.search).has("compartido")){
       : null;
   }
 }
+
+let eventoInstalar = null;
+function mostrarInstalar(ver){
+  const tip = document.getElementById("instalarTip");
+  const foot = document.getElementById("instalarFoot");
+  if(tip) tip.hidden = !ver;
+  if(foot) foot.hidden = !ver;
+}
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  eventoInstalar = e;
+  mostrarInstalar(true);
+});
+window.addEventListener("appinstalled", () => {
+  eventoInstalar = null;
+  mostrarInstalar(false);
+});
+["instalarApp", "instalarFoot"].forEach(id => {
+  const b = document.getElementById(id);
+  if(b) b.addEventListener("click", async () => {
+    if(!eventoInstalar) return;
+    eventoInstalar.prompt();
+    await eventoInstalar.userChoice.catch(() => {});
+    eventoInstalar = null;
+    mostrarInstalar(false);
+  });
+});
 
 let recargaSolicitada = false;
 let recargandoPorActualizacion = false;
