@@ -5462,14 +5462,6 @@ document.addEventListener("keydown", e=>{
 })();
 
 if("launchQueue" in window && "files" in LaunchParams.prototype){
-
-  const canalVentanas = "BroadcastChannel" in window ? new BroadcastChannel("lector-md-ventanas") : null;
-  let abiertaConArchivo = false;
-  if(canalVentanas){
-    canalVentanas.onmessage = e => {
-      if(e.data === "archivo-nuevo" && abiertaConArchivo) window.close();
-    };
-  }
   window.launchQueue.setConsumer(async (launchParams) => {
     if(!launchParams.files.length) return;
     const files = [];
@@ -5481,12 +5473,7 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
         console.error("No se pudo leer el archivo entregado por el sistema:", e);
       }
     }
-    if(files.length){
-      await addFiles(files);
-      abiertaConArchivo = true;
-
-      if(canalVentanas) canalVentanas.postMessage("archivo-nuevo");
-    }
+    if(files.length) await addFiles(files);
   });
 }
 
