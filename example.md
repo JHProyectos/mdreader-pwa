@@ -587,9 +587,14 @@ alternative text. The illustration at the top is written like this:
 ![A USB stick with a written page coming out of it](ejemplo-portada.png)
 ~~~
 
-They shrink to fit the column. Note: an image with a relative path only shows
-up if that path exists where you're opening the file. The reader receives the
-text of the `.md`, not its folder.
+They shrink to fit the column. An image alone in its paragraph is centered and
+kept under 70% of the window height, or 9 cm when printing, so a portrait photo
+doesn't take up the whole page. The **⤢** button in the corner, or a click on
+the image, opens it full screen, just like a diagram.
+
+Note: an image with a relative path only shows up if that path exists where
+you're opening the file. The reader receives the text of the `.md`, not its
+folder.
 
 Wiki-links are shown as code, not as links, because the reader has no way of
 knowing which file they point to:

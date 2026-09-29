@@ -321,6 +321,8 @@ article h2{font-size:22px; margin-top:var(--sp-h2)}
 article h3{font-size:17.5px}
 article h4{font-size:15.5px}
 article p{margin:0 0 var(--sp-p)}
+article p.foto{position:relative; width:fit-content; margin-inline:auto}
+article p.foto img{display:block; max-height:70vh; cursor:zoom-in}
 article ul,article ol{margin:0 0 var(--sp-p); padding-left:1.5em}
 article li{margin:var(--sp-li) 0}
 article li > ul,article li > ol{margin:var(--sp-li) 0}
@@ -429,6 +431,7 @@ td{font-variant-numeric:tabular-nums}
 }
 .diagram:hover > .ampliar,
 .chart:hover > .ampliar,
+.foto:hover > .ampliar,
 .ampliar:focus-visible{opacity:1}
 .ampliar:hover{color:var(--accent)}
 @media (hover:none){.ampliar{opacity:.9}}
@@ -495,6 +498,7 @@ td{font-variant-numeric:tabular-nums}
   text-align:center; line-height:1;
 }
 .zoom-contenido svg{display:block; height:auto}
+.zoom-contenido img{display:block; max-width:none}
 .zoom-contenido.chart{padding:4px 10px; text-align:left; line-height:var(--lh-prose)}
 
 .token.comment,.token.prolog,.token.doctype,.token.cdata{color:var(--tk-comment); font-style:italic}
@@ -612,6 +616,8 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
   .diagram[data-diagram="listo"]{background:none; border-color:#bbb}
   article h1,article h2,article h3,article h4{break-after:avoid}
   pre,.mathblock,.diagram,.chart,table,blockquote{break-inside:avoid}
+  article p.foto{break-after:avoid}
+  article p.foto img{max-height:9cm}
 
   :root:not([data-theme="light"]){
     --tk-comment:#6B6F80; --tk-keyword:#34399B; --tk-string:#2F6B4F;
@@ -999,6 +1005,7 @@ const TEXTOS = {
     zoomAjustar: "Ajustar a la pantalla",
     zoomCerrar: "Cerrar (Esc)",
     zoomDiagrama: "Diagrama",
+    zoomImagen: "Imagen",
     verDatos: "Ver datos",
     graficoBarras: "Gráfico de barras",
     graficoLineas: "Gráfico de líneas",
@@ -1183,6 +1190,7 @@ const TEXTOS = {
     zoomAjustar: "Fit to screen",
     zoomCerrar: "Close (Esc)",
     zoomDiagrama: "Diagram",
+    zoomImagen: "Image",
     verDatos: "Show data",
     graficoBarras: "Bar chart",
     graficoLineas: "Line chart",
@@ -1868,9 +1876,13 @@ así:
 ![Un pendrive del que sale una hoja escrita](ejemplo-portada.png)
 ~~~
 
-Se achican para entrar en la columna. Ojo: una imagen con ruta relativa sólo se
-ve si esa ruta existe donde estás abriendo el archivo. El lector recibe el
-texto del `.md`, no la carpeta.
+Se achican para entrar en la columna. Si la imagen va sola en su párrafo, se
+centra y no pasa del 70 % del alto de la ventana, ni de 9 cm al imprimir: así
+una foto vertical no ocupa la hoja entera. El botón **⤢** de la esquina, o un
+clic en la imagen, la abren a pantalla completa, igual que un diagrama.
+
+Ojo: una imagen con ruta relativa sólo se ve si esa ruta existe donde estás
+abriendo el archivo. El lector recibe el texto del `.md`, no la carpeta.
 
 Los wiki-links se muestran como código, no como enlace, porque el lector no
 tiene forma de saber a qué archivo apuntan:
@@ -2657,9 +2669,14 @@ alternative text. The illustration at the top is written like this:
 ![A USB stick with a written page coming out of it](ejemplo-portada.png)
 ~~~
 
-They shrink to fit the column. Note: an image with a relative path only shows
-up if that path exists where you're opening the file. The reader receives the
-text of the `.md`, not its folder.
+They shrink to fit the column. An image alone in its paragraph is centered and
+kept under 70% of the window height, or 9 cm when printing, so a portrait photo
+doesn't take up the whole page. The **⤢** button in the corner, or a click on
+the image, opens it full screen, just like a diagram.
+
+Note: an image with a relative path only shows up if that path exists where
+you're opening the file. The reader receives the text of the `.md`, not its
+folder.
 
 Wiki-links are shown as code, not as links, because the reader has no way of
 knowing which file they point to:
@@ -3382,7 +3399,12 @@ function render(md){
 
   let i = 0;
 
-  const flushPara = buf => { if(buf.length){ out.push("<p>"+inline(buf.join(" "))+"</p>"); buf.length = 0; } };
+  const flushPara = buf => {
+    if(!buf.length) return;
+    const html = inline(buf.join(" "));
+    out.push((/^<img [^>]*>$/.test(html) ? '<p class="foto">' : "<p>") + html + "</p>");
+    buf.length = 0;
+  };
   let para = [];
 
   while(i < L.length){
@@ -4429,16 +4451,19 @@ function escalaAjuste(){
                   (lienzo.clientHeight - margen) / zoomAlto, 3);
 }
 
+// Una foto de 4000 px en un celular necesita menos de ZOOM_MIN para entrar entera.
+const zoomMinimo = () => Math.min(ZOOM_MIN, escalaAjuste());
+
 function ajustarZoom(esc){
   const lienzo = $("zoomLienzo");
-  zoomEsc = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, esc || escalaAjuste()));
+  zoomEsc = Math.min(ZOOM_MAX, Math.max(zoomMinimo(), esc || escalaAjuste()));
   zoomX = Math.max(0, (lienzo.clientWidth - zoomAncho * zoomEsc) / 2);
   zoomY = Math.max(0, (lienzo.clientHeight - zoomAlto * zoomEsc) / 2);
   aplicarZoom();
 }
 
 function escalarZoom(factor, px, py){
-  const nuevo = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomEsc * factor));
+  const nuevo = Math.min(ZOOM_MAX, Math.max(zoomMinimo(), zoomEsc * factor));
   if(nuevo === zoomEsc) return;
   zoomX = px - (px - zoomX) * (nuevo / zoomEsc);
   zoomY = py - (py - zoomY) * (nuevo / zoomEsc);
@@ -4452,6 +4477,7 @@ function escalarDesdeElCentro(factor){
 }
 
 function nombreZoom(bloque){
+  if(bloque.classList.contains("foto")) return bloque.querySelector("img").alt || t("zoomImagen");
   const titulo = bloque.querySelector(".chart-titulo");
   if(titulo) return titulo.textContent;
   if(bloque._grafico) return t(NOMBRE_GRAFICO[bloque._grafico.tipo]);
@@ -4480,6 +4506,19 @@ function contenidoZoom(bloque){
     return caja;
   }
 
+  if(bloque.classList.contains("foto")){
+    const foto = bloque.querySelector("img");
+    if(!foto || !foto.naturalWidth) return null;
+    const copia = foto.cloneNode(false);
+    copia.draggable = false;
+    copia.style.width = foto.naturalWidth + "px";
+    copia.style.height = foto.naturalHeight + "px";
+    caja.appendChild(copia);
+    lienzo.appendChild(caja);
+    zoomFijo = false;
+    return caja;
+  }
+
   const svg = bloque.querySelector(".diagram-svg svg");
   if(!svg) return null;
   const copia = svg.cloneNode(true);
@@ -4505,7 +4544,9 @@ function abrirZoom(bloque){
   $("zoomNombre").textContent = nombreZoom(bloque);
   zoomVolverA = document.activeElement;
 
-  ajustarZoom(Math.max(escalaAjuste(), 0.5));
+  // Las fotos abren enteras; los diagramas, a no menos de 50 % para que se lea el texto.
+  const ajuste = escalaAjuste();
+  ajustarZoom(bloque.classList.contains("foto") ? ajuste : Math.max(ajuste, 0.5));
   $("zoomCerrar").focus();
 }
 
@@ -4532,7 +4573,7 @@ function agregarBotonAmpliar(bloque){
 }
 
 $("doc").addEventListener("click", e => {
-  const bloque = e.target.closest('.diagram[data-diagram="listo"]');
+  const bloque = e.target.closest('.diagram[data-diagram="listo"], p.foto');
   if(bloque && !e.target.closest(".ampliar") && !getSelection().toString()) abrirZoom(bloque);
 });
 
@@ -4608,6 +4649,7 @@ function mostrarDocumento(html){
   $("doc").innerHTML = html;
   $("doc").hidden = false;
   $("drop").hidden = true;
+  $("doc").querySelectorAll("p.foto").forEach(agregarBotonAmpliar);
   pintarGraficos();
   void pintarCodigo();
   void pintarDiagramas();

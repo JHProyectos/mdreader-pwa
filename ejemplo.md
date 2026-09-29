@@ -590,9 +590,13 @@ así:
 ![Un pendrive del que sale una hoja escrita](ejemplo-portada.png)
 ~~~
 
-Se achican para entrar en la columna. Ojo: una imagen con ruta relativa sólo se
-ve si esa ruta existe donde estás abriendo el archivo. El lector recibe el
-texto del `.md`, no la carpeta.
+Se achican para entrar en la columna. Si la imagen va sola en su párrafo, se
+centra y no pasa del 70 % del alto de la ventana, ni de 9 cm al imprimir: así
+una foto vertical no ocupa la hoja entera. El botón **⤢** de la esquina, o un
+clic en la imagen, la abren a pantalla completa, igual que un diagrama.
+
+Ojo: una imagen con ruta relativa sólo se ve si esa ruta existe donde estás
+abriendo el archivo. El lector recibe el texto del `.md`, no la carpeta.
 
 Los wiki-links se muestran como código, no como enlace, porque el lector no
 tiene forma de saber a qué archivo apuntan:
