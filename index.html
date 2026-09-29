@@ -289,7 +289,8 @@ main{overflow-y:auto; min-height:0; position:relative; container-type:inline-siz
   text-align:left; color:var(--muted);
 }
 .tip-pwa p{margin:0 0 12px; max-width:none; font-size:13.5px}
-.tip-pwa[hidden], #instalarFoot[hidden]{display:none}
+.tip-pwa[hidden]{display:none}
+.tip-escritorio li.ya-instalable{display:none}
 .tip-movil{display:none}
 @media (max-width:820px){
   .tip-movil{display:block}
@@ -716,7 +717,6 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     </details>
 
     <div class="foot">
-      <button class="icon" id="instalarFoot" data-t="instalarBtn" hidden></button>
       <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle"></button>
       <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
       <button class="icon" id="density"></button>
@@ -788,7 +788,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
         <ol>
           <li data-t="tipEsc1"></li>
           <li data-t="tipEsc2"></li>
-          <li data-t="tipEsc3"></li>
+          <li id="tipEsc3" data-t="tipEsc3"></li>
         </ol>
       </div>
     </div>
@@ -5513,9 +5513,9 @@ if(new URLSearchParams(location.search).has("compartido")){
 let eventoInstalar = null;
 function mostrarInstalar(ver){
   const tip = document.getElementById("instalarTip");
-  const foot = document.getElementById("instalarFoot");
   if(tip) tip.hidden = !ver;
-  if(foot) foot.hidden = !ver;
+  const paso = document.getElementById("tipEsc3");
+  if(paso) paso.classList.toggle("ya-instalable", ver);
 }
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
@@ -5526,7 +5526,7 @@ window.addEventListener("appinstalled", () => {
   eventoInstalar = null;
   mostrarInstalar(false);
 });
-["instalarApp", "instalarFoot"].forEach(id => {
+["instalarApp"].forEach(id => {
   const b = document.getElementById(id);
   if(b) b.addEventListener("click", async () => {
     if(!eventoInstalar) return;
