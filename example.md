@@ -253,6 +253,8 @@ These are the highlighted languages and how to write each one:
 | Java | `java` |
 | C | `c`, `h` |
 | C# | `cs`, `csharp`, `c#` |
+| SQL | `sql` |
+| Power Query | `pq`, `powerquery` |
 
 The colors come from **Prism**, which weighs about 33 KB and is downloaded the
 first time you open a file with code in one of these languages; after that it
@@ -636,8 +638,13 @@ It doesn't matter how they were saved. The reader normalizes all three styles:
 
 ### Extensions
 
-Three are accepted: `.md`, `.markdown` and `.txt`. When you open a folder, the
-reader filters by those extensions and ignores everything else.
+Five are accepted: `.md`, `.markdown`, `.txt`, `.sql` and `.pq` (Power Query).
+When you open a folder, the reader filters by those extensions and ignores
+everything else.
+
+A `.sql` or `.pq` isn't processed as Markdown: it shows whole as a single code
+block, with colors and a copy button. They open from a computer; on a phone
+they don't show up in the Share menu.
 
 A `.txt` is processed as Markdown just like the others. If there's no Markdown
 syntax inside, it simply shows as text.
@@ -755,7 +762,7 @@ exactly this syntax:
 - A bulleted list with one level of nesting, and a numbered list
 - A blockquote with something in bold inside
 - A three-column table with a header
-- A code block with its language declared, one of: js, ts, python, html, css, java, c or csharp
+- A code block with its language declared, one of: js, ts, python, html, css, java, c, csharp, sql or pq
 - An inline math formula and a block one, in LaTeX
 - A Mermaid flowchart and a sequence diagram
 - One chart of each kind, each in a fence with the language chart: first the lines "type: ..." (bar, line, area, scatter or pie) and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories. The pie takes a single value column, all positive, and up to eight rows; on the scatter the categories should be numbers

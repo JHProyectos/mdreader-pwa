@@ -253,6 +253,8 @@ Estos son los lenguajes con colores y cómo se escribe cada uno:
 | Java | `java` |
 | C | `c`, `h` |
 | C# | `cs`, `csharp`, `c#` |
+| SQL | `sql` |
+| Power Query | `pq`, `powerquery` |
 
 Los colores los pone **Prism**, que pesa unos 33 KB y se baja la primera vez
 que abrís un archivo con código de alguno de estos lenguajes; después queda
@@ -637,8 +639,13 @@ Da igual cómo estén guardados. El lector normaliza los tres estilos:
 
 ### Extensiones
 
-Se aceptan tres: `.md`, `.markdown` y `.txt`. Cuando abrís una carpeta, el
-lector filtra por esas extensiones e ignora todo lo demás.
+Se aceptan cinco: `.md`, `.markdown`, `.txt`, `.sql` y `.pq` (Power Query).
+Cuando abrís una carpeta, el lector filtra por esas extensiones e ignora todo
+lo demás.
+
+Un `.sql` o un `.pq` no se procesa como Markdown: se muestra completo como un
+solo bloque de código, con colores y botón de copiar. Se abren desde la
+computadora; en el celular no aparecen en el menú Compartir.
 
 Un `.txt` se procesa como Markdown igual que los otros. Si adentro no tiene
 sintaxis de Markdown, simplemente se ve como texto.
@@ -755,7 +762,7 @@ exactamente esta sintaxis:
 - Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
 - Una cita, con algo en negrita adentro
 - Una tabla de tres columnas con encabezado
-- Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c o csharp
+- Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c, csharp, sql o pq
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
 - Un gráfico de cada tipo, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: ..." (barras, lineas, area, dispersion o torta) y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías. En el de torta, una sola columna de valores, todos positivos, y hasta ocho filas; en el de dispersión conviene que las categorías sean números

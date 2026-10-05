@@ -701,7 +701,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
         <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
         <button class="btn" id="pickGithub" data-t="importarGithub"></button>
         <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
-        <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
+        <input type="file" id="inFiles" accept=".md,.markdown,.txt,.sql,.pq" multiple hidden>
       </div>
     </details>
 
@@ -1539,6 +1539,8 @@ Estos son los lenguajes con colores y cómo se escribe cada uno:
 | Java | `java` |
 | C | `c`, `h` |
 | C# | `cs`, `csharp`, `c#` |
+| SQL | `sql` |
+| Power Query | `pq`, `powerquery` |
 
 Los colores los pone **Prism**, que pesa unos 33 KB y se baja la primera vez
 que abrís un archivo con código de alguno de estos lenguajes; después queda
@@ -1923,8 +1925,13 @@ Da igual cómo estén guardados. El lector normaliza los tres estilos:
 
 ### Extensiones
 
-Se aceptan tres: `.md`, `.markdown` y `.txt`. Cuando abrís una carpeta, el
-lector filtra por esas extensiones e ignora todo lo demás.
+Se aceptan cinco: `.md`, `.markdown`, `.txt`, `.sql` y `.pq` (Power Query).
+Cuando abrís una carpeta, el lector filtra por esas extensiones e ignora todo
+lo demás.
+
+Un `.sql` o un `.pq` no se procesa como Markdown: se muestra completo como un
+solo bloque de código, con colores y botón de copiar. Se abren desde la
+computadora; en el celular no aparecen en el menú Compartir.
 
 Un `.txt` se procesa como Markdown igual que los otros. Si adentro no tiene
 sintaxis de Markdown, simplemente se ve como texto.
@@ -2041,7 +2048,7 @@ exactamente esta sintaxis:
 - Una lista con viñetas que tenga un nivel de anidado, y una lista numerada
 - Una cita, con algo en negrita adentro
 - Una tabla de tres columnas con encabezado
-- Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c o csharp
+- Un bloque de código con el lenguaje declarado, en uno de estos: js, ts, python, html, css, java, c, csharp, sql o pq
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
 - Un gráfico de cada tipo, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: ..." (barras, lineas, area, dispersion o torta) y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías. En el de torta, una sola columna de valores, todos positivos, y hasta ocho filas; en el de dispersión conviene que las categorías sean números
@@ -2335,6 +2342,8 @@ These are the highlighted languages and how to write each one:
 | Java | `java` |
 | C | `c`, `h` |
 | C# | `cs`, `csharp`, `c#` |
+| SQL | `sql` |
+| Power Query | `pq`, `powerquery` |
 
 The colors come from **Prism**, which weighs about 33 KB and is downloaded the
 first time you open a file with code in one of these languages; after that it
@@ -2718,8 +2727,13 @@ It doesn't matter how they were saved. The reader normalizes all three styles:
 
 ### Extensions
 
-Three are accepted: `.md`, `.markdown` and `.txt`. When you open a folder, the
-reader filters by those extensions and ignores everything else.
+Five are accepted: `.md`, `.markdown`, `.txt`, `.sql` and `.pq` (Power Query).
+When you open a folder, the reader filters by those extensions and ignores
+everything else.
+
+A `.sql` or `.pq` isn't processed as Markdown: it shows whole as a single code
+block, with colors and a copy button. They open from a computer; on a phone
+they don't show up in the Share menu.
 
 A `.txt` is processed as Markdown just like the others. If there's no Markdown
 syntax inside, it simply shows as text.
@@ -2837,7 +2851,7 @@ exactly this syntax:
 - A bulleted list with one level of nesting, and a numbered list
 - A blockquote with something in bold inside
 - A three-column table with a header
-- A code block with its language declared, one of: js, ts, python, html, css, java, c or csharp
+- A code block with its language declared, one of: js, ts, python, html, css, java, c, csharp, sql or pq
 - An inline math formula and a block one, in LaTeX
 - A Mermaid flowchart and a sequence diagram
 - One chart of each kind, each in a fence with the language chart: first the lines "type: ..." (bar, line, area, scatter or pie) and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories. The pie takes a single value column, all positive, and up to eight rows; on the scatter the categories should be numbers
@@ -2909,7 +2923,7 @@ async function leerCarpetaConAcceso(handle){
     for await (const entrada of dir.values()){
       if(entrada.kind === "directory"){
         await recorrer(entrada, ruta + entrada.name + "/");
-      }else if(/\.(md|markdown|txt)$/i.test(entrada.name)){
+      }else if(RE_ABRIBLE.test(entrada.name)){
         const file = await entrada.getFile();
         Object.defineProperty(file, "webkitRelativePath", {value: ruta + entrada.name});
         archivos.push(file);
@@ -3588,8 +3602,26 @@ const LENGUAJES = {
   css:"css",
   java:"java",
   c:"c", h:"c",
-  cs:"csharp", csharp:"csharp", "c#":"csharp"
+  cs:"csharp", csharp:"csharp", "c#":"csharp",
+  sql:"sql",
+  pq:"powerquery", powerquery:"powerquery", mscript:"powerquery"
 };
+
+// Archivos de código que se abren enteros, sin pasar por Markdown: se muestran
+// como un único bloque con su lenguaje, así reusan el resaltado y el botón copiar.
+const EXT_CODIGO = {sql:"sql", pq:"powerquery"};
+const RE_ABRIBLE = /\.(md|markdown|txt|sql|pq)$/i;
+function lenguajeDeArchivo(nombre){
+  const m = /\.(sql|pq)$/i.exec(nombre);
+  return m ? EXT_CODIGO[m[1].toLowerCase()] : null;
+}
+function textoParaRender(d){
+  const lang = lenguajeDeArchivo(d.name);
+  if(!lang) return d.text;
+  const corridas = d.text.match(/`+/g) || [];
+  const valla = "`".repeat(Math.max(3, ...corridas.map(c => c.length + 1)));
+  return valla + lang + "\n" + d.text.replace(/\n+$/, "") + "\n" + valla;
+}
 
 // Botón "copiar todo", arriba a la derecha del bloque. Va en un envoltorio con
 // position:relative y no adentro del <pre>, que scrollea en horizontal.
@@ -3805,7 +3837,7 @@ function asegurarPrism(){
   window.Prism.manual = true;
 
   prismCarga = cargarScript(BASE + "prism.min.js")
-    .then(() => Promise.all(["typescript", "python", "java", "c", "csharp"]
+    .then(() => Promise.all(["typescript", "python", "java", "c", "csharp", "sql", "powerquery"]
       .map(l => cargarScript(BASE + "components/prism-" + l + ".min.js"))))
     .then(() => (PRISM = !!(window.Prism && Prism.highlight)))
     .catch(() => { prismCarga = null; return false; });
@@ -4670,7 +4702,7 @@ function leerArchivoComoTexto(file){
 
 async function addFiles(list){
   await workspaceReady;
-  const md = [...list].filter(f => /\.(md|markdown|txt)$/i.test(f.name));
+  const md = [...list].filter(f => RE_ABRIBLE.test(f.name));
   if(!md.length){
     alert(t("alertSinMd"));
     return;
@@ -5109,11 +5141,11 @@ function open(i, opciones = {}){
 
   current = i;
   const d = DOCS[i];
-  const {html, heads} = render(d.text);
+  const {html, heads} = render(textoParaRender(d));
   mostrarDocumento(html);
   $("docname").textContent = d.path;
 
-  document.title = d.name.replace(/\.(md|markdown|txt)$/i, "");
+  document.title = d.name.replace(/\.(md|markdown|txt|sql|pq)$/i, "");
   $("search").disabled = false;
   $("search").value = "";
   $("hits").textContent = "";

@@ -33,7 +33,9 @@
       "action": "/",
       "accept": {
         "text/markdown": [".md", ".markdown"],
-        "text/plain": [".txt"]
+        "text/plain": [".txt"],
+        "application/sql": [".sql"],
+        "text/x-powerquery": [".pq"]
       },
       "icons": [
         {
