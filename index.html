@@ -1312,7 +1312,8 @@ Instalado como app tiene dos cosas más:
 - En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
   Drive u otra app y se abre acá. Desde el chat de WhatsApp no llega el archivo;
   para eso, mirá *Archivos que te mandan por WhatsApp*, más abajo.
-- En **escritorio** aparece en *Abrir con*.
+- En **escritorio** aparece en *Abrir con*. Si el lector ya está abierto, el archivo se
+  suma a esa misma ventana, con los que ya tenías, en vez de abrir otra.
 
 ## Todo lo que hace, de un vistazo
 
@@ -2115,7 +2116,8 @@ Installed as an app, it does two more things:
 - On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
   Drive or another app and it opens here. From the WhatsApp chat the file doesn't
   arrive; for that, see *Files you get on WhatsApp* below.
-- On **desktop** it shows up in *Open with*.
+- On **desktop** it shows up in *Open with*. If the reader is already open, the file
+  is added to that same window, next to the ones you already had, instead of opening another.
 
 ## Everything it does, at a glance
 
@@ -4700,7 +4702,10 @@ function leerArchivoComoTexto(file){
   });
 }
 
-async function addFiles(list){
+// abrirPrimero: en vez de conservar el documento que estaba activo, muestra el
+// primer archivo leído. Lo usa el "Abrir con" del sistema: el usuario espera ver
+// el archivo que acaba de abrir, no el anterior.
+async function addFiles(list, opciones = {}){
   await workspaceReady;
   const md = [...list].filter(f => RE_ABRIBLE.test(f.name));
   if(!md.length){
@@ -4738,7 +4743,7 @@ async function addFiles(list){
     if(exists >= 0) DOCS[exists] = doc; else DOCS.push(doc);
   });
 
-  afterLoad(rutaActiva);
+  afterLoad(opciones.abrirPrimero ? leidos[0].path : rutaActiva);
   await guardarDocumentosPersistidos(leidos);
   await guardarEstadoPersistido();
 
@@ -5505,7 +5510,7 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
         console.error("No se pudo leer el archivo entregado por el sistema:", e);
       }
     }
-    if(files.length) await addFiles(files);
+    if(files.length) await addFiles(files, {abrirPrimero:true});
   });
 }
 
