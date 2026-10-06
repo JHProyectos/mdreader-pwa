@@ -2114,9 +2114,9 @@ voces instaladas, funciona sin conexión. Qué dice de cada cosa:
 |---|---|
 | Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
 | Tablas | cada fila, con el nombre de su columna; si pasa de 15 filas, sólo avisa cuántas son |
-| Fórmulas | la palabra «fórmula» |
+| Fórmulas | con su lectura matemática: «x al cuadrado», «a sobre b», «raíz cuadrada de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
 | Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
-| Gráficos | «Gráfico» y su título |
+| Gráficos | el tipo y el título y, de cada serie, sus valores si son pocos o, si son muchos, dónde empieza, dónde termina, el máximo, el mínimo y la tendencia; en una torta, el porcentaje de cada porción |
 | Imágenes | su texto descriptivo |
 
 El idioma de la voz sale del documento, no de la interfaz: un archivo en inglés
@@ -2951,9 +2951,9 @@ voices installed, it works offline. What it says for each thing:
 |---|---|
 | Text, lists and quotes | the text as is; numbered lists, with their number |
 | Tables | each row, with its column name; past 15 rows, it only says how many there are |
-| Formulas | the word "formula" |
+| Formulas | read the way they are said in maths: "x squared", "a over b", "square root of", "integral from 0 to 1 of"; one it can't make sense of is just called "formula" |
 | Code and diagrams | only says there is a code block or a diagram |
-| Charts | "Chart" and its title |
+| Charts | the type and title and, for each series, its values if there are few or, if there are many, where it starts, where it ends, the maximum, the minimum and the trend; for a pie, the percentage of each slice |
 | Images | their alt text |
 
 The voice's language comes from the document, not the interface: a file in
@@ -3552,19 +3552,26 @@ const unesc = s => s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,
 
 let KATEX = false;
 
+const escAttr = s => esc(s).replace(/"/g, "&quot;");
+
+// El TeX original viaja en data-tex: una vez dibujada la fórmula ya no se
+// puede recuperar, y hace falta para decirla en voz alta.
 function renderMath(tex, display){
+  const dato = ' data-tex="' + escAttr(tex) + '"';
   if(KATEX && window.katex){
     try{
       const html = katex.renderToString(tex, {
         displayMode: display, throwOnError: false, strict: false,
         trust: false, output: "html"
       });
-      return display ? '<div class="mathblock katex-on">'+html+'</div>' : html;
+      return display
+        ? '<div class="mathblock katex-on"' + dato + '>' + html + '</div>'
+        : '<span class="mathtex"' + dato + '>' + html + '</span>';
     }catch(e){  }
   }
   return display
-    ? '<div class="mathblock">'+mathify(tex)+'</div>'
-    : '<span class="mathinline">'+mathify(tex)+'</span>';
+    ? '<div class="mathblock"' + dato + '>' + mathify(tex) + '</div>'
+    : '<span class="mathinline"' + dato + '>' + mathify(tex) + '</span>';
 }
 
 function renderDiagram(src){
@@ -5651,9 +5658,9 @@ $("lang").onclick = () => cambiarIdioma(IDIOMA === "es" ? "en" : "es");
 // equivale a cancelar. Por eso "pausar" es cortar y "seguir" repite el
 // fragmento en curso, igual en todas las plataformas.
 //
-// Pendiente: los diagramas y los gráficos hoy sólo se anuncian ("Diagrama.",
-// "Gráfico: título."). Más adelante se les puede sumar una explicación de lo
-// que dicen; el lugar es vozFinalizar().
+// Las fórmulas y los gráficos se dicen enteros (vozDecirFormula y
+// vozDecirGrafico). Pendiente: los diagramas Mermaid hoy sólo se anuncian
+// ("Diagrama."); el lugar para explicarlos es el caso "diagrama" de vozFinalizar().
 
 const VOZ_OK = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
 const VOZ_CLAVE = "lectormd-voz";
@@ -5661,9 +5668,13 @@ const VOZ_VELOCIDADES = [0.75, 1, 1.25, 1.5, 1.75, 2];
 const VOZ_FRAGMENTO_MAX = 200;
 const VOZ_FRAGMENTO_MIN = 24;
 const VOZ_TABLA_MAX = 15;
-// Las fórmulas en línea se reemplazan por una marca que después se traduce
-// a la palabra "fórmula" en el idioma del documento.
-const VOZ_FORMULA = "";
+// Una fórmula en línea se deja como VOZ_FORMULA + número + VOZ_FIN, y recién
+// cuando se conoce el idioma del documento se reemplaza por lo que se dice.
+// Son caracteres del área privada de Unicode: no pueden aparecer en un texto.
+const VOZ_FORMULA = String.fromCharCode(0xE000);
+const VOZ_FIN = String.fromCharCode(0xE001);
+const VOZ_RE_FORMULA = new RegExp(VOZ_FORMULA + "(\\d*)" + VOZ_FIN, "g");
+let vozFormulas = [];
 
 const voz = {
   estado: "quieto",   // quieto | leyendo | pausa
@@ -5701,7 +5712,11 @@ function vozTextoDe(nodo){
     if(n.nodeType === 3){ s += n.nodeValue; return; }
     if(n.nodeType !== 1) return;
     if(n.matches("del,button,svg,img,script,style,ul,ol,.copiar,.ampliar")) return;
-    if(n.matches(".mathinline,.katex")){ s += " " + VOZ_FORMULA + " "; return; }
+    if(n.matches("[data-tex]")){
+      s += " " + VOZ_FORMULA + (vozFormulas.push(n.dataset.tex) - 1) + VOZ_FIN + " ";
+      return;
+    }
+    if(n.matches(".mathinline,.katex")){ s += " " + VOZ_FORMULA + VOZ_FIN + " "; return; }
     if(n.tagName === "BR"){ s += " "; return; }
     n.childNodes.forEach(rec);
   };
@@ -5765,12 +5780,12 @@ function vozRecolectar(raiz, dest){
     }else if(el.classList.contains("bloque-codigo") || tag === "PRE"){
       dest.push({el, tipo: "codigo"});
     }else if(el.classList.contains("mathblock")){
-      dest.push({el, tipo: "formula"});
+      dest.push({el, tipo: "formula", tex: el.dataset.tex || ""});
     }else if(el.classList.contains("diagram")){
       dest.push({el, tipo: "diagrama"});
     }else if(el.classList.contains("chart")){
       const titulo = el.querySelector(".chart-titulo");
-      dest.push({el, tipo: "grafico", titulo: titulo ? titulo.textContent.trim() : ""});
+      dest.push({el, tipo: "grafico", titulo: titulo ? titulo.textContent.trim() : "", g: el._grafico || null});
     }else if(tag === "DIV" || tag === "SECTION"){
       vozRecolectar(el, dest);
     }
@@ -5817,15 +5832,658 @@ function vozPartir(texto){
   return partes;
 }
 
+// Los nombres de las letras griegas, [español, inglés]. Delta se dice "delta"
+// aunque sea mayúscula; las demás mayúsculas llevan el aviso.
+const VOZ_GRIEGAS = {
+  alpha:["alfa","alpha"], beta:["beta","beta"], gamma:["gamma","gamma"], delta:["delta","delta"],
+  epsilon:["épsilon","epsilon"], varepsilon:["épsilon","epsilon"], zeta:["dseta","zeta"],
+  eta:["eta","eta"], theta:["theta","theta"], vartheta:["theta","theta"], iota:["iota","iota"],
+  kappa:["kappa","kappa"], lambda:["lambda","lambda"], mu:["mu","mu"], nu:["nu","nu"],
+  xi:["xi","xi"], pi:["pi","pi"], varpi:["pi","pi"], rho:["ro","rho"], varrho:["ro","rho"],
+  sigma:["sigma","sigma"], varsigma:["sigma","sigma"], tau:["tau","tau"],
+  upsilon:["ípsilon","upsilon"], phi:["fi","phi"], varphi:["fi","phi"], chi:["ji","chi"],
+  psi:["psi","psi"], omega:["omega","omega"]
+};
+const VOZ_GRIEGAS_MAYUS = ["Gamma","Theta","Lambda","Xi","Pi","Sigma","Upsilon","Phi","Psi","Omega"];
+
+function vozGriegas(i, conAviso){
+  const r = {};
+  for(const k in VOZ_GRIEGAS) r[k] = VOZ_GRIEGAS[k][i];
+  for(const k of VOZ_GRIEGAS_MAYUS) r[k] = conAviso(VOZ_GRIEGAS[k.toLowerCase()][i]);
+  r.Delta = VOZ_GRIEGAS.delta[i];
+  return r;
+}
+
+// Cómo se dice cada cosa, por idioma. Las funciones arman las frases que
+// dependen de la gramática: "x al cuadrado" / "x squared".
+const VOZ_HABLA = {
+  es: {
+    de: "de", tal: "tal que", tiende: "tiende a", base: " en base ",
+    num: v => v.replace(".", ","),
+    s: {"+":"más", "-":"menos", "−":"menos", "=":"igual a", "<":"menor que", ">":"mayor que",
+        "/":"sobre", "*":"por", "×":"por", "·":"por", "÷":"dividido por", "±":"más menos",
+        "≤":"menor o igual que", "≥":"mayor o igual que", "≠":"distinto de", "≈":"aproximadamente igual a",
+        "→":"flecha a", "∞":"infinito", "π":"pi", "(":"abre paréntesis", ")":"cierra paréntesis",
+        "[":"abre corchete", "]":"cierra corchete", "{{":"abre llave", "}}":"cierra llave",
+        "!":"factorial", "'":"prima", ",":",", ";":",", ":":",", ".":"", "?":"", "|":""},
+    op: {pm:"más menos", mp:"menos más", times:"por", cdot:"por", ast:"por", div:"dividido por",
+         leq:"menor o igual que", le:"menor o igual que", geq:"mayor o igual que", ge:"mayor o igual que",
+         neq:"distinto de", ne:"distinto de", approx:"aproximadamente igual a", simeq:"aproximadamente igual a",
+         equiv:"equivalente a", cong:"congruente con", sim:"similar a", propto:"proporcional a",
+         ll:"mucho menor que", gg:"mucho mayor que", lt:"menor que", gt:"mayor que",
+         in:"pertenece a", notin:"no pertenece a", ni:"contiene a", subset:"está contenido en",
+         subseteq:"está contenido o es igual a", supset:"contiene a", supseteq:"contiene o es igual a",
+         cup:"unión", cap:"intersección", setminus:"menos", land:"y", wedge:"y", lor:"o", vee:"o",
+         neg:"no", lnot:"no", forall:"para todo", exists:"existe", mid:"tal que",
+         implies:"implica", Rightarrow:"implica", Longrightarrow:"implica",
+         iff:"si y solo si", Leftrightarrow:"si y solo si", Longleftrightarrow:"si y solo si",
+         leftrightarrow:"equivale a", mapsto:"se transforma en", rightarrow:"flecha a",
+         longrightarrow:"flecha a", leftarrow:"flecha desde", to:"flecha a", circ:"compuesta con",
+         otimes:"producto tensorial", oplus:"suma directa", perp:"perpendicular a", parallel:"paralelo a"},
+    pal: {...vozGriegas(0, n => n + " mayúscula"),
+          infty:"infinito", partial:"parcial", nabla:"nabla", ell:"ele", hbar:"h barra",
+          emptyset:"conjunto vacío", varnothing:"conjunto vacío", angle:"ángulo", degree:"grados",
+          prime:"prima", Re:"parte real", Im:"parte imaginaria", top:"traspuesta",
+          ldots:"puntos suspensivos", cdots:"puntos suspensivos", dots:"puntos suspensivos",
+          vdots:"puntos suspensivos", ddots:"puntos suspensivos",
+          "%":"por ciento", "&":"y", "$":"dólar", "_":"guion bajo", "#":"numeral"},
+    fn: {sin:"seno", cos:"coseno", tan:"tangente", cot:"cotangente", sec:"secante", csc:"cosecante",
+         arcsin:"arco seno", arccos:"arco coseno", arctan:"arco tangente", sinh:"seno hiperbólico",
+         cosh:"coseno hiperbólico", tanh:"tangente hiperbólica", log:"logaritmo", ln:"logaritmo natural",
+         lg:"logaritmo decimal", exp:"exponencial", det:"determinante", gcd:"máximo común divisor",
+         dim:"dimensión", ker:"núcleo", deg:"grado"},
+    big: {sum:"sumatoria", prod:"productoria", int:"integral", iint:"integral doble", iiint:"integral triple",
+          oint:"integral de contorno", bigcup:"unión", bigcap:"intersección", lim:"límite",
+          limsup:"límite superior", liminf:"límite inferior", max:"máximo", min:"mínimo",
+          sup:"supremo", inf:"ínfimo"},
+    set: {R:"los reales", Z:"los enteros", N:"los naturales", Q:"los racionales", C:"los complejos"},
+    abs: "valor absoluto de", finAbs: ", fin del valor absoluto", norma: "norma de", finNorma: ", fin de la norma",
+    dif: x => "diferencial de " + x,
+    frac: (a, b) => a + " sobre " + b,
+    fracLarga: (a, b) => "fracción, numerador " + a + ", denominador " + b + ", fin de la fracción",
+    raiz: x => "raíz cuadrada de " + x,
+    raizLarga: x => "raíz cuadrada de " + x + ", fin de la raíz",
+    cubica: x => "raíz cúbica de " + x,
+    cubicaLarga: x => "raíz cúbica de " + x + ", fin de la raíz",
+    raizN: (n, x) => "raíz " + n + "-ésima de " + x,
+    raizNLarga: (n, x) => "raíz " + n + "-ésima de " + x + ", fin de la raíz",
+    cuadrado: b => b + " al cuadrado",
+    cubo: b => b + " al cubo",
+    pot: (b, e) => b + " elevado a " + e,
+    potLarga: (b, e) => b + " elevado a " + e + ", fin del exponente",
+    sub: (b, s) => b + " sub " + s,
+    subLarga: (b, s) => b + " sub " + s + ", fin del subíndice",
+    grados: b => b + " grados",
+    prima: b => b + " prima",
+    traspuesta: b => b + " traspuesta",
+    binom: (a, b) => "combinatorio de " + a + " sobre " + b,
+    acc: {vec: x => "vector " + x, overrightarrow: x => "vector " + x, hat: x => x + " sombrero",
+          widehat: x => x + " sombrero", bar: x => x + " barra", overline: x => x + " barra",
+          dot: x => x + " punto", ddot: x => x + " doble punto", tilde: x => x + " tilde",
+          widetilde: x => x + " tilde", underline: x => x},
+    deriv: (parcial, orden, f, v) => {
+      const nombre = "derivada" + (parcial ? " parcial" : "") +
+        (orden === 1 ? "" : orden === 2 ? " segunda" : " de orden " + orden);
+      return f ? nombre + " de " + f + " respecto de " + v : nombre + " respecto de " + v + " de";
+    },
+    bigFrase: (clave, nom, s, u) => {
+      if(/^(lim|limsup|liminf)$/.test(clave)) return nom + (s ? " cuando " + s : "") + " de";
+      if(u) return nom + (s ? " desde " + s : "") + " hasta " + u + " de";
+      if(s) return nom + (/^(int|iint|iiint|oint)$/.test(clave) ? " sobre " : " para ") + s + " de";
+      return nom + " de";
+    },
+    matriz: (r, c, filas, det) => (det ? "determinante de la " : "") + "matriz de " + r + " por " + c + ": " +
+      filas.map((f, k) => "fila " + (k + 1) + ", " + f).join("; ") + ", fin de la matriz",
+    casos: filas => ", según el caso: " +
+      filas.map((f, k) => "caso " + (k + 1) + ", " + f).join("; ") + ", fin de los casos",
+    graf: {
+      sinDato: "sin dato", sinDatos: "sin datos",
+      lista: a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " y " + a[a.length - 1],
+      una: s => "Muestra " + s + ".",
+      varias: (n, lista) => "Compara " + n + " series: " + lista + ".",
+      rango: (n, ejeX, c0, c1) => n + " valores" + (ejeX ? " de " + ejeX : "") + ", de " + c0 + " a " + c1 + ".",
+      porcion: (c, p) => c + ", " + p + " por ciento",
+      torta: (n, partes) => n + " porciones: " + partes.join("; ") + ".",
+      resumen: (nombre, v0, v1, mx, cMx, mn, cMn, tend) => nombre + ": empieza en " + v0 + " y termina en " + v1 +
+        "; el máximo es " + mx + ", en " + cMx + ", y el mínimo es " + mn + ", en " + cMn +
+        (tend ? "; " + ({sube:"en general sube", baja:"en general baja", estable:"se mantiene estable"})[tend] : "") + ".",
+      masSeries: n => "Y " + n + (n === 1 ? " serie más." : " series más."),
+      puntos: (n, ejeX, x0, x1) => n + " puntos. " + (ejeX || "El eje horizontal") + " va de " + x0 + " a " + x1 + ".",
+      dispSerie: (s, y0, y1, rel, ejeX) => s + " va de " + y0 + " a " + y1 +
+        ({sube:", y sube al aumentar " + (ejeX || "el eje horizontal"),
+          baja:", y baja al aumentar " + (ejeX || "el eje horizontal"),
+          sin:", sin una relación clara con " + (ejeX || "el eje horizontal")})[rel] + "."
+    }
+  },
+  en: {
+    de: "of", tal: "such that", tiende: "tends to", base: " base ",
+    num: v => v,
+    s: {"+":"plus", "-":"minus", "−":"minus", "=":"equals", "<":"less than", ">":"greater than",
+        "/":"over", "*":"times", "×":"times", "·":"times", "÷":"divided by", "±":"plus or minus",
+        "≤":"less than or equal to", "≥":"greater than or equal to", "≠":"not equal to",
+        "≈":"approximately equal to", "→":"arrow to", "∞":"infinity", "π":"pi",
+        "(":"open parenthesis", ")":"close parenthesis", "[":"open bracket", "]":"close bracket",
+        "{{":"open brace", "}}":"close brace", "!":"factorial", "'":"prime",
+        ",":",", ";":",", ":":",", ".":"", "?":"", "|":""},
+    op: {pm:"plus or minus", mp:"minus or plus", times:"times", cdot:"times", ast:"times", div:"divided by",
+         leq:"less than or equal to", le:"less than or equal to", geq:"greater than or equal to",
+         ge:"greater than or equal to", neq:"not equal to", ne:"not equal to",
+         approx:"approximately equal to", simeq:"approximately equal to", equiv:"equivalent to",
+         cong:"congruent to", sim:"similar to", propto:"proportional to", ll:"much less than",
+         gg:"much greater than", lt:"less than", gt:"greater than", in:"belongs to",
+         notin:"does not belong to", ni:"contains", subset:"is a subset of",
+         subseteq:"is a subset of or equal to", supset:"contains", supseteq:"contains or is equal to",
+         cup:"union", cap:"intersection", setminus:"minus", land:"and", wedge:"and", lor:"or", vee:"or",
+         neg:"not", lnot:"not", forall:"for all", exists:"there exists", mid:"such that",
+         implies:"implies", Rightarrow:"implies", Longrightarrow:"implies",
+         iff:"if and only if", Leftrightarrow:"if and only if", Longleftrightarrow:"if and only if",
+         leftrightarrow:"is equivalent to", mapsto:"maps to", rightarrow:"arrow to",
+         longrightarrow:"arrow to", leftarrow:"arrow from", to:"arrow to", circ:"composed with",
+         otimes:"tensor", oplus:"direct sum", perp:"perpendicular to", parallel:"parallel to"},
+    pal: {...vozGriegas(1, n => "capital " + n),
+          infty:"infinity", partial:"partial", nabla:"nabla", ell:"ell", hbar:"h bar",
+          emptyset:"empty set", varnothing:"empty set", angle:"angle", degree:"degrees",
+          prime:"prime", Re:"real part", Im:"imaginary part", top:"transpose",
+          ldots:"and so on", cdots:"and so on", dots:"and so on", vdots:"and so on", ddots:"and so on",
+          "%":"percent", "&":"and", "$":"dollar", "_":"underscore", "#":"number"},
+    fn: {sin:"sine", cos:"cosine", tan:"tangent", cot:"cotangent", sec:"secant", csc:"cosecant",
+         arcsin:"arc sine", arccos:"arc cosine", arctan:"arc tangent", sinh:"hyperbolic sine",
+         cosh:"hyperbolic cosine", tanh:"hyperbolic tangent", log:"log", ln:"natural log",
+         lg:"log base 10", exp:"exponential", det:"determinant", gcd:"greatest common divisor",
+         dim:"dimension", ker:"kernel", deg:"degree"},
+    big: {sum:"sum", prod:"product", int:"integral", iint:"double integral", iiint:"triple integral",
+          oint:"contour integral", bigcup:"union", bigcap:"intersection", lim:"limit",
+          limsup:"limit superior", liminf:"limit inferior", max:"maximum", min:"minimum",
+          sup:"supremum", inf:"infimum"},
+    set: {R:"the real numbers", Z:"the integers", N:"the natural numbers", Q:"the rational numbers",
+          C:"the complex numbers"},
+    abs: "absolute value of", finAbs: ", end of absolute value", norma: "norm of", finNorma: ", end of norm",
+    dif: x => "d " + x,
+    frac: (a, b) => a + " over " + b,
+    fracLarga: (a, b) => "fraction, numerator " + a + ", denominator " + b + ", end of fraction",
+    raiz: x => "square root of " + x,
+    raizLarga: x => "square root of " + x + ", end of root",
+    cubica: x => "cube root of " + x,
+    cubicaLarga: x => "cube root of " + x + ", end of root",
+    raizN: (n, x) => n + "-th root of " + x,
+    raizNLarga: (n, x) => n + "-th root of " + x + ", end of root",
+    cuadrado: b => b + " squared",
+    cubo: b => b + " cubed",
+    pot: (b, e) => b + " to the " + e,
+    potLarga: (b, e) => b + " to the power " + e + ", end of power",
+    sub: (b, s) => b + " sub " + s,
+    subLarga: (b, s) => b + " sub " + s + ", end of subscript",
+    grados: b => b + " degrees",
+    prima: b => b + " prime",
+    traspuesta: b => b + " transpose",
+    binom: (a, b) => a + " choose " + b,
+    acc: {vec: x => "vector " + x, overrightarrow: x => "vector " + x, hat: x => x + " hat",
+          widehat: x => x + " hat", bar: x => x + " bar", overline: x => x + " bar",
+          dot: x => x + " dot", ddot: x => x + " double dot", tilde: x => x + " tilde",
+          widetilde: x => x + " tilde", underline: x => x},
+    deriv: (parcial, orden, f, v) => {
+      const nombre = (orden === 2 ? "second " : orden > 2 ? "order " + orden + " " : "") +
+        (parcial ? "partial " : "") + "derivative";
+      return f ? nombre + " of " + f + " with respect to " + v : nombre + " with respect to " + v + " of";
+    },
+    bigFrase: (clave, nom, s, u) => {
+      if(/^(lim|limsup|liminf)$/.test(clave)) return nom + (s ? " as " + s : "") + " of";
+      if(u) return nom + (s ? " from " + s : "") + " to " + u + " of";
+      if(s) return nom + (/^(int|iint|iiint|oint)$/.test(clave) ? " over " : " for ") + s + " of";
+      return nom + " of";
+    },
+    matriz: (r, c, filas, det) => (det ? "determinant of the " : "") + "matrix " + r + " by " + c + ": " +
+      filas.map((f, k) => "row " + (k + 1) + ", " + f).join("; ") + ", end of matrix",
+    casos: filas => ", depending on the case: " +
+      filas.map((f, k) => "case " + (k + 1) + ", " + f).join("; ") + ", end of cases",
+    graf: {
+      sinDato: "no data", sinDatos: "no data",
+      lista: a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1],
+      una: s => "Shows " + s + ".",
+      varias: (n, lista) => "Compares " + n + " series: " + lista + ".",
+      rango: (n, ejeX, c0, c1) => n + " values" + (ejeX ? " of " + ejeX : "") + ", from " + c0 + " to " + c1 + ".",
+      porcion: (c, p) => c + ", " + p + " percent",
+      torta: (n, partes) => n + " slices: " + partes.join("; ") + ".",
+      resumen: (nombre, v0, v1, mx, cMx, mn, cMn, tend) => nombre + ": starts at " + v0 + " and ends at " + v1 +
+        "; the maximum is " + mx + ", at " + cMx + ", and the minimum is " + mn + ", at " + cMn +
+        (tend ? "; " + ({sube:"it generally rises", baja:"it generally falls", estable:"it stays steady"})[tend] : "") + ".",
+      masSeries: n => "And " + n + " more series.",
+      puntos: (n, ejeX, x0, x1) => n + " points. " + (ejeX || "The horizontal axis") + " goes from " + x0 + " to " + x1 + ".",
+      dispSerie: (s, y0, y1, rel, ejeX) => s + " goes from " + y0 + " to " + y1 +
+        ({sube:", and rises as " + (ejeX || "the horizontal axis") + " increases",
+          baja:", and falls as " + (ejeX || "the horizontal axis") + " increases",
+          sin:", with no clear relation to " + (ejeX || "the horizontal axis")})[rel] + "."
+    }
+  }
+};
+
+// Primer paso: del TeX a un árbol que no depende del idioma. Los nodos son
+// num, var, s (símbolo), c (comando, que se busca en VOZ_HABLA), txt, set,
+// grp, frac, binom, sqrt, acc, scr (con ^ y _), env, fila, amp y nada.
+const VOZ_TEX_CON_TEXTO = /^(text|textrm|textbf|textit|textsf|mbox|operatorname|mathrm|mathbf|mathit|mathsf|mathtt|mathbb|mathcal|mathfrak|boldsymbol|begin|end)$/;
+const VOZ_TEX_IGNORAR = /^(limits|nolimits|displaystyle|textstyle|scriptstyle|scriptscriptstyle|big|Big|bigg|Bigg|bigl|bigr|Bigl|Bigr|biggl|biggr|Biggl|Biggr|hline|hfill|phantom|vphantom|hphantom|,|;|:|!| |>)$/;
+
+function vozParsearTex(src){
+  const toks = [];
+  const re = /\\([A-Za-z]+)|\\([\s\S])|(\d+(?:\.\d+)?)|([A-Za-z])|(\s+)|([\s\S])/g;
+  let m;
+  while((m = re.exec(src))){
+    if(m[1]){
+      if(VOZ_TEX_CON_TEXTO.test(m[1])){
+        // El argumento va crudo: en \text{si x} los espacios cuentan.
+        let j = re.lastIndex;
+        while(/\s/.test(src[j] || "")) j++;
+        let v = "";
+        if(src[j] === "{"){
+          let prof = 0, k = j;
+          for(; k < src.length; k++){
+            if(src[k] === "{") prof++;
+            else if(src[k] === "}" && --prof === 0) break;
+          }
+          v = src.slice(j + 1, k);
+          re.lastIndex = k + 1;
+        }
+        toks.push({k:"raw", cmd:m[1], v});
+      }else{
+        toks.push({k:"cmd", v:m[1]});
+      }
+    }
+    else if(m[2] !== undefined) toks.push({k:"cmd", v:m[2]});
+    else if(m[3]) toks.push({k:"num", v:m[3]});
+    else if(m[4]) toks.push({k:"var", v:m[4]});
+    else if(m[5]) continue;
+    else toks.push({k:"sym", v:m[6]});
+  }
+
+  let i = 0;
+  const sig = () => toks[i];
+  const esSym = (t, v) => !!t && t.k === "sym" && t.v === v;
+
+  function secuencia(esFin){
+    const out = [];
+    while(i < toks.length && !esFin(toks[i])){
+      if(esSym(toks[i], "}")){ i++; continue; }
+      out.push(conScripts());
+    }
+    return out;
+  }
+
+  function grupo(){
+    const c = secuencia(t => esSym(t, "}"));
+    if(esSym(sig(), "}")) i++;
+    return c;
+  }
+
+  // Un argumento de TeX: un grupo entre llaves o un solo carácter.
+  function argumento(){
+    const t = sig();
+    if(!t) return [];
+    if(esSym(t, "{")){ i++; return grupo(); }
+    if(t.k === "num" && t.v.length > 1 && !t.v.includes(".")){
+      toks[i] = {k:"num", v:t.v.slice(1)};
+      return [{t:"num", v:t.v[0]}];
+    }
+    i++;
+    return [deToken(t)];
+  }
+
+  function conScripts(){
+    const base = deToken(toks[i++]);
+    let sup = null, sub = null;
+    while(esSym(sig(), "^") || esSym(sig(), "_")){
+      const cual = toks[i++].v;
+      const arg = argumento();
+      if(cual === "^") sup = arg; else sub = arg;
+    }
+    return sup || sub ? {t:"scr", base, sup, sub} : base;
+  }
+
+  function deToken(t){
+    switch(t.k){
+      case "num": return {t:"num", v:t.v};
+      case "var": return {t:"var", v:t.v};
+      case "raw": return crudo(t);
+      case "cmd": return comando(t.v);
+      default:    return simbolo(t.v);
+    }
+  }
+
+  function simbolo(v){
+    if(v === "{") return {t:"grp", c:grupo()};
+    if(v === "&") return {t:"amp"};
+    if(v === "^" || v === "_" || v === "~" || v === "$") return {t:"nada"};
+    return {t:"s", v};
+  }
+
+  function crudo(t){
+    if(t.cmd === "begin"){
+      const c = secuencia(x => x.k === "raw" && x.cmd === "end");
+      if(sig() && sig().k === "raw" && sig().cmd === "end") i++;
+      return {t:"env", n:t.v, c};
+    }
+    if(t.cmd === "end") return {t:"nada"};
+    if(t.cmd === "mathbb") return {t:"set", v:t.v};
+    return {t:"txt", v:t.v};
+  }
+
+  function comando(nombre){
+    if(VOZ_TEX_IGNORAR.test(nombre)) return {t:"nada"};
+    switch(nombre){
+      case "frac": case "dfrac": case "tfrac": return {t:"frac", a:argumento(), b:argumento()};
+      case "binom": case "dbinom": return {t:"binom", a:argumento(), b:argumento()};
+      case "sqrt": {
+        let n = null;
+        if(esSym(sig(), "[")){ i++; n = secuencia(t => esSym(t, "]")); i++; }
+        return {t:"sqrt", n, x:argumento()};
+      }
+      case "left": case "right": {
+        const d = toks[i++];
+        return !d || esSym(d, ".") ? {t:"nada"} : deToken(d);
+      }
+      case "vec": case "hat": case "bar": case "overline": case "dot": case "ddot": case "tilde":
+      case "widehat": case "widetilde": case "overrightarrow": case "underline":
+        return {t:"acc", n:nombre, c:argumento()};
+      case "\\": return {t:"fila"};
+      case "{": return {t:"s", v:"{{"};
+      case "}": return {t:"s", v:"}}"};
+      default: return {t:"c", v:nombre};
+    }
+  }
+
+  return secuencia(() => false);
+}
+
+// Segundo paso: del árbol a la frase, en el idioma pedido.
+function vozPesoNodo(n){
+  switch(n.t){
+    case "nada": return 0;
+    case "grp": return vozPeso(n.c);
+    case "acc": return vozPeso(n.c);
+    case "scr": return vozPesoNodo(n.base) + (n.sup ? vozPeso(n.sup) : 0) + (n.sub ? vozPeso(n.sub) : 0);
+    case "frac": case "sqrt": case "binom": case "env": return 9;
+    default: return 1;
+  }
+}
+const vozPeso = nodos => nodos.reduce((a, n) => a + vozPesoNodo(n), 0);
+// Un exponente, subíndice o numerador "corto" se dice de corrido; uno largo
+// se cierra con un aviso ("fin del exponente") para que se entienda dónde termina.
+const vozCorto = nodos => vozPeso(nodos) <= 2;
+
+function vozDerivada(n, H, ctx){
+  const num = n.a.filter(x => x.t !== "nada"), den = n.b.filter(x => x.t !== "nada");
+  if(!num.length || den.length !== 2) return null;
+  const cabeza = x => x.t === "scr" ? x.base : x;
+  const esD = x => (x.t === "var" && x.v === "d") || (x.t === "txt" && x.v === "d") ||
+                   (x.t === "c" && x.v === "partial");
+  const orden = x => x.t === "scr" && x.sup && x.sup.length === 1 && x.sup[0].t === "num" ? +x.sup[0].v : 1;
+  if(!esD(cabeza(num[0])) || !esD(den[0]) || cabeza(den[1]).t !== "var") return null;
+  const resto = num.slice(1);
+  return H.deriv(cabeza(num[0]).t === "c", orden(num[0]), resto.length ? vozDecir(resto, H, ctx) : "",
+                 cabeza(den[1]).v);
+}
+
+function vozDecirBig(clave, sub, sup, H, ctx){
+  const nuevo = /^(lim|limsup|liminf)$/.test(clave) ? {...ctx, lim: true} : ctx;
+  return H.bigFrase(clave, H.big[clave],
+                    sub ? vozDecir(sub, H, nuevo) : "", sup ? vozDecir(sup, H, ctx) : "");
+}
+
+function vozDecirPotencia(base, sup, H, ctx){
+  if(sup.length === 1){
+    const x = sup[0];
+    if(x.t === "num" && x.v === "2") return H.cuadrado(base);
+    if(x.t === "num" && x.v === "3") return H.cubo(base);
+    if(x.t === "c" && (x.v === "circ" || x.v === "degree")) return H.grados(base);
+    if((x.t === "c" && x.v === "prime") || (x.t === "s" && x.v === "'")) return H.prima(base);
+    if((x.t === "var" && x.v === "T") || (x.t === "c" && x.v === "top")) return H.traspuesta(base);
+  }
+  const e = vozDecir(sup, H, ctx);
+  return vozCorto(sup) ? H.pot(base, e) : H.potLarga(base, e);
+}
+
+function vozDecirEntorno(n, H, ctx){
+  const filas = [[[]]];
+  for(const x of n.c){
+    const fila = filas[filas.length - 1];
+    if(x.t === "fila") filas.push([[]]);
+    else if(x.t === "amp") fila.push([]);
+    else fila[fila.length - 1].push(x);
+  }
+  const dichas = filas.map(f => f.map(c => vozDecir(c, H, ctx)).filter(Boolean)).filter(f => f.length);
+  if(/matrix$/.test(n.n)){
+    const cols = Math.max(...dichas.map(f => f.length));
+    return H.matriz(dichas.length, cols, dichas.map(f => f.join(", ")), /^[vV]matrix$/.test(n.n));
+  }
+  if(n.n === "cases") return H.casos(dichas.map(f => f.join(", ")));
+  return dichas.map(f => f.join(" ")).join("; ");
+}
+
+function vozDecirNodo(n, H, ctx){
+  switch(n.t){
+    case "num": return H.num(n.v);
+    case "var": return n.v;
+    case "txt": return n.v.replace(/\s+/g, " ").trim();
+    case "set": return H.set[n.v] || n.v;
+    case "grp": return vozDecir(n.c, H, ctx);
+    case "s":   return H.s[n.v] !== undefined ? H.s[n.v] : n.v;
+    case "fila": case "amp": return ",";
+    case "c": {
+      const v = n.v;
+      if(H.op[v]) return ctx.lim && (v === "to" || v === "rightarrow") ? H.tiende : H.op[v];
+      if(H.pal[v] !== undefined) return H.pal[v];
+      if(H.fn[v]) return H.fn[v];
+      if(H.big[v]) return H.bigFrase(v, H.big[v], "", "");
+      if(v === "quad" || v === "qquad") return ",";
+      return v;
+    }
+    case "frac": {
+      const d = vozDerivada(n, H, ctx);
+      if(d) return d;
+      const a = vozDecir(n.a, H, ctx), b = vozDecir(n.b, H, ctx);
+      return vozCorto(n.a) && vozCorto(n.b) ? H.frac(a, b) : H.fracLarga(a, b);
+    }
+    case "binom": return H.binom(vozDecir(n.a, H, ctx), vozDecir(n.b, H, ctx));
+    case "sqrt": {
+      const x = vozDecir(n.x, H, ctx), largo = !vozCorto(n.x);
+      if(n.n){
+        const idx = vozDecir(n.n, H, ctx);
+        if(idx === "3") return largo ? H.cubicaLarga(x) : H.cubica(x);
+        return largo ? H.raizNLarga(idx, x) : H.raizN(idx, x);
+      }
+      return largo ? H.raizLarga(x) : H.raiz(x);
+    }
+    case "acc": {
+      const f = H.acc[n.n];
+      return f ? f(vozDecir(n.c, H, ctx)) : vozDecir(n.c, H, ctx);
+    }
+    case "scr": {
+      const b = n.base;
+      if(b.t === "c" && H.big[b.v]) return vozDecirBig(b.v, n.sub, n.sup, H, ctx);
+      let t = vozDecirNodo(b, H, ctx);
+      if(n.sub){
+        const s = vozDecir(n.sub, H, ctx);
+        if(b.t === "c" && b.v === "log") t += H.base + s;
+        else t = vozCorto(n.sub) ? H.sub(t, s) : H.subLarga(t, s);
+      }
+      if(n.sup) t = vozDecirPotencia(t, n.sup, H, ctx);
+      return t;
+    }
+    case "env": return vozDecirEntorno(n, H, ctx);
+    default: return "";
+  }
+}
+
+function vozDecir(nodos, H, ctx = {}){
+  const ns = nodos.filter(n => n.t !== "nada");
+  const out = [];
+  let absAbierto = false, normaAbierta = false, difPendiente = false;
+  const baseDe = n => n.t === "scr" ? n.base : n;
+  const esIntegral = n => { const b = baseDe(n); return b.t === "c" && /^(int|iint|iiint|oint)$/.test(b.v); };
+  const esFuncion = n => { const b = baseDe(n); return b.t === "c" && !!H.fn[b.v]; };
+  const empiezaTermino = x => !!x && (x.t === "num" || x.t === "var" || x.t === "grp" || x.t === "frac" ||
+    x.t === "sqrt" || (x.t === "c" && !H.op[x.v] && !H.big[x.v]) ||
+    (x.t === "scr" && !(x.base.t === "c" && (H.op[x.base.v] || H.big[x.base.v]))));
+
+  for(let j = 0; j < ns.length; j++){
+    const n = ns[j], sig = ns[j + 1];
+
+    // | y \| abren y cierran de a pares; una barra sola es un "tal que".
+    const esBarra = n.t === "s" && n.v === "|", esNorma = n.t === "c" && n.v === "|";
+    if(esBarra || esNorma){
+      const quedan = ns.slice(j + 1).some(x => esBarra ? (x.t === "s" && x.v === "|") : (x.t === "c" && x.v === "|"));
+      if(esBarra){
+        if(absAbierto){ out.push(H.finAbs); absAbierto = false; }
+        else if(quedan){ out.push(H.abs); absAbierto = true; }
+        else out.push(H.tal);
+      }else{
+        if(normaAbierta){ out.push(H.finNorma); normaAbierta = false; }
+        else if(quedan){ out.push(H.norma); normaAbierta = true; }
+        else out.push(H.tal);
+      }
+      continue;
+    }
+
+    // El "dx" que cierra una integral se dice "diferencial de x".
+    if(difPendiente && (n.t === "var" || n.t === "txt") && n.v === "d" && sig && (sig.t === "var" || sig.t === "c")){
+      out.push(H.dif(vozDecirNodo(sig, H, ctx)));
+      j++;
+      difPendiente = false;
+      continue;
+    }
+
+    // f(x) y sen(x) se dicen "f de x" y "seno de x", sin nombrar los paréntesis.
+    if(((n.t === "var" && "fgFGh".includes(n.v)) || esFuncion(n)) && sig && sig.t === "s" && sig.v === "("){
+      let cierre = -1;
+      for(let m = j + 2; m < ns.length && m <= j + 8; m++){
+        if(ns[m].t === "s" && ns[m].v === "(") break;
+        if(ns[m].t === "s" && ns[m].v === ")"){ cierre = m; break; }
+      }
+      if(cierre > j + 2){
+        out.push(vozDecirNodo(n, H, ctx), H.de, vozDecir(ns.slice(j + 2, cierre), H, ctx));
+        j = cierre;
+        continue;
+      }
+    }
+
+    out.push(vozDecirNodo(n, H, ctx));
+    if(esIntegral(n)) difPendiente = true;
+    if(esFuncion(n) && empiezaTermino(sig)) out.push(H.de);
+  }
+  return out.join(" ");
+}
+
+// La frase con que se lee una fórmula, o null si no se pudo armar.
+function vozDecirFormula(tex, idioma){
+  try{
+    if(!tex || tex.length > 1500) return null;
+    const frase = vozDecir(vozParsearTex(tex), VOZ_HABLA[idioma])
+      .replace(/\s+/g, " ").replace(/\s+([,;])/g, "$1").replace(/^[\s,;]+|[\s,;]+$/g, "");
+    return frase || null;
+  }catch(e){
+    return null;
+  }
+}
+
+// ── Gráficos dichos en voz alta ──────────────────────────────────────────────
+// Se describen con los mismos datos con que se dibujan, así que no hace falta
+// ninguna IA: tipo, título, series y, de cada una, valores o máximo, mínimo y
+// tendencia.
+function vozNumero(v, idioma){
+  if(v === null || v === undefined) return VOZ_HABLA[idioma].graf.sinDato;
+  const s = String(Math.round(v * 100) / 100);
+  return idioma === "es" ? s.replace(".", ",") : s;
+}
+
+function vozCorrelacion(pares){
+  const n = pares.length;
+  const mx = pares.reduce((a, p) => a + p[0], 0) / n, my = pares.reduce((a, p) => a + p[1], 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for(const [x, y] of pares){ sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; syy += (y - my) ** 2; }
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+}
+
+function vozResumenSerie(g, k, idioma, conUnidad, etiqueta){
+  const G = VOZ_HABLA[idioma].graf;
+  const nombre = g.series[k];
+  const pares = g.categorias.map((c, i) => ({c: etiqueta(c), v: g.valores[i][k]}));
+  const datos = pares.filter(p => p.v !== null);
+  if(!datos.length) return nombre + ": " + G.sinDatos + ".";
+  // Pocos valores: se dicen todos, cada uno con su categoría.
+  if(pares.length <= 6){
+    return nombre + ": " + pares.map(p => p.c + ", " + conUnidad(p.v)).join("; ") + ".";
+  }
+  let mx = datos[0], mn = datos[0];
+  for(const p of datos){ if(p.v > mx.v) mx = p; if(p.v < mn.v) mn = p; }
+  const primero = datos[0], ultimo = datos[datos.length - 1], rango = mx.v - mn.v;
+  const conTendencia = g.tipo === "lineas" || g.tipo === "area";
+  const tendencia = !conTendencia ? "" :
+    rango === 0 || Math.abs(ultimo.v - primero.v) < rango * 0.1 ? "estable" :
+    ultimo.v > primero.v ? "sube" : "baja";
+  return G.resumen(nombre, conUnidad(primero.v), conUnidad(ultimo.v), conUnidad(mx.v), mx.c,
+                   conUnidad(mn.v), mn.c, tendencia);
+}
+
+function vozDecirGrafico(g, idioma){
+  const G = VOZ_HABLA[idioma].graf;
+  const nombreTipo = TEXTOS[idioma][NOMBRE_GRAFICO[g.tipo]];
+  const num = v => vozNumero(v, idioma);
+  const conUnidad = v => num(v) + (g.unidad && v !== null ? " " + g.unidad : "");
+  // Una categoría que es sólo un número ("7") se entiende mejor con su eje ("Mes 7").
+  const etiqueta = c => g.ejeX && /^-?[\d.,]+$/.test(c) ? g.ejeX + " " + c : c;
+  const frases = [g.titulo ? nombreTipo + ": " + g.titulo + "." : nombreTipo + "."];
+
+  if(g.tipo === "torta"){
+    const partes = g.categorias.map((c, i) => ({c, v: g.valores[i][0] || 0}))
+      .sort((a, b) => b.v - a.v)
+      .map(p => G.porcion(p.c, num(Math.round(p.v / g.total * 1000) / 10)));
+    frases.push(G.torta(partes.length, partes));
+    return frases.join(" ");
+  }
+
+  const n = g.categorias.length, nSeries = g.series.length;
+
+  if(g.tipo === "dispersion" && g.equis){
+    frases.push(G.puntos(n, g.ejeX, num(Math.min(...g.equis)), num(Math.max(...g.equis))));
+    g.series.forEach((s, k) => {
+      const pares = g.equis.map((x, i) => [x, g.valores[i][k]]).filter(p => p[1] !== null);
+      if(!pares.length){ frases.push(s + ": " + G.sinDatos + "."); return; }
+      const ys = pares.map(p => p[1]);
+      const r = vozCorrelacion(pares);
+      frases.push(G.dispSerie(s, num(Math.min(...ys)), num(Math.max(...ys)),
+                              r > 0.5 ? "sube" : r < -0.5 ? "baja" : "sin", g.ejeX));
+    });
+    return frases.join(" ");
+  }
+
+  frases.push(nSeries === 1 ? G.una(g.series[0]) : G.varias(nSeries, G.lista(g.series)));
+  if(n > 6) frases.push(G.rango(n, g.ejeX, g.categorias[0], g.categorias[n - 1]));
+  const detalle = Math.min(nSeries, 4);
+  for(let k = 0; k < detalle; k++) frases.push(vozResumenSerie(g, k, idioma, conUnidad, etiqueta));
+  if(nSeries > detalle) frases.push(G.masSeries(nSeries - detalle));
+  // Una unidad abreviada ("pág.") ya trae su punto: no se duplica al cerrar la frase.
+  return frases.join(" ").replace(/([^.])\.\.(?!\.)/g, "$1.");
+}
+
 function vozFinalizar(e, T){
   let texto;
   switch(e.tipo){
-    case "texto":       texto = e.texto.split(VOZ_FORMULA).join(T.vozDiceFormula); break;
+    case "texto":
+      texto = e.texto.replace(VOZ_RE_FORMULA, (m, i) =>
+        (i !== "" && vozDecirFormula(vozFormulas[+i], voz.idioma)) || T.vozDiceFormula)
+        .replace(/\s+([.,;:!?])/g, "$1");
+      break;
     case "imagen":      texto = e.alt ? T.vozDiceImagen(e.alt) : T.vozDiceImagenSin; break;
     case "codigo":      texto = T.vozDiceCodigo; break;
-    case "formula":     texto = T.vozDiceFormula.charAt(0).toUpperCase() + T.vozDiceFormula.slice(1) + "."; break;
+    case "formula": {
+      const dicha = e.tex ? vozDecirFormula(e.tex, voz.idioma) : null;
+      texto = T.vozDiceFormula.charAt(0).toUpperCase() + T.vozDiceFormula.slice(1) + (dicha ? ": " + dicha : "") + ".";
+      break;
+    }
     case "diagrama":    texto = T.vozDiceDiagrama; break;
-    case "grafico":     texto = e.titulo ? T.vozDiceGraficoTitulo(e.titulo) : T.vozDiceGrafico; break;
+    case "grafico":
+      texto = e.g ? vozDecirGrafico(e.g, voz.idioma)
+                  : e.titulo ? T.vozDiceGraficoTitulo(e.titulo) : T.vozDiceGrafico;
+      break;
     case "tablaGrande": texto = T.vozDiceTablaGrande(e.n); break;
     default:            return null;
   }
@@ -6125,6 +6783,7 @@ function vozIniciar(){
   vozDetener();
 
   const crudo = [];
+  vozFormulas = [];
   vozRecolectar($("doc"), crudo);
   voz.idioma = vozIdiomaDe(
     crudo.filter(e => e.tipo === "texto").map(e => e.texto).join(" ").slice(0, 4000));

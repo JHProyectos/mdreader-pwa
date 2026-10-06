@@ -697,9 +697,9 @@ voces instaladas, funciona sin conexión. Qué dice de cada cosa:
 |---|---|
 | Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
 | Tablas | cada fila, con el nombre de su columna; si pasa de 15 filas, sólo avisa cuántas son |
-| Fórmulas | la palabra «fórmula» |
+| Fórmulas | con su lectura matemática: «x al cuadrado», «a sobre b», «raíz cuadrada de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
 | Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
-| Gráficos | «Gráfico» y su título |
+| Gráficos | el tipo y el título y, de cada serie, sus valores si son pocos o, si son muchos, dónde empieza, dónde termina, el máximo, el mínimo y la tendencia; en una torta, el porcentaje de cada porción |
 | Imágenes | su texto descriptivo |
 
 El idioma de la voz sale del documento, no de la interfaz: un archivo en inglés
