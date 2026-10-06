@@ -26,7 +26,9 @@ Instalado como app tiene dos cosas más:
 - En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
   Drive u otra app y se abre acá. Desde el chat de WhatsApp no llega el archivo;
   para eso, mirá *Archivos que te mandan por WhatsApp*, más abajo.
-- En **escritorio** aparece en *Abrir con*.
+- En **escritorio** aparece en *Abrir con*. Si el lector ya está abierto, el archivo se
+  suma a esa misma ventana, con los que ya tenías, en vez de abrir otra.
+  En Windows conviene instalarlo desde **Edge**: ahí los archivos `.md` muestran el ícono del lector.
 
 ## Todo lo que hace, de un vistazo
 
@@ -41,6 +43,7 @@ Instalado como app tiene dos cosas más:
 | **Gráficos** | de barras, de líneas, de área, de dispersión y de torta, a partir de una tabla de datos escrita en el archivo |
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
+| **Escuchar** | el documento en voz alta, con la voz del propio dispositivo |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
 | **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
@@ -678,6 +681,38 @@ El texto de los diagramas queda afuera de la búsqueda: un diagrama dibujado es
 una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto. Por lo
 mismo, en los gráficos se buscan el título, la leyenda y la tabla de **Ver
 datos** cuando está abierta, pero no los números de los ejes.
+
+### Escuchar
+
+El botón con el parlante, arriba a la derecha, lee el documento en voz alta.
+Arranca desde el texto que tengas seleccionado o, si no hay selección, desde lo
+primero que se ve en pantalla, y va resaltando el bloque que está diciendo.
+Abajo aparece una barra con pausa, párrafo anterior y siguiente, velocidad y
+voz. La velocidad y la voz que elijas quedan guardadas.
+
+La voz es la del propio dispositivo: no se descarga nada y, si el sistema trae
+voces instaladas, funciona sin conexión. Qué dice de cada cosa:
+
+| Bloque | Qué dice |
+|---|---|
+| Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
+| Tablas | cada fila, con el nombre de su columna; si pasa de 15 filas, sólo avisa cuántas son |
+| Fórmulas | la palabra «fórmula» |
+| Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
+| Gráficos | «Gráfico» y su título |
+| Imágenes | su texto descriptivo |
+
+El idioma de la voz sale del documento, no de la interfaz: un archivo en inglés
+se lee con una voz en inglés aunque el lector esté en español.
+
+Las voces marcadas *(en línea)* mandan el texto a un servidor para convertirlo
+en audio. Como nada de lo que abrís debería salir de tu máquina, se prefieren
+siempre las voces locales y, si sólo hay en línea, antes de usarla te pide que
+lo confirmes.
+
+Mientras lee, la pantalla se mantiene encendida en los navegadores que lo
+permiten, porque en el celular apagarla corta la voz. Si igual se corta, al
+volver a la app queda en pausa y seguís desde la misma oración.
 
 ### Cómodo o compacto
 

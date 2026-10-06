@@ -683,6 +683,58 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 
 @media print{ #ghRateBar{display:none!important} }
 
+/* Escuchar el documento */
+:root{--lado:0px}
+@media (min-width:821px){
+  :root{--lado:264px}
+  :root[data-sidebar="collapsed"]{--lado:52px}
+}
+#vozBtn{display:inline-flex; align-items:center; flex:none; padding:6px 8px}
+#vozBtn svg{display:block; width:16px; height:16px}
+#vozBtn:disabled{opacity:.45; cursor:default; pointer-events:none}
+
+.leyendo{
+  background:var(--accent-soft); border-radius:3px;
+  box-shadow:-4px 0 0 var(--accent), 0 0 0 5px var(--accent-soft);
+}
+tr.leyendo{box-shadow:none; background:none}
+tr.leyendo > td{background:var(--accent-soft)}
+
+.voz{
+  position:fixed; z-index:12;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  left:calc(var(--lado) + (100vw - var(--lado)) / 2); transform:translateX(-50%);
+  width:max-content; max-width:calc(100vw - var(--lado) - 24px);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:8px 10px; background:var(--surface); border:1px solid var(--line);
+  border-radius:10px; box-shadow:0 6px 24px #0003;
+}
+.voz-fila{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px; width:100%}
+.voz button{
+  display:grid; place-items:center; flex:none; width:34px; height:34px; padding:0;
+  cursor:pointer; border:1px solid var(--line); border-radius:4px;
+  background:transparent; color:var(--ink);
+}
+.voz button:hover{border-color:var(--accent); color:var(--accent)}
+.voz button svg{display:block; width:16px; height:16px}
+.voz #vozPlay{background:var(--accent); border-color:var(--accent); color:var(--surface)}
+.voz #vozPlay:hover{color:var(--surface); opacity:.9}
+#vozPlay[data-estado="leyendo"] .ic-play,
+#vozPlay:not([data-estado="leyendo"]) .ic-pausa{display:none}
+.voz select{
+  font:inherit; font-size:12.5px; height:34px; min-width:0; max-width:100%; padding:0 6px;
+  border:1px solid var(--line); border-radius:4px; background:var(--surface); color:var(--ink);
+}
+#vozSel{flex:1 1 140px; max-width:260px}
+.voz-msg{margin:0; max-width:46ch; font-size:12.5px; line-height:1.4; text-align:center; color:var(--muted)}
+.voz-msg.aviso{color:var(--warm)}
+
+@media print{
+  .voz{display:none!important}
+  .leyendo{background:none; box-shadow:none}
+  tr.leyendo > td{background:none}
+}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -748,6 +800,9 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
       <span class="name" id="docname"></span>
       <input type="search" id="search" data-t-placeholder="buscarPlaceholder" disabled>
       <span class="hits" id="hits"></span>
+      <button type="button" class="icon" id="vozBtn" data-t-title="vozEscuchar" data-t-aria="vozEscuchar" aria-pressed="false" disabled hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
     </div>
 
     <div class="drop" id="drop">
@@ -820,6 +875,27 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     <button id="zoomCerrar" data-t-title="zoomCerrar" data-t-aria="zoomCerrar">✕</button>
   </div>
   <div class="zoom-lienzo" id="zoomLienzo"></div>
+</div>
+
+<div class="voz" id="voz" role="group" data-t-aria="vozGrupo" hidden>
+  <p class="voz-msg" id="vozMsg" role="status" hidden></p>
+  <div class="voz-fila">
+    <button type="button" id="vozAnt" data-t-title="vozAnterior" data-t-aria="vozAnterior">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h2.5v14H6zM20 5v14L9.5 12z" fill="currentColor"/></svg>
+    </button>
+    <button type="button" id="vozPlay" data-estado="quieto">
+      <svg class="ic-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5v14l12-7z" fill="currentColor"/></svg>
+      <svg class="ic-pausa" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>
+    </button>
+    <button type="button" id="vozSig" data-t-title="vozSiguiente" data-t-aria="vozSiguiente">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 5H18v14h-2.5zM4 5v14l10.5-7z" fill="currentColor"/></svg>
+    </button>
+    <select id="vozVel" data-t-title="vozVelocidad" data-t-aria="vozVelocidad"></select>
+    <select id="vozSel" data-t-title="vozVoz" data-t-aria="vozVoz"></select>
+    <button type="button" id="vozX" data-t-title="vozCerrar" data-t-aria="vozCerrar">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
 </div>
 
 <div class="ghmodal" id="ghModal" hidden>
@@ -1041,7 +1117,31 @@ const TEXTOS = {
     updGuardando: "Guardando los documentos abiertos…",
     updFallo: "No se pudo guardar la sesión. La actualización quedó en espera.",
     updProxima: "La actualización se aplicará la próxima vez que abras la app.",
-    updActualizando: "Actualizando… tus documentos se restaurarán enseguida."
+    updActualizando: "Actualizando… tus documentos se restaurarán enseguida.",
+    vozEscuchar: "Escuchar el documento en voz alta",
+    vozGrupo: "Lectura en voz alta",
+    vozAnterior: "Párrafo anterior",
+    vozSiguiente: "Párrafo siguiente",
+    vozPausa: "Pausar",
+    vozSeguir: "Reproducir",
+    vozCerrar: "Dejar de escuchar",
+    vozVelocidad: "Velocidad",
+    vozVoz: "Voz",
+    vozEnLinea: " (en línea)",
+    vozNube: "Esta voz es en línea: el texto sale de tu dispositivo para convertirse en audio. " +
+      "Tocá reproducir para usarla igual, o elegí otra de la lista.",
+    vozSinVocesIdioma: idioma => "No hay voces en " + (idioma === "es" ? "español" : "inglés") +
+      " instaladas en este dispositivo.",
+    vozBloqueada: "El navegador no dejó iniciar el audio. Tocá reproducir de nuevo.",
+    vozError: "No se pudo reproducir la voz. Probá con otra de la lista.",
+    vozDiceFormula: "fórmula",
+    vozDiceCodigo: "Bloque de código.",
+    vozDiceDiagrama: "Diagrama.",
+    vozDiceGrafico: "Gráfico.",
+    vozDiceGraficoTitulo: titulo => "Gráfico: " + titulo + ".",
+    vozDiceTablaGrande: n => "Tabla de " + n + " filas.",
+    vozDiceImagen: alt => "Imagen: " + alt + ".",
+    vozDiceImagenSin: "Imagen."
   },
 
   en: {
@@ -1226,7 +1326,31 @@ const TEXTOS = {
     updGuardando: "Saving open documents…",
     updFallo: "Couldn't save the session. The update is on hold.",
     updProxima: "The update will apply the next time you open the app.",
-    updActualizando: "Updating… your documents will be restored right away."
+    updActualizando: "Updating… your documents will be restored right away.",
+    vozEscuchar: "Listen to the document aloud",
+    vozGrupo: "Read aloud",
+    vozAnterior: "Previous paragraph",
+    vozSiguiente: "Next paragraph",
+    vozPausa: "Pause",
+    vozSeguir: "Play",
+    vozCerrar: "Stop listening",
+    vozVelocidad: "Speed",
+    vozVoz: "Voice",
+    vozEnLinea: " (online)",
+    vozNube: "This voice is online: the text leaves your device to be turned into audio. " +
+      "Tap play to use it anyway, or pick another one from the list.",
+    vozSinVocesIdioma: idioma => "There are no " + (idioma === "es" ? "Spanish" : "English") +
+      " voices installed on this device.",
+    vozBloqueada: "The browser wouldn't start the audio. Tap play again.",
+    vozError: "The voice couldn't be played. Try another one from the list.",
+    vozDiceFormula: "formula",
+    vozDiceCodigo: "Code block.",
+    vozDiceDiagrama: "Diagram.",
+    vozDiceGrafico: "Chart.",
+    vozDiceGraficoTitulo: titulo => "Chart: " + titulo + ".",
+    vozDiceTablaGrande: n => "Table with " + n + " rows.",
+    vozDiceImagen: alt => "Image: " + alt + ".",
+    vozDiceImagenSin: "Image."
   }
 };
 
@@ -1336,6 +1460,7 @@ Instalado como app tiene dos cosas más:
 | **Gráficos** | de barras, de líneas, de área, de dispersión y de torta, a partir de una tabla de datos escrita en el archivo |
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
+| **Escuchar** | el documento en voz alta, con la voz del propio dispositivo |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
 | **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
@@ -1974,6 +2099,38 @@ una imagen vectorial, y resaltar ahí adentro haría desaparecer el texto. Por l
 mismo, en los gráficos se buscan el título, la leyenda y la tabla de **Ver
 datos** cuando está abierta, pero no los números de los ejes.
 
+### Escuchar
+
+El botón con el parlante, arriba a la derecha, lee el documento en voz alta.
+Arranca desde el texto que tengas seleccionado o, si no hay selección, desde lo
+primero que se ve en pantalla, y va resaltando el bloque que está diciendo.
+Abajo aparece una barra con pausa, párrafo anterior y siguiente, velocidad y
+voz. La velocidad y la voz que elijas quedan guardadas.
+
+La voz es la del propio dispositivo: no se descarga nada y, si el sistema trae
+voces instaladas, funciona sin conexión. Qué dice de cada cosa:
+
+| Bloque | Qué dice |
+|---|---|
+| Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
+| Tablas | cada fila, con el nombre de su columna; si pasa de 15 filas, sólo avisa cuántas son |
+| Fórmulas | la palabra «fórmula» |
+| Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
+| Gráficos | «Gráfico» y su título |
+| Imágenes | su texto descriptivo |
+
+El idioma de la voz sale del documento, no de la interfaz: un archivo en inglés
+se lee con una voz en inglés aunque el lector esté en español.
+
+Las voces marcadas *(en línea)* mandan el texto a un servidor para convertirlo
+en audio. Como nada de lo que abrís debería salir de tu máquina, se prefieren
+siempre las voces locales y, si sólo hay en línea, antes de usarla te pide que
+lo confirmes.
+
+Mientras lee, la pantalla se mantiene encendida en los navegadores que lo
+permiten, porque en el celular apagarla corta la voz. Si igual se corta, al
+volver a la app queda en pausa y seguís desde la misma oración.
+
 ### Cómodo o compacto
 
 El botón **⇕** del panel alterna entre dos densidades de lectura. No cambia el
@@ -2141,6 +2298,7 @@ Installed as an app, it does two more things:
 | **Charts** | bar, line, area, scatter and pie charts, from a data table written in the file |
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
+| **Listen** | the document read aloud, with the device's own voice |
 | **Print** | or save as PDF, with a stylesheet made for paper |
 | **View** | light or dark theme, comfortable or compact line spacing |
 | **Language** | English or Spanish, following the browser, with a button to switch |
@@ -2777,6 +2935,37 @@ Diagram text is left out of the search: a drawn diagram is a vector image, and
 highlighting inside it would make the text disappear. For the same reason, in
 charts the title, the legend and the **Show data** table (when open) are
 searched, but not the axis numbers.
+
+### Listening
+
+The speaker button at the top right reads the document aloud. It starts from
+the text you have selected or, if nothing is selected, from the first thing on
+screen, and it highlights the block it is saying. A bar appears at the bottom
+with pause, previous and next paragraph, speed and voice. The speed and the
+voice you pick are remembered.
+
+The voice is the device's own: nothing is downloaded and, if the system has
+voices installed, it works offline. What it says for each thing:
+
+| Block | What it says |
+|---|---|
+| Text, lists and quotes | the text as is; numbered lists, with their number |
+| Tables | each row, with its column name; past 15 rows, it only says how many there are |
+| Formulas | the word "formula" |
+| Code and diagrams | only says there is a code block or a diagram |
+| Charts | "Chart" and its title |
+| Images | their alt text |
+
+The voice's language comes from the document, not the interface: a file in
+English is read by an English voice even if the reader is in Spanish.
+
+Voices marked *(online)* send the text to a server to turn it into audio. Since
+nothing you open should leave your machine, local voices are always preferred
+and, if only online ones exist, it asks you to confirm before using one.
+
+While it reads, the screen stays on in browsers that allow it, because on a
+phone turning it off cuts the voice. If it gets cut anyway, it is paused when
+you come back to the app and you continue from the same sentence.
 
 ### Comfortable or compact
 
@@ -4688,10 +4877,12 @@ $("doc").addEventListener("click", e => {
 
 function mostrarDocumento(html){
   cerrarZoom();
+  vozDetener();
   generacionDoc++;
   $("doc").innerHTML = html;
   $("doc").hidden = false;
   $("drop").hidden = true;
+  $("vozBtn").disabled = false;
   $("doc").querySelectorAll("p.foto").forEach(agregarBotonAmpliar);
   pintarGraficos();
   void pintarCodigo();
@@ -5133,7 +5324,9 @@ function dibujarIndice(heads){
 }
 
 function limpiarVista(){
+  vozDetener();
   generacionDoc++;
+  $("vozBtn").disabled = true;
   $("doc").hidden = true;
   $("doc").innerHTML = "";
   $("drop").hidden = false;
@@ -5448,6 +5641,558 @@ function cambiarIdioma(nuevo){
   if(DOCS.length) drawFiles();
 }
 $("lang").onclick = () => cambiarIdioma(IDIOMA === "es" ? "en" : "es");
+
+// Escuchar el documento.
+//
+// Usa la síntesis de voz del propio navegador (speechSynthesis): no pesa nada y,
+// con una voz local del sistema, funciona sin conexión como el resto del lector.
+// El texto se dice de a fragmentos cortos, uno por vez: las voces en línea de
+// Chrome se cortan pasados ~15 s en un mismo fragmento, y en Android pause()
+// equivale a cancelar. Por eso "pausar" es cortar y "seguir" repite el
+// fragmento en curso, igual en todas las plataformas.
+//
+// Pendiente: los diagramas y los gráficos hoy sólo se anuncian ("Diagrama.",
+// "Gráfico: título."). Más adelante se les puede sumar una explicación de lo
+// que dicen; el lugar es vozFinalizar().
+
+const VOZ_OK = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+const VOZ_CLAVE = "lectormd-voz";
+const VOZ_VELOCIDADES = [0.75, 1, 1.25, 1.5, 1.75, 2];
+const VOZ_FRAGMENTO_MAX = 200;
+const VOZ_FRAGMENTO_MIN = 24;
+const VOZ_TABLA_MAX = 15;
+// Las fórmulas en línea se reemplazan por una marca que después se traduce
+// a la palabra "fórmula" en el idioma del documento.
+const VOZ_FORMULA = "";
+
+const voz = {
+  estado: "quieto",   // quieto | leyendo | pausa
+  unidades: [],       // [{el, partes}]: un bloque del documento y sus fragmentos
+  u: 0, p: 0,         // unidad y fragmento en curso
+  idioma: "es",       // idioma del documento, no el de la interfaz
+  marcada: -1,
+  token: 0,           // invalida los eventos de un fragmento ya cortado
+  fallos: 0,
+  actual: null,       // el fragmento vivo: Chrome lo pierde si nadie lo referencia
+  arranque: null, vigia: null,
+  pantalla: null, pidiendoPantalla: false,
+  gesto: 0            // última vez que el usuario movió la página a mano
+};
+
+const vozPrefs = {rate: 1, voces: {}, nube: {}};
+try{
+  const guardado = JSON.parse(localStorage.getItem(VOZ_CLAVE) || "null");
+  if(guardado){
+    if(VOZ_VELOCIDADES.includes(guardado.rate)) vozPrefs.rate = guardado.rate;
+    if(guardado.voces && typeof guardado.voces === "object") vozPrefs.voces = guardado.voces;
+    if(guardado.nube && typeof guardado.nube === "object") vozPrefs.nube = guardado.nube;
+  }
+}catch(e){}
+
+function vozGuardarPrefs(){
+  try{ localStorage.setItem(VOZ_CLAVE, JSON.stringify(vozPrefs)); }catch(e){}
+}
+
+// El texto que se va a decir de un nodo: sin código, sin sublistas (cada una
+// aporta sus propios ítems) y con las fórmulas en línea marcadas.
+function vozTextoDe(nodo){
+  let s = "";
+  const rec = n => {
+    if(n.nodeType === 3){ s += n.nodeValue; return; }
+    if(n.nodeType !== 1) return;
+    if(n.matches("del,button,svg,img,script,style,ul,ol,.copiar,.ampliar")) return;
+    if(n.matches(".mathinline,.katex")){ s += " " + VOZ_FORMULA + " "; return; }
+    if(n.tagName === "BR"){ s += " "; return; }
+    n.childNodes.forEach(rec);
+  };
+  nodo.childNodes.forEach(rec);
+  return s.replace(/\s+/g, " ").trim();
+}
+
+function vozRecolectarLista(lista, dest){
+  const ordenada = lista.tagName === "OL";
+  let n = 0;
+  for(const li of lista.children){
+    if(li.tagName !== "LI") continue;
+    n++;
+    const texto = vozTextoDe(li);
+    if(texto) dest.push({el: li, tipo: "texto", texto: ordenada ? n + ". " + texto : texto});
+    for(const sub of li.children){
+      if(sub.tagName === "UL" || sub.tagName === "OL") vozRecolectarLista(sub, dest);
+    }
+  }
+}
+
+// Cada fila se dice con el nombre de su columna ("Plataforma: Android. API: ...").
+// Una tabla muy larga se anuncia y se saltea.
+function vozRecolectarTabla(envoltura, dest){
+  const tabla = envoltura.querySelector("table");
+  if(!tabla) return;
+  const cabecera = [...tabla.querySelectorAll("thead th")].map(vozTextoDe);
+  const filas = [...tabla.querySelectorAll("tbody tr")];
+  if(filas.length > VOZ_TABLA_MAX){
+    dest.push({el: envoltura, tipo: "tablaGrande", n: filas.length});
+    return;
+  }
+  for(const fila of filas){
+    const partes = [...fila.children].map((celda, i) => {
+      const texto = vozTextoDe(celda);
+      return texto && cabecera[i] ? cabecera[i] + ": " + texto : texto;
+    }).filter(Boolean);
+    if(partes.length) dest.push({el: fila, tipo: "texto", texto: partes.join(". ")});
+  }
+}
+
+function vozRecolectar(raiz, dest){
+  for(const el of raiz.children){
+    if(el.hidden) continue;
+    const tag = el.tagName;
+    if(/^H[1-6]$/.test(tag)){
+      dest.push({el, tipo: "texto", texto: vozTextoDe(el)});
+    }else if(tag === "P"){
+      if(el.classList.contains("foto")){
+        const img = el.querySelector("img");
+        dest.push({el, tipo: "imagen", alt: img ? (img.getAttribute("alt") || "").trim() : ""});
+      }else if(!el.matches(".diagram-err,.ayuda-version")){
+        dest.push({el, tipo: "texto", texto: vozTextoDe(el)});
+      }
+    }else if(tag === "UL" || tag === "OL"){
+      vozRecolectarLista(el, dest);
+    }else if(tag === "BLOCKQUOTE"){
+      vozRecolectar(el, dest);
+    }else if(el.classList.contains("tablewrap")){
+      vozRecolectarTabla(el, dest);
+    }else if(el.classList.contains("bloque-codigo") || tag === "PRE"){
+      dest.push({el, tipo: "codigo"});
+    }else if(el.classList.contains("mathblock")){
+      dest.push({el, tipo: "formula"});
+    }else if(el.classList.contains("diagram")){
+      dest.push({el, tipo: "diagrama"});
+    }else if(el.classList.contains("chart")){
+      const titulo = el.querySelector(".chart-titulo");
+      dest.push({el, tipo: "grafico", titulo: titulo ? titulo.textContent.trim() : ""});
+    }else if(tag === "DIV" || tag === "SECTION"){
+      vozRecolectar(el, dest);
+    }
+  }
+}
+
+// Español o inglés, por las palabras más comunes de cada uno. La voz y los
+// avisos ("Diagrama.") siguen al idioma del documento; si empatan, al de la interfaz.
+function vozIdiomaDe(texto){
+  const bajo = texto.toLowerCase();
+  const es = (bajo.match(/\b(el|la|los|las|de|que|y|en|un|una|por|con|para|es|se|del|al|como)\b/g) || []).length;
+  const en = (bajo.match(/\b(the|and|of|to|in|is|that|for|with|are|this|it|as|on|be|by)\b/g) || []).length;
+  return es === en ? IDIOMA : (es > en ? "es" : "en");
+}
+
+// Parte el texto en fragmentos de entre ~24 y ~200 caracteres, cortando donde
+// termina una oración (o, si es muy larga, en una coma).
+function vozPartir(texto){
+  const frases = texto.replace(/([.!?…]+["')\]»”]*)\s+/g, "$1\u0001").split("\u0001");
+  const trozos = [];
+  for(let f of frases){
+    f = f.trim();
+    while(f.length > VOZ_FRAGMENTO_MAX){
+      let corte = Math.max(f.lastIndexOf(", ", VOZ_FRAGMENTO_MAX),
+                           f.lastIndexOf("; ", VOZ_FRAGMENTO_MAX),
+                           f.lastIndexOf(": ", VOZ_FRAGMENTO_MAX));
+      if(corte < VOZ_FRAGMENTO_MAX * 0.4) corte = f.lastIndexOf(" ", VOZ_FRAGMENTO_MAX);
+      if(corte <= 0) corte = VOZ_FRAGMENTO_MAX;
+      trozos.push(f.slice(0, corte + 1).trim());
+      f = f.slice(corte + 1).trim();
+    }
+    if(f) trozos.push(f);
+  }
+  const partes = [];
+  let acumulado = "";
+  for(const trozo of trozos){
+    acumulado = acumulado ? acumulado + " " + trozo : trozo;
+    if(acumulado.length >= VOZ_FRAGMENTO_MIN){ partes.push(acumulado); acumulado = ""; }
+  }
+  if(acumulado){
+    if(partes.length) partes[partes.length - 1] += " " + acumulado;
+    else partes.push(acumulado);
+  }
+  return partes;
+}
+
+function vozFinalizar(e, T){
+  let texto;
+  switch(e.tipo){
+    case "texto":       texto = e.texto.split(VOZ_FORMULA).join(T.vozDiceFormula); break;
+    case "imagen":      texto = e.alt ? T.vozDiceImagen(e.alt) : T.vozDiceImagenSin; break;
+    case "codigo":      texto = T.vozDiceCodigo; break;
+    case "formula":     texto = T.vozDiceFormula.charAt(0).toUpperCase() + T.vozDiceFormula.slice(1) + "."; break;
+    case "diagrama":    texto = T.vozDiceDiagrama; break;
+    case "grafico":     texto = e.titulo ? T.vozDiceGraficoTitulo(e.titulo) : T.vozDiceGrafico; break;
+    case "tablaGrande": texto = T.vozDiceTablaGrande(e.n); break;
+    default:            return null;
+  }
+  texto = texto.replace(/\s+/g, " ").trim();
+  if(!/[\p{L}\p{N}]/u.test(texto)) return null;
+  // Un título o un ítem sin punto se pegaría con lo que sigue.
+  if(!/[.!?…:;]["')\]»”]*$/.test(texto)) texto += ".";
+  return {el: e.el, partes: vozPartir(texto)};
+}
+
+function vozPuntaje(v){
+  const lang = String(v.lang || "").toLowerCase().replace("_", "-");
+  const preferidos = navigator.languages && navigator.languages.length
+    ? navigator.languages : [navigator.language || ""];
+  let p = 0;
+  if(v.localService) p += 100;
+  if(preferidos.some(l => String(l).toLowerCase() === lang)) p += 40;
+  if(/natural|neural|premium|enhanced|mejorad/i.test(v.name)) p += 10;
+  if(v.default) p += 2;
+  return p;
+}
+
+function vozListaVoces(idioma){
+  let todas = [];
+  try{ todas = speechSynthesis.getVoices() || []; }catch(e){}
+  return todas
+    .filter(v => String(v.lang || "").toLowerCase().replace("_", "-").split("-")[0] === idioma)
+    .sort((a, b) => vozPuntaje(b) - vozPuntaje(a));
+}
+
+function vozVozActual(){
+  const lista = vozListaVoces(voz.idioma);
+  const guardada = vozPrefs.voces[voz.idioma];
+  return lista.find(v => v.voiceURI === guardada) || lista[0] || null;
+}
+
+// Una voz en línea manda el texto a un servidor. El lector promete que lo que
+// abrís no sale de tu máquina, así que esa voz sólo suena si lo confirmás.
+function vozNubeSinConfirmar(){
+  const v = vozVozActual();
+  return !!v && !v.localService && !vozPrefs.nube[v.voiceURI];
+}
+
+function vozMensaje(texto, aviso){
+  const m = $("vozMsg");
+  m.textContent = texto || "";
+  m.hidden = !texto;
+  m.classList.toggle("aviso", !!aviso);
+}
+
+function vozPintar(){
+  const activo = voz.estado !== "quieto";
+  $("voz").hidden = !activo;
+  $("vozBtn").classList.toggle("on", activo);
+  $("vozBtn").setAttribute("aria-pressed", String(activo));
+  const play = $("vozPlay");
+  play.dataset.estado = voz.estado;
+  const rotulo = t(voz.estado === "leyendo" ? "vozPausa" : "vozSeguir");
+  play.title = rotulo;
+  play.setAttribute("aria-label", rotulo);
+}
+
+function vozLlenarVoces(){
+  const sel = $("vozSel");
+  const lista = vozListaVoces(voz.idioma);
+  sel.innerHTML = "";
+  for(const v of lista){
+    const o = document.createElement("option");
+    o.value = v.voiceURI;
+    o.textContent = v.name + (v.localService ? "" : t("vozEnLinea"));
+    sel.appendChild(o);
+  }
+  const actual = vozVozActual();
+  if(actual) sel.value = actual.voiceURI;
+  sel.hidden = !lista.length;
+}
+
+function vozLlenarControles(){
+  const vel = $("vozVel");
+  vel.innerHTML = "";
+  for(const r of VOZ_VELOCIDADES){
+    const o = document.createElement("option");
+    o.value = String(r);
+    o.textContent = String(r).replace(".", IDIOMA === "es" ? "," : ".") + "×";
+    vel.appendChild(o);
+  }
+  vel.value = String(vozPrefs.rate);
+  vozLlenarVoces();
+}
+
+function vozDesmarcar(){
+  const u = voz.unidades[voz.marcada];
+  if(u) u.el.classList.remove("leyendo");
+  voz.marcada = -1;
+}
+
+// Lleva a la vista el bloque que se está leyendo, salvo que el usuario esté
+// moviendo la página a mano: ahí se lo deja tranquilo.
+function vozMostrar(el, forzar){
+  if(!forzar && Date.now() - voz.gesto < 4000) return;
+  const main = $("main");
+  const m = main.getBoundingClientRect();
+  const arriba = m.top + main.querySelector(".topbar").offsetHeight;
+  const abajo = m.bottom - 96;
+  const r = el.getBoundingClientRect();
+  if(r.top >= arriba && r.bottom <= abajo) return;
+  main.scrollTo({top: main.scrollTop + (r.top - arriba) - (abajo - arriba) * 0.2, behavior: "smooth"});
+}
+
+function vozMarcar(i, forzar){
+  const u = voz.unidades[i];
+  if(!u) return;
+  if(i !== voz.marcada){
+    vozDesmarcar();
+    voz.marcada = i;
+    u.el.classList.add("leyendo");
+    vozMostrar(u.el, forzar);
+  }else if(forzar){
+    vozMostrar(u.el, true);
+  }
+}
+
+// Con la pantalla apagada, iOS y Android cortan la voz: mientras se lee, se la
+// mantiene encendida.
+async function vozPedirPantalla(){
+  if(voz.pantalla || voz.pidiendoPantalla || !("wakeLock" in navigator)) return;
+  voz.pidiendoPantalla = true;
+  try{
+    const lock = await navigator.wakeLock.request("screen");
+    if(voz.estado !== "leyendo"){ lock.release().catch(() => {}); }
+    else{
+      voz.pantalla = lock;
+      lock.addEventListener("release", () => { if(voz.pantalla === lock) voz.pantalla = null; });
+    }
+  }catch(e){}
+  voz.pidiendoPantalla = false;
+}
+
+function vozSoltarPantalla(){
+  const lock = voz.pantalla;
+  voz.pantalla = null;
+  if(lock) lock.release().catch(() => {});
+}
+
+function vozCortar(){
+  voz.token++;
+  clearTimeout(voz.arranque);
+  clearTimeout(voz.vigia);
+  try{ speechSynthesis.cancel(); }catch(e){}
+}
+
+function vozDetener(){
+  if(voz.estado === "quieto" && !voz.unidades.length) return;
+  vozCortar();
+  vozSoltarPantalla();
+  vozDesmarcar();
+  voz.estado = "quieto";
+  voz.unidades = [];
+  voz.u = voz.p = 0;
+  voz.fallos = 0;
+  vozMensaje("");
+  vozPintar();
+}
+
+function vozPausar(){
+  vozCortar();
+  vozSoltarPantalla();
+  if(voz.estado !== "quieto") voz.estado = "pausa";
+  vozPintar();
+}
+
+// Cortar y volver a hablar con una pausa corta en el medio: Chrome a veces
+// descarta un speak() que llega pegado a un cancel().
+function vozReprogramar(){
+  vozCortar();
+  voz.estado = "leyendo";
+  vozMensaje("");
+  vozPintar();
+  voz.arranque = setTimeout(vozArrancar, 60);
+}
+
+function vozArrancar(){
+  if(voz.estado !== "leyendo") return;
+  if(vozNubeSinConfirmar()){
+    vozPausar();
+    vozMensaje(t("vozNube"), true);
+    return;
+  }
+  void vozPedirPantalla();
+  vozHablar();
+}
+
+// Reproducir, apretado por el usuario: es también su confirmación de la voz en línea.
+function vozJugar(){
+  const v = vozVozActual();
+  if(v && !v.localService && !vozPrefs.nube[v.voiceURI]){
+    vozPrefs.nube[v.voiceURI] = true;
+    vozGuardarPrefs();
+  }
+  vozReprogramar();
+}
+
+function vozHablar(){
+  const u = voz.unidades[voz.u];
+  if(!u){ vozDetener(); return; }
+  vozMarcar(voz.u);
+
+  const texto = u.partes[voz.p];
+  const mi = ++voz.token;
+  const ut = new SpeechSynthesisUtterance(texto);
+  const v = vozVozActual();
+  if(v){ ut.voice = v; ut.lang = v.lang; }
+  else ut.lang = voz.idioma;
+  ut.rate = vozPrefs.rate;
+  ut.onstart = () => { if(mi === voz.token) voz.fallos = 0; };
+  ut.onend = () => { if(mi === voz.token) vozAvanzar(); };
+  ut.onerror = e => {
+    if(mi !== voz.token) return;
+    if(e.error === "canceled" || e.error === "interrupted") return;
+    if(e.error === "not-allowed"){
+      vozPausar();
+      vozMensaje(t("vozBloqueada"), true);
+      return;
+    }
+    if(++voz.fallos >= 3){
+      vozPausar();
+      vozMensaje(t("vozError"), true);
+      return;
+    }
+    vozAvanzar();
+  };
+  voz.actual = ut;
+
+  try{
+    if(speechSynthesis.paused) speechSynthesis.resume();
+    speechSynthesis.speak(ut);
+  }catch(e){
+    vozPausar();
+    vozMensaje(t("vozError"), true);
+    return;
+  }
+  vozVigilar(mi, texto);
+}
+
+// Red de seguridad: algunas voces móviles a veces no avisan que terminaron.
+function vozVigilar(mi, texto){
+  clearTimeout(voz.vigia);
+  const espera = Math.round(texto.length / (8 * vozPrefs.rate) * 1000) + 5000;
+  voz.vigia = setTimeout(() => {
+    if(mi !== voz.token || voz.estado !== "leyendo") return;
+    let hablando = false;
+    try{ hablando = speechSynthesis.speaking; }catch(e){}
+    if(hablando) vozVigilar(mi, texto);
+    else vozAvanzar();
+  }, espera);
+}
+
+function vozAvanzar(){
+  const u = voz.unidades[voz.u];
+  if(!u) return;
+  if(++voz.p >= u.partes.length){ voz.u++; voz.p = 0; }
+  if(voz.u >= voz.unidades.length){ vozDetener(); return; }
+  vozHablar();
+}
+
+function vozSaltar(delta){
+  if(voz.estado === "quieto") return;
+  if(delta > 0){
+    if(voz.u + 1 >= voz.unidades.length){ vozDetener(); return; }
+    voz.u++;
+  }else if(voz.p === 0){
+    voz.u = Math.max(0, voz.u - 1);
+  }
+  voz.p = 0;
+  vozMarcar(voz.u, true);
+  vozReprogramar();
+}
+
+// Por dónde arrancar: el bloque donde empieza el texto seleccionado, o el
+// primero que se ve en pantalla.
+function vozUnidadInicial(){
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount && !sel.isCollapsed && $("doc").contains(sel.anchorNode)){
+    const nodo = sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement;
+    let hallada = -1;
+    voz.unidades.forEach((u, i) => { if(u.el === nodo || u.el.contains(nodo)) hallada = i; });
+    if(hallada >= 0) return hallada;
+  }
+  const main = $("main");
+  const arriba = main.getBoundingClientRect().top + main.querySelector(".topbar").offsetHeight;
+  const i = voz.unidades.findIndex(u => u.el.getBoundingClientRect().bottom > arriba + 4);
+  return i >= 0 ? i : 0;
+}
+
+function vozIniciar(){
+  if(!VOZ_OK || $("doc").hidden) return;
+  vozDetener();
+
+  const crudo = [];
+  vozRecolectar($("doc"), crudo);
+  voz.idioma = vozIdiomaDe(
+    crudo.filter(e => e.tipo === "texto").map(e => e.texto).join(" ").slice(0, 4000));
+  const T = TEXTOS[voz.idioma];
+  voz.unidades = crudo.map(e => vozFinalizar(e, T)).filter(Boolean);
+  if(!voz.unidades.length) return;
+
+  voz.u = vozUnidadInicial();
+  voz.p = 0;
+  voz.fallos = 0;
+  vozLlenarControles();
+  vozMarcar(voz.u);
+
+  let hayVoces = false;
+  try{ hayVoces = speechSynthesis.getVoices().length > 0; }catch(e){}
+  if(hayVoces && !vozListaVoces(voz.idioma).length){
+    voz.estado = "pausa";
+    vozPintar();
+    vozMensaje(t("vozSinVocesIdioma", voz.idioma), true);
+    return;
+  }
+  vozReprogramar();
+}
+
+if(VOZ_OK){
+  $("vozBtn").hidden = false;
+  $("vozBtn").onclick = () => { if(voz.estado === "quieto") vozIniciar(); else vozDetener(); };
+  $("vozPlay").onclick = () => { if(voz.estado === "leyendo") vozPausar(); else vozJugar(); };
+  $("vozAnt").onclick = () => vozSaltar(-1);
+  $("vozSig").onclick = () => vozSaltar(1);
+  $("vozX").onclick = () => vozDetener();
+
+  $("vozVel").onchange = () => {
+    vozPrefs.rate = Number($("vozVel").value);
+    vozGuardarPrefs();
+    if(voz.estado === "leyendo") vozReprogramar();
+  };
+  $("vozSel").onchange = () => {
+    vozPrefs.voces[voz.idioma] = $("vozSel").value;
+    vozGuardarPrefs();
+    vozMensaje("");
+    if(voz.estado === "leyendo") vozReprogramar();
+    else if(vozNubeSinConfirmar()) vozMensaje(t("vozNube"), true);
+  };
+
+  // Chrome carga la lista de voces en segundo plano.
+  try{ speechSynthesis.getVoices(); }catch(e){}
+  const alCambiarVoces = () => { if(voz.estado !== "quieto") vozLlenarVoces(); };
+  if(speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", alCambiarVoces);
+  else speechSynthesis.onvoiceschanged = alCambiarVoces;
+
+  ["wheel", "touchmove"].forEach(ev =>
+    $("main").addEventListener(ev, () => { voz.gesto = Date.now(); }, {passive: true}));
+
+  // Si el sistema mató la voz con la app en segundo plano, no hay evento que
+  // lo avise: al volver se lo detecta y queda en pausa, listo para seguir.
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState !== "visible" || voz.estado !== "leyendo") return;
+    void vozPedirPantalla();
+    let hablando = false;
+    try{ hablando = speechSynthesis.speaking || speechSynthesis.pending; }catch(e){}
+    if(!hablando) vozPausar();
+  });
+
+  window.addEventListener("pagehide", () => {
+    try{ speechSynthesis.cancel(); }catch(e){}
+  });
+}
 
 pintarEstados();
 $("docname").textContent = t("ningunArchivo");

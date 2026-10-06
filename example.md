@@ -26,7 +26,9 @@ Installed as an app, it does two more things:
 - On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
   Drive or another app and it opens here. From the WhatsApp chat the file doesn't
   arrive; for that, see *Files you get on WhatsApp* below.
-- On **desktop** it shows up in *Open with*.
+- On **desktop** it shows up in *Open with*. If the reader is already open, the file
+  is added to that same window, next to the ones you already had, instead of opening another.
+  On Windows, installing from **Edge** works best: that is where `.md` files get the reader's icon.
 
 ## Everything it does, at a glance
 
@@ -41,6 +43,7 @@ Installed as an app, it does two more things:
 | **Charts** | bar, line, area, scatter and pie charts, from a data table written in the file |
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
+| **Listen** | the document read aloud, with the device's own voice |
 | **Print** | or save as PDF, with a stylesheet made for paper |
 | **View** | light or dark theme, comfortable or compact line spacing |
 | **Language** | English or Spanish, following the browser, with a button to switch |
@@ -677,6 +680,37 @@ Diagram text is left out of the search: a drawn diagram is a vector image, and
 highlighting inside it would make the text disappear. For the same reason, in
 charts the title, the legend and the **Show data** table (when open) are
 searched, but not the axis numbers.
+
+### Listening
+
+The speaker button at the top right reads the document aloud. It starts from
+the text you have selected or, if nothing is selected, from the first thing on
+screen, and it highlights the block it is saying. A bar appears at the bottom
+with pause, previous and next paragraph, speed and voice. The speed and the
+voice you pick are remembered.
+
+The voice is the device's own: nothing is downloaded and, if the system has
+voices installed, it works offline. What it says for each thing:
+
+| Block | What it says |
+|---|---|
+| Text, lists and quotes | the text as is; numbered lists, with their number |
+| Tables | each row, with its column name; past 15 rows, it only says how many there are |
+| Formulas | the word "formula" |
+| Code and diagrams | only says there is a code block or a diagram |
+| Charts | "Chart" and its title |
+| Images | their alt text |
+
+The voice's language comes from the document, not the interface: a file in
+English is read by an English voice even if the reader is in Spanish.
+
+Voices marked *(online)* send the text to a server to turn it into audio. Since
+nothing you open should leave your machine, local voices are always preferred
+and, if only online ones exist, it asks you to confirm before using one.
+
+While it reads, the screen stays on in browsers that allow it, because on a
+phone turning it off cuts the voice. If it gets cut anyway, it is paused when
+you come back to the app and you continue from the same sentence.
 
 ### Comfortable or compact
 
