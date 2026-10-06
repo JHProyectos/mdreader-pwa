@@ -696,7 +696,7 @@ voces instaladas, funciona sin conexión. Qué dice de cada cosa:
 | Bloque | Qué dice |
 |---|---|
 | Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
-| Tablas | cada fila, con el nombre de su columna; si pasa de 15 filas, sólo avisa cuántas son |
+| Tablas | cada fila, con el nombre de su columna (si el encabezado termina en «…», como «Si te dan…», la fila se lee como una frase); si pasa de 15 filas, sólo avisa cuántas son |
 | Fórmulas | con su lectura matemática: «x al cuadrado», «a sobre b», «raíz cuadrada de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
 | Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
 | Gráficos | el tipo y el título y, de cada serie, sus valores si son pocos o, si son muchos, dónde empieza, dónde termina, el máximo, el mínimo y la tendencia; en una torta, el porcentaje de cada porción |

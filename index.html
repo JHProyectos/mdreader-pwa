@@ -2113,7 +2113,7 @@ voces instaladas, funciona sin conexión. Qué dice de cada cosa:
 | Bloque | Qué dice |
 |---|---|
 | Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
-| Tablas | cada fila, con el nombre de su columna; si pasa de 15 filas, sólo avisa cuántas son |
+| Tablas | cada fila, con el nombre de su columna (si el encabezado termina en «…», como «Si te dan…», la fila se lee como una frase); si pasa de 15 filas, sólo avisa cuántas son |
 | Fórmulas | con su lectura matemática: «x al cuadrado», «a sobre b», «raíz cuadrada de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
 | Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
 | Gráficos | el tipo y el título y, de cada serie, sus valores si son pocos o, si son muchos, dónde empieza, dónde termina, el máximo, el mínimo y la tendencia; en una torta, el porcentaje de cada porción |
@@ -2950,7 +2950,7 @@ voices installed, it works offline. What it says for each thing:
 | Block | What it says |
 |---|---|
 | Text, lists and quotes | the text as is; numbered lists, with their number |
-| Tables | each row, with its column name; past 15 rows, it only says how many there are |
+| Tables | each row, with its column name (if a header ends in "…", like "If you are given…", the row reads as one sentence); past 15 rows, it only says how many there are |
 | Formulas | read the way they are said in maths: "x squared", "a over b", "square root of", "integral from 0 to 1 of"; one it can't make sense of is just called "formula" |
 | Code and diagrams | only says there is a code block or a diagram |
 | Charts | the type and title and, for each series, its values if there are few or, if there are many, where it starts, where it ends, the maximum, the minimum and the trend; for a pie, the percentage of each slice |
@@ -5749,12 +5749,23 @@ function vozRecolectarTabla(envoltura, dest){
     dest.push({el: envoltura, tipo: "tablaGrande", n: filas.length});
     return;
   }
+  // Un encabezado que termina en puntos suspensivos ("Si te dan…", "Y te piden…")
+  // abre una frase: la celda la completa, sin los dos puntos de una etiqueta.
+  const RE_SUSPENSIVOS = /\s*(…|\.\.\.)\s*$/;
   for(const fila of filas){
     const partes = [...fila.children].map((celda, i) => {
-      const texto = vozTextoDe(celda);
-      return texto && cabecera[i] ? cabecera[i] + ": " + texto : texto;
+      const texto = vozTextoDe(celda), cab = cabecera[i];
+      if(!texto) return null;
+      if(!cab) return {texto, sigue: false};
+      if(RE_SUSPENSIVOS.test(cab)) return {texto: cab.replace(RE_SUSPENSIVOS, "") + " " + texto, sigue: true};
+      return {texto: cab + ": " + texto, sigue: false};
     }).filter(Boolean);
-    if(partes.length) dest.push({el: fila, tipo: "texto", texto: partes.join(". ")});
+    if(!partes.length) continue;
+    let dicho = partes[0].texto;
+    for(let k = 1; k < partes.length; k++){
+      dicho += (partes[k - 1].sigue && partes[k].sigue ? ", " : ". ") + partes[k].texto;
+    }
+    dest.push({el: fila, tipo: "texto", texto: dicho});
   }
 }
 
@@ -5859,6 +5870,8 @@ function vozGriegas(i, conAviso){
 const VOZ_HABLA = {
   es: {
     de: "de", tal: "tal que", tiende: "tiende a", base: " en base ",
+    // Una "y" suelta suena igual que la conjunción: se la nombra por su nombre.
+    letras: {y:"i griega", Y:"i griega"},
     num: v => v.replace(".", ","),
     s: {"+":"más", "-":"menos", "−":"menos", "=":"igual a", "<":"menor que", ">":"mayor que",
         "/":"sobre", "*":"por", "×":"por", "·":"por", "÷":"dividido por", "±":"más menos",
@@ -5957,6 +5970,7 @@ const VOZ_HABLA = {
   },
   en: {
     de: "of", tal: "such that", tiende: "tends to", base: " base ",
+    letras: {},
     num: v => v,
     s: {"+":"plus", "-":"minus", "−":"minus", "=":"equals", "<":"less than", ">":"greater than",
         "/":"over", "*":"times", "×":"times", "·":"times", "÷":"divided by", "±":"plus or minus",
@@ -6261,7 +6275,7 @@ function vozDecirEntorno(n, H, ctx){
 function vozDecirNodo(n, H, ctx){
   switch(n.t){
     case "num": return H.num(n.v);
-    case "var": return n.v;
+    case "var": return H.letras[n.v] || n.v;
     case "txt": return n.v.replace(/\s+/g, " ").trim();
     case "set": return H.set[n.v] || n.v;
     case "grp": return vozDecir(n.c, H, ctx);
@@ -6313,6 +6327,34 @@ function vozDecirNodo(n, H, ctx){
   }
 }
 
+// Qué letras se leen como el nombre de una función cuando les sigue un paréntesis.
+// f, g y h casi siempre lo son. Las demás (y(t), u(t-a), H(s), delta(t)) sólo si
+// el paréntesis no nombra la misma letra: así x(x+1) y s(s+1) siguen siendo
+// productos, y a(b+c) también, porque "a" no está entre las candidatas.
+const VOZ_FUNCIONES_SEGURAS = "fghFGH";
+const VOZ_FUNCIONES_PROBABLES = "pqrsuvwxyzPQRSTUVWXYZ";
+const VOZ_GRIEGAS_FUNCION = /^(delta|Delta|theta|Theta|phi|varphi|Phi|psi|Psi|Gamma|zeta|xi|Xi|eta|chi|sigma|Sigma|rho|omega|Omega|mu|nu)$/;
+
+function vozContiene(nodos, pred){
+  return nodos.some(x => pred(x) ||
+    (x.c && vozContiene(x.c, pred)) || (x.a && vozContiene(x.a, pred)) || (x.b && vozContiene(x.b, pred)) ||
+    (x.x && vozContiene(x.x, pred)) || (x.base && vozContiene([x.base], pred)) ||
+    (x.sup && vozContiene(x.sup, pred)) || (x.sub && vozContiene(x.sub, pred)));
+}
+
+function vozEsNombreDeFuncion(n, argumento){
+  if(n.t === "scr" && n.sup) return false;
+  const b = n.t === "scr" ? n.base : n;
+  if(b.t === "var"){
+    if(VOZ_FUNCIONES_SEGURAS.includes(b.v)) return true;
+    return VOZ_FUNCIONES_PROBABLES.includes(b.v) && !vozContiene(argumento, x => x.t === "var" && x.v === b.v);
+  }
+  if(b.t === "c" && VOZ_GRIEGAS_FUNCION.test(b.v)){
+    return !vozContiene(argumento, x => x.t === "c" && x.v === b.v);
+  }
+  return false;
+}
+
 function vozDecir(nodos, H, ctx = {}){
   const ns = nodos.filter(n => n.t !== "nada");
   const out = [];
@@ -6351,15 +6393,19 @@ function vozDecir(nodos, H, ctx = {}){
       continue;
     }
 
-    // f(x) y sen(x) se dicen "f de x" y "seno de x", sin nombrar los paréntesis.
-    if(((n.t === "var" && "fgFGh".includes(n.v)) || esFuncion(n)) && sig && sig.t === "s" && sig.v === "("){
-      let cierre = -1;
-      for(let m = j + 2; m < ns.length && m <= j + 8; m++){
-        if(ns[m].t === "s" && ns[m].v === "(") break;
-        if(ns[m].t === "s" && ns[m].v === ")"){ cierre = m; break; }
+    // f(x), y(t) y sen(x) se dicen "f de x", "i griega de t" y "seno de x", sin
+    // nombrar los paréntesis. Un argumento de más de un término ("t menos a") se
+    // cierra con una coma, para que "u de t menos a" no se confunda con "u de t, menos a".
+    if(sig && sig.t === "s" && sig.v === "("){
+      // El paréntesis que cierra, contando los anidados: f(f(x)).
+      let cierre = -1, prof = 0;
+      for(let m = j + 1; m < ns.length && m <= j + 14; m++){
+        if(ns[m].t === "s" && ns[m].v === "(") prof++;
+        else if(ns[m].t === "s" && ns[m].v === ")" && --prof === 0){ cierre = m; break; }
       }
-      if(cierre > j + 2){
-        out.push(vozDecirNodo(n, H, ctx), H.de, vozDecir(ns.slice(j + 2, cierre), H, ctx));
+      const dentro = cierre > j + 2 ? ns.slice(j + 2, cierre) : null;
+      if(dentro && (esFuncion(n) || vozEsNombreDeFuncion(n, dentro))){
+        out.push(vozDecirNodo(n, H, ctx), H.de, vozDecir(dentro, H, ctx) + (dentro.length > 1 ? "," : ""));
         j = cierre;
         continue;
       }
@@ -6470,7 +6516,10 @@ function vozFinalizar(e, T){
     case "texto":
       texto = e.texto.replace(VOZ_RE_FORMULA, (m, i) =>
         (i !== "" && vozDecirFormula(vozFormulas[+i], voz.idioma)) || T.vozDiceFormula)
-        .replace(/\s+([.,;:!?])/g, "$1");
+        .replace(/\s+([.,;:!?])/g, "$1")
+        // Un "+" o un "=" suelto en la prosa: cada voz lo resuelve a su manera
+        // (o lo calla), así que se lo dice igual que dentro de una fórmula.
+        .replace(/(^|\s)([+=×÷≈≤≥≠±−])(?=\s|$)/g, (m, antes, signo) => antes + VOZ_HABLA[voz.idioma].s[signo]);
       break;
     case "imagen":      texto = e.alt ? T.vozDiceImagen(e.alt) : T.vozDiceImagenSin; break;
     case "codigo":      texto = T.vozDiceCodigo; break;

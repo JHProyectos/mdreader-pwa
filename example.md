@@ -695,7 +695,7 @@ voices installed, it works offline. What it says for each thing:
 | Block | What it says |
 |---|---|
 | Text, lists and quotes | the text as is; numbered lists, with their number |
-| Tables | each row, with its column name; past 15 rows, it only says how many there are |
+| Tables | each row, with its column name (if a header ends in "…", like "If you are given…", the row reads as one sentence); past 15 rows, it only says how many there are |
 | Formulas | read the way they are said in maths: "x squared", "a over b", "square root of", "integral from 0 to 1 of"; one it can't make sense of is just called "formula" |
 | Code and diagrams | only says there is a code block or a diagram |
 | Charts | the type and title and, for each series, its values if there are few or, if there are many, where it starts, where it ends, the maximum, the minimum and the trend; for a pie, the percentage of each slice |
