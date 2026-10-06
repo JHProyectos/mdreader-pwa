@@ -5675,6 +5675,20 @@ const VOZ_FORMULA = String.fromCharCode(0xE000);
 const VOZ_FIN = String.fromCharCode(0xE001);
 const VOZ_RE_FORMULA = new RegExp(VOZ_FORMULA + "(\\d*)" + VOZ_FIN, "g");
 let vozFormulas = [];
+// Las letras minúsculas que aparecen en las fórmulas del documento: sirven para
+// saber cuándo una mayúscula (H) se confundiría con su minúscula (h).
+let vozGemelas = new Set();
+
+function vozMinusculasEn(textos){
+  const letras = new Set();
+  for(const tex of textos){
+    const limpio = tex
+      .replace(/\\(text|textrm|textbf|textit|mbox|mathrm|mathbf|operatorname|begin|end)\s*\{[^}]*\}/g, " ")
+      .replace(/\\[A-Za-z]+/g, " ");
+    for(const l of limpio.match(/[a-z]/g) || []) letras.add(l);
+  }
+  return letras;
+}
 
 const voz = {
   estado: "quieto",   // quieto | leyendo | pausa
@@ -5872,14 +5886,19 @@ const VOZ_HABLA = {
     de: "de", tal: "tal que", tiende: "tiende a", base: " en base ",
     // Una "y" suelta suena igual que la conjunción: se la nombra por su nombre.
     letras: {y:"i griega", Y:"i griega"},
+    mayus: l => l + " mayúscula",
+    por: "por", barra: "barra", invertida: "barra invertida",
+    conjugado: b => b + " conjugado",
+    sistema: filas => "sistema de ecuaciones: " +
+      filas.map((f, k) => "ecuación " + (k + 1) + ", " + f).join("; ") + ", fin del sistema",
     num: v => v.replace(".", ","),
     s: {"+":"más", "-":"menos", "−":"menos", "=":"igual a", "<":"menor que", ">":"mayor que",
-        "/":"sobre", "*":"por", "×":"por", "·":"por", "÷":"dividido por", "±":"más menos",
+        "/":"sobre", "*":"convolucionado con", "×":"por", "·":"por", "÷":"dividido por", "±":"más menos",
         "≤":"menor o igual que", "≥":"mayor o igual que", "≠":"distinto de", "≈":"aproximadamente igual a",
         "→":"flecha a", "∞":"infinito", "π":"pi", "(":"abre paréntesis", ")":"cierra paréntesis",
         "[":"abre corchete", "]":"cierra corchete", "{{":"abre llave", "}}":"cierra llave",
         "!":"factorial", "'":"prima", ",":",", ";":",", ":":",", ".":"", "?":"", "|":""},
-    op: {pm:"más menos", mp:"menos más", times:"por", cdot:"por", ast:"por", div:"dividido por",
+    op: {pm:"más menos", mp:"menos más", times:"por", cdot:"por", ast:"convolucionado con", div:"dividido por",
          leq:"menor o igual que", le:"menor o igual que", geq:"mayor o igual que", ge:"mayor o igual que",
          neq:"distinto de", ne:"distinto de", approx:"aproximadamente igual a", simeq:"aproximadamente igual a",
          equiv:"equivalente a", cong:"congruente con", sim:"similar a", propto:"proporcional a",
@@ -5922,8 +5941,9 @@ const VOZ_HABLA = {
     raizNLarga: (n, x) => "raíz " + n + "-ésima de " + x + ", fin de la raíz",
     cuadrado: b => b + " al cuadrado",
     cubo: b => b + " al cubo",
-    pot: (b, e) => b + " elevado a " + e,
-    potLarga: (b, e) => b + " elevado a " + e + ", fin del exponente",
+    // Con una letra como exponente se dice "elevado a la x": los nombres de las letras son femeninos.
+    pot: (b, e, conLa) => b + " elevado a " + (conLa ? "la " : "") + e,
+    potLarga: (b, e, conLa) => b + " elevado a " + (conLa ? "la " : "") + e + ", fin del exponente",
     sub: (b, s) => b + " sub " + s,
     subLarga: (b, s) => b + " sub " + s + ", fin del subíndice",
     grados: b => b + " grados",
@@ -5971,15 +5991,20 @@ const VOZ_HABLA = {
   en: {
     de: "of", tal: "such that", tiende: "tends to", base: " base ",
     letras: {},
+    mayus: l => "capital " + l,
+    por: "times", barra: "slash", invertida: "backslash",
+    conjugado: b => b + " conjugate",
+    sistema: filas => "system of equations: " +
+      filas.map((f, k) => "equation " + (k + 1) + ", " + f).join("; ") + ", end of system",
     num: v => v,
     s: {"+":"plus", "-":"minus", "−":"minus", "=":"equals", "<":"less than", ">":"greater than",
-        "/":"over", "*":"times", "×":"times", "·":"times", "÷":"divided by", "±":"plus or minus",
+        "/":"over", "*":"convolved with", "×":"times", "·":"times", "÷":"divided by", "±":"plus or minus",
         "≤":"less than or equal to", "≥":"greater than or equal to", "≠":"not equal to",
         "≈":"approximately equal to", "→":"arrow to", "∞":"infinity", "π":"pi",
         "(":"open parenthesis", ")":"close parenthesis", "[":"open bracket", "]":"close bracket",
         "{{":"open brace", "}}":"close brace", "!":"factorial", "'":"prime",
         ",":",", ";":",", ":":",", ".":"", "?":"", "|":""},
-    op: {pm:"plus or minus", mp:"minus or plus", times:"times", cdot:"times", ast:"times", div:"divided by",
+    op: {pm:"plus or minus", mp:"minus or plus", times:"times", cdot:"times", ast:"convolved with", div:"divided by",
          leq:"less than or equal to", le:"less than or equal to", geq:"greater than or equal to",
          ge:"greater than or equal to", neq:"not equal to", ne:"not equal to",
          approx:"approximately equal to", simeq:"approximately equal to", equiv:"equivalent to",
@@ -6250,9 +6275,23 @@ function vozDecirPotencia(base, sup, H, ctx){
     if(x.t === "c" && (x.v === "circ" || x.v === "degree")) return H.grados(base);
     if((x.t === "c" && x.v === "prime") || (x.t === "s" && x.v === "'")) return H.prima(base);
     if((x.t === "var" && x.v === "T") || (x.t === "c" && x.v === "top")) return H.traspuesta(base);
+    if((x.t === "s" && x.v === "*") || (x.t === "c" && x.v === "ast")) return H.conjugado(base);
   }
-  const e = vozDecir(sup, H, ctx);
-  return vozCorto(sup) ? H.pot(base, e) : H.potLarga(base, e);
+  // En un exponente, dos letras seguidas son un producto: e^{jt} es "jota por te".
+  const e = vozDecir(sup, H, {...ctx, producto: true});
+  const primero = sup.filter(x => x.t !== "nada")[0];
+  const cabeza = primero && primero.t === "scr" ? primero.base : primero;
+  const conLa = !!cabeza && cabeza.t === "var";
+  return vozCorto(sup) || vozEsProducto(sup) ? H.pot(base, e, conLa) : H.potLarga(base, e, conLa);
+}
+
+// Un signo opcional y hasta cuatro factores pegados (-j\omega t): se dice de corrido,
+// porque entre factor y factor suena "por" y se nota dónde termina.
+function vozEsProducto(nodos){
+  const ns = nodos.filter(n => n.t !== "nada");
+  const factores = ns[0] && ns[0].t === "s" && (ns[0].v === "-" || ns[0].v === "−" || ns[0].v === "+") ? ns.slice(1) : ns;
+  return factores.length > 0 && factores.length <= 4 &&
+    factores.every(n => n.t === "num" || vozEsLetra(n) || (n.t === "scr" && vozEsLetra(n.base) && !n.sup));
 }
 
 function vozDecirEntorno(n, H, ctx){
@@ -6268,17 +6307,32 @@ function vozDecirEntorno(n, H, ctx){
     const cols = Math.max(...dichas.map(f => f.length));
     return H.matriz(dichas.length, cols, dichas.map(f => f.join(", ")), /^[vV]matrix$/.test(n.n));
   }
-  if(n.n === "cases") return H.casos(dichas.map(f => f.join(", ")));
+  if(n.n === "cases"){
+    // Un "cases" sin segunda columna y con un "=" en cada fila es un sistema de
+    // ecuaciones, no una función definida por tramos.
+    const conDatos = filas.filter(f => f.some(c => c.length));
+    const esSistema = conDatos.length > 1 && conDatos.every(f =>
+      f.length === 1 && vozContiene(f[0], x => x.t === "s" && x.v === "="));
+    return esSistema ? H.sistema(dichas.map(f => f.join(", "))) : H.casos(dichas.map(f => f.join(", ")));
+  }
   return dichas.map(f => f.join(" ")).join("; ");
 }
 
 function vozDecirNodo(n, H, ctx){
+  // Lo que está adentro de otra cosa (una fracción, un exponente, una raíz) no
+  // lleva las pausas entre letras: esas sólo van en el nivel de arriba.
+  const hijo = {...ctx, sinPausas: true};
   switch(n.t){
     case "num": return H.num(n.v);
-    case "var": return H.letras[n.v] || n.v;
+    case "var": {
+      const letra = H.letras[n.v] || n.v;
+      // Una mayúscula se aclara sólo si la minúscula también aparece en el
+      // documento (H(s) y h(t)): ahí es donde se confundirían.
+      return /[A-Z]/.test(n.v) && vozGemelas.has(n.v.toLowerCase()) ? H.mayus(letra) : letra;
+    }
     case "txt": return n.v.replace(/\s+/g, " ").trim();
     case "set": return H.set[n.v] || n.v;
-    case "grp": return vozDecir(n.c, H, ctx);
+    case "grp": return vozDecir(n.c, H, hijo);
     case "s":   return H.s[n.v] !== undefined ? H.s[n.v] : n.v;
     case "fila": case "amp": return ",";
     case "c": {
@@ -6291,16 +6345,16 @@ function vozDecirNodo(n, H, ctx){
       return v;
     }
     case "frac": {
-      const d = vozDerivada(n, H, ctx);
+      const d = vozDerivada(n, H, hijo);
       if(d) return d;
-      const a = vozDecir(n.a, H, ctx), b = vozDecir(n.b, H, ctx);
+      const a = vozDecir(n.a, H, hijo), b = vozDecir(n.b, H, hijo);
       return vozCorto(n.a) && vozCorto(n.b) ? H.frac(a, b) : H.fracLarga(a, b);
     }
-    case "binom": return H.binom(vozDecir(n.a, H, ctx), vozDecir(n.b, H, ctx));
+    case "binom": return H.binom(vozDecir(n.a, H, hijo), vozDecir(n.b, H, hijo));
     case "sqrt": {
-      const x = vozDecir(n.x, H, ctx), largo = !vozCorto(n.x);
+      const x = vozDecir(n.x, H, hijo), largo = !vozCorto(n.x);
       if(n.n){
-        const idx = vozDecir(n.n, H, ctx);
+        const idx = vozDecir(n.n, H, hijo);
         if(idx === "3") return largo ? H.cubicaLarga(x) : H.cubica(x);
         return largo ? H.raizNLarga(idx, x) : H.raizN(idx, x);
       }
@@ -6308,18 +6362,18 @@ function vozDecirNodo(n, H, ctx){
     }
     case "acc": {
       const f = H.acc[n.n];
-      return f ? f(vozDecir(n.c, H, ctx)) : vozDecir(n.c, H, ctx);
+      return f ? f(vozDecir(n.c, H, hijo)) : vozDecir(n.c, H, hijo);
     }
     case "scr": {
       const b = n.base;
-      if(b.t === "c" && H.big[b.v]) return vozDecirBig(b.v, n.sub, n.sup, H, ctx);
+      if(b.t === "c" && H.big[b.v]) return vozDecirBig(b.v, n.sub, n.sup, H, hijo);
       let t = vozDecirNodo(b, H, ctx);
       if(n.sub){
-        const s = vozDecir(n.sub, H, ctx);
+        const s = vozDecir(n.sub, H, hijo);
         if(b.t === "c" && b.v === "log") t += H.base + s;
         else t = vozCorto(n.sub) ? H.sub(t, s) : H.subLarga(t, s);
       }
-      if(n.sup) t = vozDecirPotencia(t, n.sup, H, ctx);
+      if(n.sup) t = vozDecirPotencia(t, n.sup, H, hijo);
       return t;
     }
     case "env": return vozDecirEntorno(n, H, ctx);
@@ -6342,9 +6396,30 @@ function vozContiene(nodos, pred){
     (x.sup && vozContiene(x.sup, pred)) || (x.sub && vozContiene(x.sub, pred)));
 }
 
+// Una letra suelta: latina o griega (no un símbolo como infinito).
+function vozEsLetra(x){
+  return !!x && (x.t === "var" || (x.t === "c" && (Object.prototype.hasOwnProperty.call(VOZ_GRIEGAS, x.v) ||
+    VOZ_GRIEGAS_MAYUS.includes(x.v) || x.v === "Delta")));
+}
+
+// La letra que da el nombre: x en x_1, en x* y en \hat{x}.
+const vozEsConjugado = sup => !!sup && sup.length === 1 &&
+  ((sup[0].t === "s" && sup[0].v === "*") || (sup[0].t === "c" && sup[0].v === "ast"));
+function vozNucleo(n){
+  if(n.t === "scr") return n.base;
+  if(n.t === "acc" && n.c.length === 1) return n.c[0];
+  return n;
+}
+
+// Para x[n]: cualquier letra, con subíndice o conjugada si hace falta, sin exponente.
+function vozEsNombreDeSecuencia(n){
+  if(n.t === "scr" && n.sup && !vozEsConjugado(n.sup)) return false;
+  return vozEsLetra(vozNucleo(n));
+}
+
 function vozEsNombreDeFuncion(n, argumento){
-  if(n.t === "scr" && n.sup) return false;
-  const b = n.t === "scr" ? n.base : n;
+  if(n.t === "scr" && n.sup && !vozEsConjugado(n.sup)) return false;
+  const b = vozNucleo(n);
   if(b.t === "var"){
     if(VOZ_FUNCIONES_SEGURAS.includes(b.v)) return true;
     return VOZ_FUNCIONES_PROBABLES.includes(b.v) && !vozContiene(argumento, x => x.t === "var" && x.v === b.v);
@@ -6359,7 +6434,11 @@ function vozDecir(nodos, H, ctx = {}){
   const ns = nodos.filter(n => n.t !== "nada");
   const out = [];
   let absAbierto = false, normaAbierta = false, difPendiente = false;
+  let ultimaLetra = false, ultimoOperando = false;
   const baseDe = n => n.t === "scr" ? n.base : n;
+  const esOperando = x => x.t === "num" || x.t === "var" || x.t === "grp" ||
+    (x.t === "c" && H.pal[x.v] !== undefined) ||
+    (x.t === "scr" && !(x.base.t === "c" && (H.op[x.base.v] || H.big[x.base.v])));
   const esIntegral = n => { const b = baseDe(n); return b.t === "c" && /^(int|iint|iiint|oint)$/.test(b.v); };
   const esFuncion = n => { const b = baseDe(n); return b.t === "c" && !!H.fn[b.v]; };
   const empiezaTermino = x => !!x && (x.t === "num" || x.t === "var" || x.t === "grp" || x.t === "frac" ||
@@ -6382,6 +6461,7 @@ function vozDecir(nodos, H, ctx = {}){
         else if(quedan){ out.push(H.norma); normaAbierta = true; }
         else out.push(H.tal);
       }
+      ultimaLetra = false; ultimoOperando = false;
       continue;
     }
 
@@ -6390,28 +6470,53 @@ function vozDecir(nodos, H, ctx = {}){
       out.push(H.dif(vozDecirNodo(sig, H, ctx)));
       j++;
       difPendiente = false;
+      ultimaLetra = false; ultimoOperando = true;
       continue;
     }
 
-    // f(x), y(t) y sen(x) se dicen "f de x", "i griega de t" y "seno de x", sin
-    // nombrar los paréntesis. Un argumento de más de un término ("t menos a") se
-    // cierra con una coma, para que "u de t menos a" no se confunda con "u de t, menos a".
-    if(sig && sig.t === "s" && sig.v === "("){
-      // El paréntesis que cierra, contando los anidados: f(f(x)).
+    // f(x), y(t), x[n] y sen(x) se dicen "f de x", "i griega de t", "x de n" y
+    // "seno de x", sin nombrar los paréntesis ni los corchetes (en tiempo
+    // discreto, x[n] es la notación de siempre). Un argumento de más de un
+    // término ("t menos a") se cierra con una coma, para que "u de t menos a"
+    // no se confunda con "u de t, menos a".
+    if(sig && sig.t === "s" && (sig.v === "(" || sig.v === "[")){
+      const abre = sig.v, cierra = abre === "(" ? ")" : "]";
+      // El que cierra, contando los anidados: f(f(x)).
       let cierre = -1, prof = 0;
       for(let m = j + 1; m < ns.length && m <= j + 14; m++){
-        if(ns[m].t === "s" && ns[m].v === "(") prof++;
-        else if(ns[m].t === "s" && ns[m].v === ")" && --prof === 0){ cierre = m; break; }
+        if(ns[m].t === "s" && ns[m].v === abre) prof++;
+        else if(ns[m].t === "s" && ns[m].v === cierra && --prof === 0){ cierre = m; break; }
       }
       const dentro = cierre > j + 2 ? ns.slice(j + 2, cierre) : null;
-      if(dentro && (esFuncion(n) || vozEsNombreDeFuncion(n, dentro))){
-        out.push(vozDecirNodo(n, H, ctx), H.de, vozDecir(dentro, H, ctx) + (dentro.length > 1 ? "," : ""));
+      const esNombre = !!dentro && (abre === "["
+        ? vozEsNombreDeSecuencia(n)
+        : esFuncion(n) || vozEsNombreDeFuncion(n, dentro));
+      if(esNombre){
+        // La coma cierra un argumento largo, o separa dos llamadas pegadas: x[k] h[n-k].
+        const sigue = ns[cierre + 1];
+        const coma = dentro.length > 1 || (!!sigue && esOperando(sigue)) ? "," : "";
+        out.push(vozDecirNodo(n, H, ctx), H.de, vozDecir(dentro, H, {...ctx, sinPausas: true}) + coma);
         j = cierre;
+        ultimaLetra = false; ultimoOperando = true;
         continue;
       }
     }
 
+    // "A + C" dicho de corrido suena "amase": un + o un − entre dos letras lleva
+    // una pausa corta (una coma) de cada lado.
+    if(n.t === "s" && (n.v === "+" || n.v === "-" || n.v === "−") && ultimaLetra && vozEsLetra(sig) && !ctx.sinPausas){
+      out.push(", " + H.s[n.v] + ",");
+      ultimaLetra = false; ultimoOperando = false;
+      continue;
+    }
+
+    // En un exponente, lo que va pegado se multiplica: e^{j\omega t}.
+    const operando = esOperando(n);
+    if(ctx.producto && ultimoOperando && operando) out.push(H.por);
+
     out.push(vozDecirNodo(n, H, ctx));
+    ultimaLetra = vozEsLetra(n);
+    ultimoOperando = operando;
     if(esIntegral(n)) difPendiente = true;
     if(esFuncion(n) && empiezaTermino(sig)) out.push(H.de);
   }
@@ -6423,7 +6528,8 @@ function vozDecirFormula(tex, idioma){
   try{
     if(!tex || tex.length > 1500) return null;
     const frase = vozDecir(vozParsearTex(tex), VOZ_HABLA[idioma])
-      .replace(/\s+/g, " ").replace(/\s+([,;])/g, "$1").replace(/^[\s,;]+|[\s,;]+$/g, "");
+      .replace(/\s+/g, " ").replace(/\s+([,;])/g, "$1").replace(/,(\s*,)+/g, ",")
+      .replace(/^[\s,;]+|[\s,;]+$/g, "");
     return frase || null;
   }catch(e){
     return null;
@@ -6519,7 +6625,16 @@ function vozFinalizar(e, T){
         .replace(/\s+([.,;:!?])/g, "$1")
         // Un "+" o un "=" suelto en la prosa: cada voz lo resuelve a su manera
         // (o lo calla), así que se lo dice igual que dentro de una fórmula.
-        .replace(/(^|\s)([+=×÷≈≤≥≠±−])(?=\s|$)/g, (m, antes, signo) => antes + VOZ_HABLA[voz.idioma].s[signo]);
+        .replace(/(^|\s)([+=×÷≈≤≥≠±−])(?=\s|$)/g, (m, antes, signo) => antes + VOZ_HABLA[voz.idioma].s[signo])
+        // Las barras las nombra cada voz como quiere ("barra diagonal"): se las dice
+        // siempre igual, y la invertida se distingue. Un 1/2 o una fecha quedan como están.
+        .replace(/[\/\\]+/g, (m, pos, s) => {
+          const H = VOZ_HABLA[voz.idioma];
+          if(m[0] === "\\") return " " + H.invertida + " ";
+          if(/\d/.test(s[pos - 1] || "") && /\d/.test(s[pos + m.length] || "")) return m;
+          return (" " + H.barra).repeat(m.length) + " ";
+        })
+        .replace(/\s+([.,;:!?])/g, "$1");
       break;
     case "imagen":      texto = e.alt ? T.vozDiceImagen(e.alt) : T.vozDiceImagenSin; break;
     case "codigo":      texto = T.vozDiceCodigo; break;
@@ -6837,6 +6952,7 @@ function vozIniciar(){
   voz.idioma = vozIdiomaDe(
     crudo.filter(e => e.tipo === "texto").map(e => e.texto).join(" ").slice(0, 4000));
   const T = TEXTOS[voz.idioma];
+  vozGemelas = vozMinusculasEn(vozFormulas.concat(crudo.filter(e => e.tipo === "formula").map(e => e.tex)));
   voz.unidades = crudo.map(e => vozFinalizar(e, T)).filter(Boolean);
   if(!voz.unidades.length) return;
 
