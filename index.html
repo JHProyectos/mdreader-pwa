@@ -5889,6 +5889,14 @@ const VOZ_HABLA = {
     mayus: l => l + " mayúscula",
     por: "por", barra: "barra", invertida: "barra invertida",
     conjugado: b => b + " conjugado",
+    transf: {L:"transformada de Laplace", F:"transformada de Fourier", Z:"transformada Z"},
+    transfInv: {L:"transformada inversa de Laplace", F:"transformada inversa de Fourier", Z:"transformada Z inversa"},
+    primas: (b, n) => b + " " + (n === 1 ? "prima" : n === 2 ? "doble prima" : n === 3 ? "triple prima" : n + " primas"),
+    // f^{(n)}: la derivada de orden n; las tres primeras tienen nombre propio.
+    derivada: (b, orden, num, largo) =>
+      "derivada " + (num >= 1 && num <= 3 ? ["primera", "segunda", "tercera"][num - 1] : "de orden " + orden + (largo ? "," : "")) + " de " + b,
+    evaluado: (a, b) => " evaluado de " + a + " a " + b,
+    llave: (x, e) => e ? x + ", es decir, " + e + "," : x,
     sistema: filas => "sistema de ecuaciones: " +
       filas.map((f, k) => "ecuación " + (k + 1) + ", " + f).join("; ") + ", fin del sistema",
     num: v => v.replace(".", ","),
@@ -5915,7 +5923,7 @@ const VOZ_HABLA = {
     pal: {...vozGriegas(0, n => n + " mayúscula"),
           infty:"infinito", partial:"parcial", nabla:"nabla", ell:"ele", hbar:"h barra",
           emptyset:"conjunto vacío", varnothing:"conjunto vacío", angle:"ángulo", degree:"grados",
-          prime:"prima", Re:"parte real", Im:"parte imaginaria", top:"traspuesta",
+          prime:"prima", top:"traspuesta",
           ldots:"puntos suspensivos", cdots:"puntos suspensivos", dots:"puntos suspensivos",
           vdots:"puntos suspensivos", ddots:"puntos suspensivos",
           "%":"por ciento", "&":"y", "$":"dólar", "_":"guion bajo", "#":"numeral"},
@@ -5923,7 +5931,7 @@ const VOZ_HABLA = {
          arcsin:"arco seno", arccos:"arco coseno", arctan:"arco tangente", sinh:"seno hiperbólico",
          cosh:"coseno hiperbólico", tanh:"tangente hiperbólica", log:"logaritmo", ln:"logaritmo natural",
          lg:"logaritmo decimal", exp:"exponencial", det:"determinante", gcd:"máximo común divisor",
-         dim:"dimensión", ker:"núcleo", deg:"grado"},
+         dim:"dimensión", ker:"núcleo", deg:"grado", Re:"parte real", Im:"parte imaginaria", arg:"argumento"},
     big: {sum:"sumatoria", prod:"productoria", int:"integral", iint:"integral doble", iiint:"integral triple",
           oint:"integral de contorno", bigcup:"unión", bigcap:"intersección", lim:"límite",
           limsup:"límite superior", liminf:"límite inferior", max:"máximo", min:"mínimo",
@@ -5994,6 +6002,14 @@ const VOZ_HABLA = {
     mayus: l => "capital " + l,
     por: "times", barra: "slash", invertida: "backslash",
     conjugado: b => b + " conjugate",
+    transf: {L:"Laplace transform", F:"Fourier transform", Z:"Z transform"},
+    transfInv: {L:"inverse Laplace transform", F:"inverse Fourier transform", Z:"inverse Z transform"},
+    primas: (b, n) => b + " " + (n === 1 ? "prime" : n === 2 ? "double prime" : n === 3 ? "triple prime" : n + " primes"),
+    derivada: (b, orden, num, largo) =>
+      num >= 1 && num <= 3 ? ["first", "second", "third"][num - 1] + " derivative of " + b
+                           : "derivative of order " + orden + (largo ? "," : "") + " of " + b,
+    evaluado: (a, b) => " evaluated from " + a + " to " + b,
+    llave: (x, e) => e ? x + ", that is, " + e + "," : x,
     sistema: filas => "system of equations: " +
       filas.map((f, k) => "equation " + (k + 1) + ", " + f).join("; ") + ", end of system",
     num: v => v,
@@ -6022,14 +6038,14 @@ const VOZ_HABLA = {
     pal: {...vozGriegas(1, n => "capital " + n),
           infty:"infinity", partial:"partial", nabla:"nabla", ell:"ell", hbar:"h bar",
           emptyset:"empty set", varnothing:"empty set", angle:"angle", degree:"degrees",
-          prime:"prime", Re:"real part", Im:"imaginary part", top:"transpose",
+          prime:"prime", top:"transpose",
           ldots:"and so on", cdots:"and so on", dots:"and so on", vdots:"and so on", ddots:"and so on",
           "%":"percent", "&":"and", "$":"dollar", "_":"underscore", "#":"number"},
     fn: {sin:"sine", cos:"cosine", tan:"tangent", cot:"cotangent", sec:"secant", csc:"cosecant",
          arcsin:"arc sine", arccos:"arc cosine", arctan:"arc tangent", sinh:"hyperbolic sine",
          cosh:"hyperbolic cosine", tanh:"hyperbolic tangent", log:"log", ln:"natural log",
          lg:"log base 10", exp:"exponential", det:"determinant", gcd:"greatest common divisor",
-         dim:"dimension", ker:"kernel", deg:"degree"},
+         dim:"dimension", ker:"kernel", deg:"degree", Re:"real part", Im:"imaginary part", arg:"argument"},
     big: {sum:"sum", prod:"product", int:"integral", iint:"double integral", iiint:"triple integral",
           oint:"contour integral", bigcup:"union", bigcap:"intersection", lim:"limit",
           limsup:"limit superior", liminf:"limit inferior", max:"maximum", min:"minimum",
@@ -6100,7 +6116,7 @@ const VOZ_HABLA = {
 // num, var, s (símbolo), c (comando, que se busca en VOZ_HABLA), txt, set,
 // grp, frac, binom, sqrt, acc, scr (con ^ y _), env, fila, amp y nada.
 const VOZ_TEX_CON_TEXTO = /^(text|textrm|textbf|textit|textsf|mbox|operatorname|mathrm|mathbf|mathit|mathsf|mathtt|mathbb|mathcal|mathfrak|boldsymbol|begin|end)$/;
-const VOZ_TEX_IGNORAR = /^(limits|nolimits|displaystyle|textstyle|scriptstyle|scriptscriptstyle|big|Big|bigg|Bigg|bigl|bigr|Bigl|Bigr|biggl|biggr|Biggl|Biggr|hline|hfill|phantom|vphantom|hphantom|,|;|:|!| |>)$/;
+const VOZ_TEX_IGNORAR = /^(limits|nolimits|displaystyle|textstyle|scriptstyle|scriptscriptstyle|big|Big|bigg|Bigg|bigl|bigr|Bigl|Bigr|biggl|biggr|Biggl|Biggr|hline|hfill|,|;|:|!| |>)$/;
 
 function vozParsearTex(src){
   const toks = [];
@@ -6169,6 +6185,10 @@ function vozParsearTex(src){
   function conScripts(){
     const base = deToken(toks[i++]);
     let sup = null, sub = null;
+    // f' y f'' son f con uno y dos primas como exponente.
+    const primas = [];
+    while(esSym(sig(), "'")){ i++; primas.push({t:"s", v:"'"}); }
+    if(primas.length) sup = primas;
     while(esSym(sig(), "^") || esSym(sig(), "_")){
       const cual = toks[i++].v;
       const arg = argumento();
@@ -6202,7 +6222,9 @@ function vozParsearTex(src){
     }
     if(t.cmd === "end") return {t:"nada"};
     if(t.cmd === "mathbb") return {t:"set", v:t.v};
-    return {t:"txt", v:t.v};
+    // \operatorname{Re}(s) y \operatorname{arg} se buscan como los comandos de siempre.
+    if(t.cmd === "operatorname") return {t:"c", v:t.v.trim()};
+    return {t:"txt", v:t.v, cmd:t.cmd};
   }
 
   function comando(nombre){
@@ -6222,7 +6244,25 @@ function vozParsearTex(src){
       case "vec": case "hat": case "bar": case "overline": case "dot": case "ddot": case "tilde":
       case "widehat": case "widetilde": case "overrightarrow": case "underline":
         return {t:"acc", n:nombre, c:argumento()};
-      case "\\": return {t:"fila"};
+      // Marcos y colores: sólo importa lo que encierran.
+      case "boxed": case "fbox": case "cancel": case "bcancel": case "xcancel":
+        return {t:"grp", c:argumento()};
+      case "textcolor": case "colorbox": argumento(); return {t:"grp", c:argumento()};
+      case "color": argumento(); return {t:"nada"};
+      case "phantom": case "vphantom": case "hphantom": argumento(); return {t:"nada"};
+      // \underbrace{expresión}_{rótulo}: se dice la expresión y, si hay, su rótulo.
+      case "underbrace": case "overbrace": {
+        const x = argumento();
+        let etiqueta = null;
+        if(esSym(sig(), nombre === "underbrace" ? "_" : "^")){ i++; etiqueta = argumento(); }
+        return {t:"llave", x, e:etiqueta};
+      }
+      case "lvert": case "rvert": case "vert": return {t:"s", v:"|"};
+      case "lVert": case "rVert": case "Vert": return {t:"c", v:"|"};
+      case "\\":
+        // \\[4pt] lleva un espacio entre corchetes que no se dice.
+        if(esSym(sig(), "[")){ while(i < toks.length && !esSym(toks[i], "]")) i++; i++; }
+        return {t:"fila"};
       case "{": return {t:"s", v:"{{"};
       case "}": return {t:"s", v:"}}"};
       default: return {t:"c", v:nombre};
@@ -6238,8 +6278,11 @@ function vozPesoNodo(n){
     case "nada": return 0;
     case "grp": return vozPeso(n.c);
     case "acc": return vozPeso(n.c);
+    case "llave": return vozPeso(n.x);
     case "scr": return vozPesoNodo(n.base) + (n.sup ? vozPeso(n.sup) : 0) + (n.sub ? vozPeso(n.sub) : 0);
     case "frac": case "sqrt": case "binom": case "env": return 9;
+    // Los paréntesis de f(x) no se dicen: no pesan.
+    case "s": return /^[()\[\]]$/.test(n.v) ? 0 : 1;
     default: return 1;
   }
 }
@@ -6267,9 +6310,30 @@ function vozDecirBig(clave, sub, sup, H, ctx){
                     sub ? vozDecir(sub, H, nuevo) : "", sup ? vozDecir(sup, H, ctx) : "");
 }
 
+// f^{(n)}: un exponente entre paréntesis es el orden de la derivada. Devuelve
+// los nodos de adentro, o null si el exponente es otra cosa.
+function vozOrdenDerivada(sup){
+  const ns = sup.filter(x => x.t !== "nada");
+  const ult = ns[ns.length - 1];
+  return ns.length >= 3 && ns[0].t === "s" && ns[0].v === "(" && ult.t === "s" && ult.v === ")"
+    ? ns.slice(1, -1) : null;
+}
+const vozSonPrimas = sup => sup.length > 0 && sup.every(x => x.t === "s" && x.v === "'");
+const vozEsDerivada = sup => !!sup && (vozSonPrimas(sup) || vozOrdenDerivada(sup) !== null);
+
 function vozDecirPotencia(base, sup, H, ctx){
+  // f' y f'': una, dos o tres primas.
+  if(vozSonPrimas(sup)) return H.primas(base, sup.length);
+  // f^{(n)}: la derivada de orden n de f.
+  const orden = vozOrdenDerivada(sup);
+  if(orden){
+    const num = orden.length === 1 && orden[0].t === "num" ? +orden[0].v : 0;
+    return H.derivada(base, vozDecir(orden, H, ctx), num, orden.length > 1);
+  }
   if(sup.length === 1){
     const x = sup[0];
+    // 0^-: el límite por la izquierda ("cero menos"); 0^+ por la derecha.
+    if(x.t === "s" && (x.v === "-" || x.v === "−" || x.v === "+")) return base + " " + H.s[x.v];
     if(x.t === "num" && x.v === "2") return H.cuadrado(base);
     if(x.t === "num" && x.v === "3") return H.cubo(base);
     if(x.t === "c" && (x.v === "circ" || x.v === "degree")) return H.grados(base);
@@ -6330,7 +6394,8 @@ function vozDecirNodo(n, H, ctx){
       // documento (H(s) y h(t)): ahí es donde se confundirían.
       return /[A-Z]/.test(n.v) && vozGemelas.has(n.v.toLowerCase()) ? H.mayus(letra) : letra;
     }
-    case "txt": return n.v.replace(/\s+/g, " ").trim();
+    case "txt": return n.cmd === "mathcal" && H.transf[n.v] ? H.transf[n.v] : n.v.replace(/\s+/g, " ").trim();
+    case "llave": return H.llave(vozDecir(n.x, H, hijo), n.e ? vozDecir(n.e, H, hijo) : null);
     case "set": return H.set[n.v] || n.v;
     case "grp": return vozDecir(n.c, H, hijo);
     case "s":   return H.s[n.v] !== undefined ? H.s[n.v] : n.v;
@@ -6367,6 +6432,10 @@ function vozDecirNodo(n, H, ctx){
     case "scr": {
       const b = n.base;
       if(b.t === "c" && H.big[b.v]) return vozDecirBig(b.v, n.sub, n.sup, H, hijo);
+      // [f(t)e^{-st}]_{0^-}^{\infty}: un corchete con límites es "evaluado de … a …".
+      if(b.t === "s" && (b.v === "]" || b.v === ")") && n.sub && n.sup){
+        return vozDecirNodo(b, H, ctx) + H.evaluado(vozDecir(n.sub, H, hijo), vozDecir(n.sup, H, hijo));
+      }
       let t = vozDecirNodo(b, H, ctx);
       if(n.sub){
         const s = vozDecir(n.sub, H, hijo);
@@ -6413,12 +6482,12 @@ function vozNucleo(n){
 
 // Para x[n]: cualquier letra, con subíndice o conjugada si hace falta, sin exponente.
 function vozEsNombreDeSecuencia(n){
-  if(n.t === "scr" && n.sup && !vozEsConjugado(n.sup)) return false;
+  if(n.t === "scr" && n.sup && !vozEsConjugado(n.sup) && !vozEsDerivada(n.sup)) return false;
   return vozEsLetra(vozNucleo(n));
 }
 
 function vozEsNombreDeFuncion(n, argumento){
-  if(n.t === "scr" && n.sup && !vozEsConjugado(n.sup)) return false;
+  if(n.t === "scr" && n.sup && !vozEsConjugado(n.sup) && !vozEsDerivada(n.sup)) return false;
   const b = vozNucleo(n);
   if(b.t === "var"){
     if(VOZ_FUNCIONES_SEGURAS.includes(b.v)) return true;
@@ -6437,6 +6506,7 @@ function vozDecir(nodos, H, ctx = {}){
   let ultimaLetra = false, ultimoOperando = false;
   const baseDe = n => n.t === "scr" ? n.base : n;
   const esOperando = x => x.t === "num" || x.t === "var" || x.t === "grp" ||
+    x.t === "frac" || x.t === "sqrt" || x.t === "acc" ||
     (x.t === "c" && H.pal[x.v] !== undefined) ||
     (x.t === "scr" && !(x.base.t === "c" && (H.op[x.base.v] || H.big[x.base.v])));
   const esIntegral = n => { const b = baseDe(n); return b.t === "c" && /^(int|iint|iiint|oint)$/.test(b.v); };
@@ -6471,6 +6541,31 @@ function vozDecir(nodos, H, ctx = {}){
       j++;
       difPendiente = false;
       ultimaLetra = false; ultimoOperando = true;
+      continue;
+    }
+
+    // \mathcal{L}\{ ... \}: "transformada de Laplace de ...", con la inversa si lleva ^{-1}.
+    const nucleo = baseDe(n);
+    if(nucleo.t === "txt" && nucleo.cmd === "mathcal" && H.transf[nucleo.v]){
+      const inversa = n.t === "scr" && !!n.sup && n.sup.length === 2 && n.sup[0].t === "s" &&
+        (n.sup[0].v === "-" || n.sup[0].v === "−") && n.sup[1].t === "num" && n.sup[1].v === "1";
+      const nombre = (inversa ? H.transfInv : H.transf)[nucleo.v];
+      let cierre = -1, prof = 0;
+      if(sig && sig.t === "s" && sig.v === "{{"){
+        for(let m = j + 1; m < ns.length; m++){
+          if(ns[m].t === "s" && ns[m].v === "{{") prof++;
+          else if(ns[m].t === "s" && ns[m].v === "}}" && --prof === 0){ cierre = m; break; }
+        }
+      }
+      if(cierre > j + 1){
+        const dentro = ns.slice(j + 2, cierre);
+        out.push(nombre, H.de, vozDecir(dentro, H, {...ctx, sinPausas: true}) + (dentro.length > 1 ? "," : ""));
+        j = cierre;
+        ultimaLetra = false; ultimoOperando = true;
+      }else{
+        out.push(nombre, H.de);
+        ultimaLetra = false; ultimoOperando = false;
+      }
       continue;
     }
 
@@ -6515,8 +6610,13 @@ function vozDecir(nodos, H, ctx = {}){
     if(ctx.producto && ultimoOperando && operando) out.push(H.por);
 
     out.push(vozDecirNodo(n, H, ctx));
+    // Una potencia pegada a lo que sigue ("s^n F(s)") se separa con una pausa.
+    // Lo mismo con una fracción corta: "5 sobre 3, e elevado a…" y no "5 sobre 3 e…".
+    const cierraTermino = (n.t === "scr" && n.sup && !(n.base.t === "c" && H.big[n.base.v])) || n.t === "frac";
+    if(cierraTermino && sig && esOperando(sig) && !ctx.sinPausas && !ctx.producto) out.push(",");
     ultimaLetra = vozEsLetra(n);
-    ultimoOperando = operando;
+    // Un factor entre paréntesis también cuenta como operando para el "por" de un exponente.
+    ultimoOperando = operando || (n.t === "s" && (n.v === ")" || n.v === "]"));
     if(esIntegral(n)) difPendiente = true;
     if(esFuncion(n) && empiezaTermino(sig)) out.push(H.de);
   }
@@ -6534,6 +6634,35 @@ function vozDecirFormula(tex, idioma){
   }catch(e){
     return null;
   }
+}
+
+// ── Apellidos ────────────────────────────────────────────────────────────────
+// Las voces en español leen mal los apellidos de los matemáticos ("la pla se").
+// Cada uno se reemplaza, sólo al hablar, por una escritura que la voz pronuncia
+// bien. Son aproximaciones: si alguno suena raro, se corrige acá.
+const VOZ_NOMBRES = {
+  es: {
+    laplace:"Laplás", fourier:"Furié", cauchy:"Cochí", lagrange:"Lagránje", euler:"Óiler",
+    gauss:"Gáus", newton:"Niúton", taylor:"Téilor", maclaurin:"Maclorín", heaviside:"Jévisaid",
+    dirac:"Dirác", nyquist:"Náiquist", bessel:"Bésel", runge:"Rungue", kutta:"Kuta",
+    hermite:"Ermít", legendre:"Lejándr", riemann:"Riman", lebesgue:"Lebég", "poincaré":"Puankaré",
+    bernoulli:"Bernuli", jacobi:"Yacóbi", kronecker:"Kronéker", cholesky:"Choléski",
+    schmidt:"Chmit", "thévenin":"Tevenén", kirchhoff:"Kírchof", ohm:"Om", wiener:"Víner",
+    fibonacci:"Fibonachi", chebyshev:"Chebichev", neumann:"Noiman", seidel:"Záidel",
+    doolittle:"Dulitl", crout:"Craut", lipschitz:"Lipchits"
+  },
+  en: {}
+};
+const VOZ_RE_NOMBRES = {};
+for(const id in VOZ_NOMBRES){
+  const claves = Object.keys(VOZ_NOMBRES[id]).sort((a, b) => b.length - a.length);
+  VOZ_RE_NOMBRES[id] = claves.length
+    ? new RegExp("(^|[^\\p{L}])(" + claves.join("|") + ")(?![\\p{L}])", "giu") : null;
+}
+
+function vozPronunciar(texto, idioma){
+  const re = VOZ_RE_NOMBRES[idioma];
+  return re ? texto.replace(re, (m, antes, nombre) => antes + VOZ_NOMBRES[idioma][nombre.toLowerCase()]) : texto;
 }
 
 // ── Gráficos dichos en voz alta ──────────────────────────────────────────────
@@ -6639,8 +6768,9 @@ function vozFinalizar(e, T){
     case "imagen":      texto = e.alt ? T.vozDiceImagen(e.alt) : T.vozDiceImagenSin; break;
     case "codigo":      texto = T.vozDiceCodigo; break;
     case "formula": {
+      // Una fórmula que se pudo decir va sola; el aviso "Fórmula." queda para la que no.
       const dicha = e.tex ? vozDecirFormula(e.tex, voz.idioma) : null;
-      texto = T.vozDiceFormula.charAt(0).toUpperCase() + T.vozDiceFormula.slice(1) + (dicha ? ": " + dicha : "") + ".";
+      texto = dicha || T.vozDiceFormula.charAt(0).toUpperCase() + T.vozDiceFormula.slice(1) + ".";
       break;
     }
     case "diagrama":    texto = T.vozDiceDiagrama; break;
@@ -6651,7 +6781,7 @@ function vozFinalizar(e, T){
     case "tablaGrande": texto = T.vozDiceTablaGrande(e.n); break;
     default:            return null;
   }
-  texto = texto.replace(/\s+/g, " ").trim();
+  texto = vozPronunciar(texto.replace(/\s+/g, " ").trim(), voz.idioma);
   if(!/[\p{L}\p{N}]/u.test(texto)) return null;
   // Un título o un ítem sin punto se pegaría con lo que sigue.
   if(!/[.!?…:;]["')\]»”]*$/.test(texto)) texto += ".";
