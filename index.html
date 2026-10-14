@@ -326,6 +326,8 @@ article p.foto img{display:block; max-height:70vh; cursor:zoom-in}
 article ul,article ol{margin:0 0 var(--sp-p); padding-left:1.5em}
 article li{margin:var(--sp-li) 0}
 article li > ul,article li > ol{margin:var(--sp-li) 0}
+article li.task{list-style:none; position:relative}
+article li.task > input{position:absolute; left:-1.35em; top:.3em; width:1em; height:1em; margin:0; accent-color:var(--accent); pointer-events:none}
 article a{color:var(--accent); text-underline-offset:2px}
 article hr{border:none; border-top:1px solid var(--line); margin:var(--sp-h2) 0}
 article strong{font-weight:600}
@@ -3753,9 +3755,15 @@ function render(md){
               && L[i].match(/^\s*/)[0].length > ind){
           sub.push(L[i]); i++;
         }
+        const tarea = txt.match(/^\[([ xX])\]\s+/);
+        if(tarea) txt = txt.slice(tarea[0].length);
         let html = inline([txt, ...cont].join(" "));
         if(sub.length) html += render(sub.map(s=>s.replace(/^\s{0,3}/,"")).join("\n")).html;
-        items.push("<li>"+html+"</li>");
+        if(tarea){
+          const hecha = tarea[1] !== " ";
+          items.push('<li class="task'+(hecha?" done":"")+'"><input type="checkbox" tabindex="-1" aria-readonly="true"'
+                     +(hecha?" checked":"")+"> "+html+"</li>");
+        } else items.push("<li>"+html+"</li>");
       }
       out.push((ord?"<ol>":"<ul>")+items.join("")+(ord?"</ol>":"</ul>"));
       continue;

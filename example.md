@@ -800,10 +800,11 @@ exactly this syntax:
 - An inline math formula and a block one, in LaTeX
 - A Mermaid flowchart and a sequence diagram
 - One chart of each kind, each in a fence with the language chart: first the lines "type: ..." (bar, line, area, scatter or pie) and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories. The pie takes a single value column, all positive, and up to eight rows; on the scatter the categories should be numbers
+- A task list with checkboxes, some checked with "- [x]" and some unchecked with "- [ ]"
 - A horizontal rule
 
 Don't use any of the following, because the reader doesn't interpret it and it
-shows up as raw text: task lists with checkboxes, footnotes, raw HTML tags,
+shows up as raw text: footnotes, raw HTML tags,
 reference-style links with the definition at the end, or underlined headings
 instead of headings with hashes.
 
@@ -820,7 +821,6 @@ slipped in one of the things from the list below.
 It's a deliberately small reader, with its own parser. These Markdown features
 aren't there:
 
-- **Task lists.** Checkboxes show up as text.
 - **Footnotes.** They stay as written.
 - **HTML inside Markdown.** It's shown as text, not interpreted. That's on
   purpose: files come from outside, and nothing they carry gets executed.

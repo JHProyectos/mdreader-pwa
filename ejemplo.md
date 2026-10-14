@@ -801,11 +801,11 @@ exactamente esta sintaxis:
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
 - Un gráfico de cada tipo, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: ..." (barras, lineas, area, dispersion o torta) y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías. En el de torta, una sola columna de valores, todos positivos, y hasta ocho filas; en el de dispersión conviene que las categorías sean números
+- Una lista de tareas con casillas, algunas tildadas con "- [x]" y otras sin tildar con "- [ ]"
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como
-texto crudo: listas de tareas con casillas para tildar, notas al pie, etiquetas
-HTML sueltas, enlaces por referencia con la definición al final, ni encabezados
+texto crudo: notas al pie, etiquetas HTML sueltas, enlaces por referencia con la definición al final, ni encabezados
 subrayados en vez de encabezados con numeral.
 
 Devolvémelo como un único bloque de Markdown crudo, listo para guardar como
@@ -821,7 +821,6 @@ metió alguna de las cosas de la lista de abajo.
 Es un lector deliberadamente chico, con un parser propio. Estas cosas de
 Markdown no están:
 
-- **Listas de tareas.** Las casillas de tildar se ven como texto.
 - **Notas al pie.** Quedan como están escritas.
 - **HTML adentro del Markdown.** Se muestra como texto, no se interpreta. Es a
   propósito: los archivos llegan de afuera y no se ejecuta nada de lo que traen.
