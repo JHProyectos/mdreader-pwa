@@ -45,6 +45,7 @@ Installed as an app, it does two more things:
 | **Search** | inside the open document, from two characters, with highlighting |
 | **Listen** | the document read aloud, with the device's own voice |
 | **Print** | or save as PDF, with a stylesheet made for paper |
+| **Edit** | the file's text with the preview beside it, and save it to the original file |
 | **View** | light or dark theme, comfortable or compact line spacing |
 | **Language** | English or Spanish, following the browser, with a button to switch |
 | **Remember** | which files you loaded, which one you were reading and where you were in each |
@@ -761,9 +762,29 @@ numbers.
 | Shortcut | What it does |
 |---|---|
 | `Ctrl` + `F` | go to the search field |
+| `Ctrl` + `S` | save, in edit mode |
 | `Esc` | clear the search |
 | `Alt` + `J` | next file |
 | `Alt` + `K` | previous file |
+
+### Editing a document
+
+The pencil button, top right, switches to edit mode: the file's text on the
+left and how it looks on the right, updated as you type. On a phone you see one
+at a time, and the *Preview* / *Text* button switches between them.
+
+**Save** writes to the original file when the browser allows it, which today
+means desktop Chrome or Edge:
+
+- If the file comes from a folder opened with **Open folder**, it's saved right
+  there. The first time, the browser asks for permission to modify the folder.
+- If you opened it with *Open with* from the system, it's saved to that file.
+- If it's a loose file or comes from GitHub, the first time it asks where to
+  save it, and from then on it always saves to that file.
+
+In other browsers, and on Android and iOS, the changes stay saved in the reader
+and a copy of the file is downloaded. If you leave edit mode with unsaved
+changes, the reader asks before discarding them.
 
 ### What gets remembered
 
@@ -827,7 +848,6 @@ aren't there:
 - **Reference-style links**, with the definition separately at the end.
 - **Underlined headings**, the ones marked with dashes or equals signs under
   the text. Use `#`.
-- **Editing.** It's a reader: it shows files, it doesn't change them.
 
 ---
 

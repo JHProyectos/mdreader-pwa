@@ -45,6 +45,7 @@ Instalado como app tiene dos cosas más:
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Escuchar** | el documento en voz alta, con la voz del propio dispositivo |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
+| **Editar** | el texto del archivo con la vista previa al lado, y guardarlo en el archivo original |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
 | **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
 | **Recordar** | qué archivos cargaste, cuál leías y en qué parte de cada uno |
@@ -762,9 +763,30 @@ pero sin números de página.
 | Atajo | Qué hace |
 |---|---|
 | `Ctrl` + `F` | ir al campo de búsqueda |
+| `Ctrl` + `S` | guardar, en modo edición |
 | `Esc` | limpiar la búsqueda |
 | `Alt` + `J` | archivo siguiente |
 | `Alt` + `K` | archivo anterior |
+
+### Editar un documento
+
+El botón del lápiz, arriba a la derecha, pasa al modo edición: el texto del
+archivo a la izquierda y cómo se ve a la derecha, que se actualiza mientras
+escribís. En el celular se ve uno a la vez, y el botón *Vista* / *Texto*
+alterna entre los dos.
+
+**Guardar** escribe en el archivo original cuando el navegador lo permite, que
+hoy es Chrome o Edge de escritorio:
+
+- Si el archivo es de una carpeta abierta con **Abrir carpeta**, se guarda ahí
+  mismo. La primera vez el navegador pide permiso para modificar la carpeta.
+- Si lo abriste con *Abrir con* desde el sistema, se guarda en ese archivo.
+- Si es un archivo suelto o viene de GitHub, la primera vez pregunta dónde
+  guardarlo, y después guarda siempre en ese archivo.
+
+En los demás navegadores, y en Android y iOS, los cambios quedan guardados en
+el lector y se descarga una copia del archivo. Si salís del modo edición con
+cambios sin guardar, el lector pregunta antes de descartarlos.
 
 ### Lo que queda guardado
 
@@ -827,7 +849,6 @@ Markdown no están:
 - **Enlaces por referencia**, con la definición aparte al final.
 - **Encabezados subrayados**, los que se marcan con guiones o iguales debajo
   del texto. Usá `#`.
-- **Editar.** Es un lector: muestra archivos, no los modifica.
 
 ---
 

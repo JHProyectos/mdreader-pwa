@@ -695,6 +695,33 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
 #vozBtn svg{display:block; width:16px; height:16px}
 #vozBtn:disabled{opacity:.45; cursor:default; pointer-events:none}
 
+/* Modo edición: el Markdown crudo a la izquierda y la vista previa (#doc) a la
+   derecha, cada uno con su propio scroll. En pantallas angostas se ve uno solo
+   y el botón Vista/Texto alterna. */
+#editBtn{display:inline-flex; align-items:center; flex:none; padding:6px 8px}
+#editBtn svg{display:block; width:16px; height:16px}
+#editBtn:disabled{opacity:.45; cursor:default; pointer-events:none}
+#editGuardar,#editAlternar{flex:none}
+#editGuardar.sucio{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+#editAlternar{display:none}
+#editTxt{display:none}
+main.editando{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr); overflow:hidden}
+main.editando .topbar{grid-column:1 / -1}
+main.editando #drop{display:none}
+main.editando #editTxt{display:block; width:100%; height:100%; resize:none; margin:0;
+  border:0; border-right:1px solid var(--line); outline:none; padding:20px;
+  background:var(--surface); color:var(--ink); font:13px/1.6 var(--mono); tab-size:2}
+main.editando #doc{overflow-y:auto; max-width:none; margin:0}
+@media (max-width:820px){
+  main.editando{grid-template-columns:minmax(0,1fr)}
+  main.editando #editAlternar{display:inline-block}
+  main.editando:not(.ver-vista) #doc{display:none}
+  main.editando.ver-vista #editTxt{display:none}
+  main.editando #editTxt{border-right:0}
+  main.editando #search,main.editando #vozBtn{display:none}
+}
+
 .leyendo{
   background:var(--accent-soft); border-radius:3px;
   box-shadow:-4px 0 0 var(--accent), 0 0 0 5px var(--accent-soft);
@@ -805,7 +832,14 @@ tr.leyendo > td{background:var(--accent-soft)}
       <button type="button" class="icon" id="vozBtn" data-t-title="vozEscuchar" data-t-aria="vozEscuchar" aria-pressed="false" disabled hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
+      <button type="button" class="icon" id="editAlternar"></button>
+      <button type="button" class="icon" id="editGuardar" data-t="editGuardar" data-t-title="editGuardarTitle" hidden></button>
+      <button type="button" class="icon" id="editBtn" data-t-title="editar" data-t-aria="editar" aria-pressed="false" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
     </div>
+
+    <textarea id="editTxt" spellcheck="false" data-t-aria="editTexto"></textarea>
 
     <div class="drop" id="drop">
       <p class="big" data-t="dropBig"></p>
@@ -1121,6 +1155,20 @@ const TEXTOS = {
     updProxima: "La actualización se aplicará la próxima vez que abras la app.",
     updActualizando: "Actualizando… tus documentos se restaurarán enseguida.",
     vozEscuchar: "Escuchar el documento en voz alta",
+    editar: "Editar el documento",
+    editSalir: "Salir de la edición",
+    editTexto: "Texto del documento",
+    editGuardar: "Guardar",
+    editGuardarTitle: "Guardar (Ctrl+S)",
+    editVerVista: "Vista",
+    editVerTexto: "Texto",
+    editGuardado: "Guardado",
+    editGuardadoLocal: "Guardado solo en el lector",
+    editDescargado: "Guardado en el lector y descargado",
+    editDescartar: "Hay cambios sin guardar. ¿Descartarlos?",
+    editSinPermiso: "No se pudo guardar en el archivo: el navegador no dio permiso de escritura. " +
+      "Los cambios quedaron guardados en el lector.",
+    editError: msg => "No se pudo guardar en el archivo (" + msg + "). Los cambios quedaron guardados en el lector.",
     vozGrupo: "Lectura en voz alta",
     vozAnterior: "Párrafo anterior",
     vozSiguiente: "Párrafo siguiente",
@@ -1330,6 +1378,20 @@ const TEXTOS = {
     updProxima: "The update will apply the next time you open the app.",
     updActualizando: "Updating… your documents will be restored right away.",
     vozEscuchar: "Listen to the document aloud",
+    editar: "Edit the document",
+    editSalir: "Stop editing",
+    editTexto: "Document text",
+    editGuardar: "Save",
+    editGuardarTitle: "Save (Ctrl+S)",
+    editVerVista: "Preview",
+    editVerTexto: "Text",
+    editGuardado: "Saved",
+    editGuardadoLocal: "Saved in the reader only",
+    editDescargado: "Saved in the reader and downloaded",
+    editDescartar: "There are unsaved changes. Discard them?",
+    editSinPermiso: "Couldn't save to the file: the browser didn't grant write permission. " +
+      "Your changes were saved in the reader.",
+    editError: msg => "Couldn't save to the file (" + msg + "). Your changes were saved in the reader.",
     vozGrupo: "Read aloud",
     vozAnterior: "Previous paragraph",
     vozSiguiente: "Next paragraph",
@@ -1464,6 +1526,7 @@ Instalado como app tiene dos cosas más:
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Escuchar** | el documento en voz alta, con la voz del propio dispositivo |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
+| **Editar** | el texto del archivo con la vista previa al lado, y guardarlo en el archivo original |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
 | **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
 | **Recordar** | qué archivos cargaste, cuál leías y en qué parte de cada uno |
@@ -2181,9 +2244,30 @@ pero sin números de página.
 | Atajo | Qué hace |
 |---|---|
 | `Ctrl` + `F` | ir al campo de búsqueda |
+| `Ctrl` + `S` | guardar, en modo edición |
 | `Esc` | limpiar la búsqueda |
 | `Alt` + `J` | archivo siguiente |
 | `Alt` + `K` | archivo anterior |
+
+### Editar un documento
+
+El botón del lápiz, arriba a la derecha, pasa al modo edición: el texto del
+archivo a la izquierda y cómo se ve a la derecha, que se actualiza mientras
+escribís. En el celular se ve uno a la vez, y el botón *Vista* / *Texto*
+alterna entre los dos.
+
+**Guardar** escribe en el archivo original cuando el navegador lo permite, que
+hoy es Chrome o Edge de escritorio:
+
+- Si el archivo es de una carpeta abierta con **Abrir carpeta**, se guarda ahí
+  mismo. La primera vez el navegador pide permiso para modificar la carpeta.
+- Si lo abriste con *Abrir con* desde el sistema, se guarda en ese archivo.
+- Si es un archivo suelto o viene de GitHub, la primera vez pregunta dónde
+  guardarlo, y después guarda siempre en ese archivo.
+
+En los demás navegadores, y en Android y iOS, los cambios quedan guardados en
+el lector y se descarga una copia del archivo. Si salís del modo edición con
+cambios sin guardar, el lector pregunta antes de descartarlos.
 
 ### Lo que queda guardado
 
@@ -2220,11 +2304,11 @@ exactamente esta sintaxis:
 - Una fórmula matemática en línea y otra de bloque, en LaTeX
 - Un diagrama Mermaid de flujo y otro de secuencia
 - Un gráfico de cada tipo, cada uno en una valla con lenguaje grafico: primero las líneas "tipo: ..." (barras, lineas, area, dispersion o torta) y "titulo: ...", después una línea vacía y los datos separados por comas, con la primera fila como encabezado y la primera columna como categorías. En el de torta, una sola columna de valores, todos positivos, y hasta ocho filas; en el de dispersión conviene que las categorías sean números
+- Una lista de tareas con casillas, algunas tildadas con "- [x]" y otras sin tildar con "- [ ]"
 - Una regla horizontal
 
 No uses nada de esto, porque el lector no lo interpreta y queda a la vista como
-texto crudo: listas de tareas con casillas para tildar, notas al pie, etiquetas
-HTML sueltas, enlaces por referencia con la definición al final, ni encabezados
+texto crudo: notas al pie, etiquetas HTML sueltas, enlaces por referencia con la definición al final, ni encabezados
 subrayados en vez de encabezados con numeral.
 
 Devolvémelo como un único bloque de Markdown crudo, listo para guardar como
@@ -2240,14 +2324,12 @@ metió alguna de las cosas de la lista de abajo.
 Es un lector deliberadamente chico, con un parser propio. Estas cosas de
 Markdown no están:
 
-- **Listas de tareas.** Las casillas de tildar se ven como texto.
 - **Notas al pie.** Quedan como están escritas.
 - **HTML adentro del Markdown.** Se muestra como texto, no se interpreta. Es a
   propósito: los archivos llegan de afuera y no se ejecuta nada de lo que traen.
 - **Enlaces por referencia**, con la definición aparte al final.
 - **Encabezados subrayados**, los que se marcan con guiones o iguales debajo
   del texto. Usá `#`.
-- **Editar.** Es un lector: muestra archivos, no los modifica.
 
 ---
 
@@ -2302,6 +2384,7 @@ Installed as an app, it does two more things:
 | **Search** | inside the open document, from two characters, with highlighting |
 | **Listen** | the document read aloud, with the device's own voice |
 | **Print** | or save as PDF, with a stylesheet made for paper |
+| **Edit** | the file's text with the preview beside it, and save it to the original file |
 | **View** | light or dark theme, comfortable or compact line spacing |
 | **Language** | English or Spanish, following the browser, with a button to switch |
 | **Remember** | which files you loaded, which one you were reading and where you were in each |
@@ -3018,9 +3101,29 @@ numbers.
 | Shortcut | What it does |
 |---|---|
 | `Ctrl` + `F` | go to the search field |
+| `Ctrl` + `S` | save, in edit mode |
 | `Esc` | clear the search |
 | `Alt` + `J` | next file |
 | `Alt` + `K` | previous file |
+
+### Editing a document
+
+The pencil button, top right, switches to edit mode: the file's text on the
+left and how it looks on the right, updated as you type. On a phone you see one
+at a time, and the *Preview* / *Text* button switches between them.
+
+**Save** writes to the original file when the browser allows it, which today
+means desktop Chrome or Edge:
+
+- If the file comes from a folder opened with **Open folder**, it's saved right
+  there. The first time, the browser asks for permission to modify the folder.
+- If you opened it with *Open with* from the system, it's saved to that file.
+- If it's a loose file or comes from GitHub, the first time it asks where to
+  save it, and from then on it always saves to that file.
+
+In other browsers, and on Android and iOS, the changes stay saved in the reader
+and a copy of the file is downloaded. If you leave edit mode with unsaved
+changes, the reader asks before discarding them.
 
 ### What gets remembered
 
@@ -3057,10 +3160,11 @@ exactly this syntax:
 - An inline math formula and a block one, in LaTeX
 - A Mermaid flowchart and a sequence diagram
 - One chart of each kind, each in a fence with the language chart: first the lines "type: ..." (bar, line, area, scatter or pie) and "title: ...", then an empty line and the data separated by commas, with the first row as the header and the first column as the categories. The pie takes a single value column, all positive, and up to eight rows; on the scatter the categories should be numbers
+- A task list with checkboxes, some checked with "- [x]" and some unchecked with "- [ ]"
 - A horizontal rule
 
 Don't use any of the following, because the reader doesn't interpret it and it
-shows up as raw text: task lists with checkboxes, footnotes, raw HTML tags,
+shows up as raw text: footnotes, raw HTML tags,
 reference-style links with the definition at the end, or underlined headings
 instead of headings with hashes.
 
@@ -3077,14 +3181,12 @@ slipped in one of the things from the list below.
 It's a deliberately small reader, with its own parser. These Markdown features
 aren't there:
 
-- **Task lists.** Checkboxes show up as text.
 - **Footnotes.** They stay as written.
 - **HTML inside Markdown.** It's shown as text, not interpreted. That's on
   purpose: files come from outside, and nothing they carry gets executed.
 - **Reference-style links**, with the definition separately at the end.
 - **Underlined headings**, the ones marked with dashes or equals signs under
   the text. Use `#`.
-- **Editing.** It's a reader: it shows files, it doesn't change them.
 
 ---
 
@@ -3108,7 +3210,15 @@ const CARPETAS = [];
 const ACCESO_CARPETAS = {};
 const PUEDE_GUARDAR_CARPETA = "showDirectoryPicker" in window && !ES_IOS;
 
+// Acceso a archivos sueltos para guardar lo editado, por ruta del documento:
+// los que entrega el "Abrir con" del sistema y los que se guardaron una vez con
+// "Guardar como". Los de una carpeta se buscan dentro de ACCESO_CARPETAS.
+const ACCESO_ARCHIVOS = {};
+
 function podarCarpetas(){
+  for(const ruta of Object.keys(ACCESO_ARCHIVOS)){
+    if(!DOCS.some(d => d.path === ruta)) delete ACCESO_ARCHIVOS[ruta];
+  }
   for(let i = CARPETAS.length - 1; i >= 0; i--){
     if(!DOCS.some(d => d.path.startsWith(CARPETAS[i] + "/"))) CARPETAS.splice(i, 1);
   }
@@ -3321,6 +3431,7 @@ function crearEstadoPersistible(){
     reposGithub: REPOS_GITHUB,
     carpetas: CARPETAS,
     accesoCarpetas: ACCESO_CARPETAS,
+    accesoArchivos: ACCESO_ARCHIVOS,
     guardadoEn: new Date().toISOString()
   };
 }
@@ -3471,6 +3582,12 @@ async function restaurarWorkspace(){
           }
         }
         podarCarpetas();
+      }
+
+      if(state && state.accesoArchivos && typeof state.accesoArchivos === "object"){
+        for(const [ruta, handle] of Object.entries(state.accesoArchivos)){
+          if(handle && handle.kind === "file" && DOCS.some(d => d.path === ruta)) ACCESO_ARCHIVOS[ruta] = handle;
+        }
       }
 
       const recordado = state && typeof state.currentPath === "string"
@@ -5275,6 +5392,7 @@ function removeDoc(i){
   if(i < 0 || i >= DOCS.length) return;
   tomarPosicionActual();
   const [quitado] = DOCS.splice(i, 1);
+  if(edicion && edicion.ruta === quitado.path) terminarEdicion();
   delete scrollPorRuta[quitado.path];
 
   if(!DOCS.length){ resetWorkspace(); return; }
@@ -5301,6 +5419,7 @@ function resetWorkspace(persistir = true){
   REPOS_GITHUB.length = 0;
   CARPETAS.length = 0;
   Object.keys(ACCESO_CARPETAS).forEach(nombre => delete ACCESO_CARPETAS[nombre]);
+  Object.keys(ACCESO_ARCHIVOS).forEach(ruta => delete ACCESO_ARCHIVOS[ruta]);
   Object.keys(scrollPorRuta).forEach(path => delete scrollPorRuta[path]);
 
   if(viendoAyuda) cerrarAyuda();
@@ -5339,6 +5458,8 @@ function dibujarIndice(heads){
 }
 
 function limpiarVista(){
+  terminarEdicion();
+  $("editBtn").disabled = true;
   vozDetener();
   generacionDoc++;
   $("vozBtn").disabled = true;
@@ -5356,6 +5477,12 @@ function limpiarVista(){
 
 function open(i, opciones = {}){
   if(i < 0 || i >= DOCS.length) return;
+  if(edicion){
+    // Recargas del mismo documento (KaTeX que termina de cargar, "Actualizar
+    // carpeta") no cierran el editor: sólo redibujan la vista previa.
+    if(DOCS[i].path === edicion.ruta){ current = i; drawFiles(); closeSide(); pintarVistaEdicion(); return; }
+    if(!salirDeEdicion()) return;
+  }
   if(viendoAyuda) cerrarAyuda();
   const guardarAnterior = opciones.guardarAnterior !== false;
   const persistir = opciones.persistir !== false;
@@ -5383,6 +5510,7 @@ function open(i, opciones = {}){
   dibujarIndice(heads);
   drawFiles();
   closeSide();
+  $("editBtn").disabled = false;
   if(persistir) programarGuardadoEstado();
 }
 
@@ -5420,6 +5548,8 @@ function pintarAyuda(){
 
 function alternarAyuda(){
   if(viendoAyuda){ salirDeAyuda(); return; }
+  if(!salirDeEdicion()) return;
+  $("editBtn").disabled = true;
 
   tomarPosicionActual();
   ayudaVolverA = current;
@@ -5445,6 +5575,180 @@ function salirDeAyuda(){
   else if(DOCS.length)                    open(0,      {guardarAnterior:false});
   else                                    limpiarVista();
 }
+
+// Modo edición. La vista previa se dibuja en el mismo #doc, así los gráficos,
+// diagramas y fórmulas salen igual que al leer. Guardar escribe en el archivo
+// original cuando el navegador lo permite: si es de una carpeta abierta con
+// acceso, ahí mismo (pide permiso de escritura la primera vez); si es suelto,
+// con "Guardar como" una vez y después en ese archivo. Sin esas funciones
+// (Android, iOS, Firefox) se guarda en el lector y se descarga.
+let edicion = null;
+let guardandoEdicion = false;
+let avisoEdicionT = null;
+
+function docEnEdicion(){
+  return edicion ? DOCS.find(d => d.path === edicion.ruta) : null;
+}
+
+function pintarVistaEdicion(){
+  const d = docEnEdicion();
+  if(!d) return;
+  const scroll = $("doc").scrollTop;
+  const {html, heads} = render(textoParaRender({name:d.name, text:$("editTxt").value}));
+  mostrarDocumento(html);
+  $("doc").scrollTop = scroll;
+  dibujarIndice(heads);
+}
+
+function marcarEdicion(){
+  const d = docEnEdicion();
+  const sucio = !!(edicion && edicion.sucio);
+  $("editGuardar").classList.toggle("sucio", sucio);
+  if(d) $("docname").textContent = (sucio ? "● " : "") + d.path;
+}
+
+function avisoEdicion(texto){
+  clearTimeout(avisoEdicionT);
+  $("hits").textContent = texto;
+  avisoEdicionT = setTimeout(() => { $("hits").textContent = ""; }, 2500);
+}
+
+function entrarEnEdicion(){
+  if(edicion || viendoAyuda || current < 0 || !DOCS[current]) return;
+  const d = DOCS[current];
+  edicion = {ruta:d.path, sucio:false, timer:null};
+  $("editTxt").value = d.text;
+  $("main").classList.add("editando");
+  $("main").classList.remove("ver-vista");
+  $("main").scrollTop = 0;
+  $("doc").scrollTop = 0;
+  $("editBtn").classList.add("on");
+  $("editBtn").setAttribute("aria-pressed", "true");
+  $("editBtn").title = t("editSalir");
+  $("editGuardar").hidden = false;
+  $("editAlternar").textContent = t("editVerVista");
+  marcarEdicion();
+  $("editTxt").focus();
+}
+
+function terminarEdicion(){
+  if(!edicion) return;
+  clearTimeout(edicion.timer);
+  edicion = null;
+  $("main").classList.remove("editando", "ver-vista");
+  $("editTxt").value = "";
+  $("editBtn").classList.remove("on");
+  $("editBtn").setAttribute("aria-pressed", "false");
+  $("editBtn").title = t("editar");
+  $("editGuardar").hidden = true;
+  $("editGuardar").classList.remove("sucio");
+}
+
+// Devuelve false si el usuario prefiere quedarse con los cambios sin guardar.
+function salirDeEdicion(){
+  if(edicion && edicion.sucio && !confirm(t("editDescartar"))) return false;
+  terminarEdicion();
+  return true;
+}
+
+async function permisoEscritura(handle){
+  if(!handle.queryPermission) return true;
+  if(await handle.queryPermission({mode:"readwrite"}) === "granted") return true;
+  return await handle.requestPermission({mode:"readwrite"}) === "granted";
+}
+
+async function accesoParaGuardar(d){
+  if(ACCESO_ARCHIVOS[d.path]) return ACCESO_ARCHIVOS[d.path];
+  const partes = d.path.split("/");
+  const carpeta = partes.length > 1 && ACCESO_CARPETAS[partes[0]];
+  if(carpeta){
+    if(!await permisoEscritura(carpeta)) throw new DOMException("", "NotAllowedError");
+    let dir = carpeta;
+    for(const parte of partes.slice(1, -1)) dir = await dir.getDirectoryHandle(parte);
+    return dir.getFileHandle(partes[partes.length - 1]);
+  }
+  if("showSaveFilePicker" in window){
+    const handle = await window.showSaveFilePicker({id:"lector-md-guardar", suggestedName:d.name});
+    ACCESO_ARCHIVOS[d.path] = handle;
+    return handle;
+  }
+  return null;
+}
+
+function descargarTexto(nombre, texto){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([texto], {type:"text/markdown;charset=utf-8"}));
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+async function guardarEdicion(){
+  const d = docEnEdicion();
+  if(!d || guardandoEdicion) return;
+  guardandoEdicion = true;
+  $("editGuardar").disabled = true;
+  try{
+    // El textarea pasa todo a \n: si el archivo venía con \r\n, se respeta.
+    let texto = $("editTxt").value;
+    if(d.text.includes("\r\n")) texto = texto.replace(/\r?\n/g, "\r\n");
+    d.text = texto;
+    edicion.sucio = false;
+    marcarEdicion();
+
+    // Primero el archivo: el permiso y el "Guardar como" necesitan el clic reciente.
+    let aviso = null;
+    try{
+      const handle = await accesoParaGuardar(d);
+      if(handle){
+        if(!await permisoEscritura(handle)) throw new DOMException("", "NotAllowedError");
+        const w = await handle.createWritable();
+        await w.write(texto);
+        await w.close();
+        aviso = t("editGuardado");
+      }else{
+        descargarTexto(d.name, texto);
+        aviso = t("editDescargado");
+      }
+    }catch(e){
+      if(e && e.name === "AbortError") aviso = t("editGuardadoLocal");
+      else if(e && e.name === "NotAllowedError") alert(t("editSinPermiso"));
+      else{
+        console.error("No se pudo guardar el archivo:", e);
+        alert(t("editError", (e && e.message) || String(e)));
+      }
+    }
+
+    await guardarDocumentosPersistidos([d]);
+    await guardarEstadoPersistido();
+    if(aviso) avisoEdicion(aviso);
+  }finally{
+    guardandoEdicion = false;
+    $("editGuardar").disabled = false;
+  }
+}
+
+$("editBtn").onclick = () => {
+  if(!edicion){ entrarEnEdicion(); return; }
+  const ruta = edicion.ruta;
+  if(!salirDeEdicion()) return;
+  const i = DOCS.findIndex(d => d.path === ruta);
+  if(i >= 0) open(i, {guardarAnterior:false});
+};
+$("editGuardar").onclick = () => void guardarEdicion();
+$("editAlternar").onclick = () => {
+  const vista = $("main").classList.toggle("ver-vista");
+  $("editAlternar").textContent = t(vista ? "editVerTexto" : "editVerVista");
+};
+$("editTxt").addEventListener("input", () => {
+  if(!edicion) return;
+  if(!edicion.sucio){ edicion.sucio = true; marcarEdicion(); }
+  clearTimeout(edicion.timer);
+  edicion.timer = setTimeout(pintarVistaEdicion, 400);
+});
+window.addEventListener("beforeunload", e => {
+  if(edicion && edicion.sucio){ e.preventDefault(); e.returnValue = ""; }
+});
 
 function clearMarks(root){
   root.querySelectorAll("mark").forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
@@ -7183,7 +7487,8 @@ document.addEventListener("keydown", e=>{
   if(e.key === "Escape" && document.activeElement === $("search")){
     $("search").value = ""; search(""); $("search").blur();
   }
-  if(e.target.tagName === "INPUT") return;
+  if(edicion && (e.ctrlKey||e.metaKey) && e.key.toLowerCase() === "s"){ e.preventDefault(); void guardarEdicion(); return; }
+  if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
   if((e.key === "j" || e.key === "ArrowDown") && e.altKey && current < DOCS.length-1) open(current+1);
   if((e.key === "k" || e.key === "ArrowUp")   && e.altKey && current > 0) open(current-1);
 });
@@ -7222,6 +7527,7 @@ if("launchQueue" in window && "files" in LaunchParams.prototype){
       try{
         const file = await handle.getFile();
         files.push(file);
+        if(RE_ABRIBLE.test(file.name)) ACCESO_ARCHIVOS[file.name] = handle;
       }catch(e){
         console.error("No se pudo leer el archivo entregado por el sistema:", e);
       }
