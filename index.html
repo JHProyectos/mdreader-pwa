@@ -3,11 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lector MD</title>
+<title>Lector MD — lector de Markdown sin internet, con fórmulas, diagramas y gráficos</title>
+<meta name="description" content="Abrí y leé archivos .md en el navegador, sin instalar nada y sin subirlos a ningún lado. Fórmulas LaTeX, diagramas Mermaid, gráficos, lectura en voz alta y modo edición. Funciona sin conexión.">
+<link rel="canonical" href="https://mdreader.jhproyectos.com.ar/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lector MD">
+<meta property="og:locale" content="es_AR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://mdreader.jhproyectos.com.ar/">
+<meta property="og:title" content="Lector MD — lector de Markdown sin internet">
+<meta property="og:description" content="Abrí archivos .md en el navegador, sin subirlos a ningún lado: fórmulas, diagramas, gráficos, voz y edición. Funciona sin conexión.">
+<meta property="og:image" content="https://mdreader.jhproyectos.com.ar/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Lector MD en modo edición: el Markdown a la izquierda y, a la derecha, el documento con una fórmula y un gráfico de líneas">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lector MD — lector de Markdown sin internet">
+<meta name="twitter:description" content="Abrí archivos .md en el navegador, sin subirlos a ningún lado: fórmulas, diagramas, gráficos, voz y edición.">
+<meta name="twitter:image" content="https://mdreader.jhproyectos.com.ar/og-image.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Lector MD",
+  "url": "https://mdreader.jhproyectos.com.ar/",
+  "description": "Lector de archivos Markdown que funciona en el navegador y sin conexión. Muestra fórmulas LaTeX, diagramas Mermaid y gráficos, lee en voz alta y permite editar y guardar en el archivo original.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows, macOS, Linux, Android, iOS",
+  "browserRequirements": "Requiere un navegador moderno con JavaScript",
+  "inLanguage": ["es", "en"],
+  "isAccessibleForFree": true,
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "image": "https://mdreader.jhproyectos.com.ar/og-image.png",
+  "screenshot": "https://mdreader.jhproyectos.com.ar/og-image.png"
+}
+</script>
+
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#34399B">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTQiIGZpbGw9IiMzNDM5OUIiLz4KICA8cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNOSAyMGg3bDYgOCA2LThoN3YyNWgtN1YzMWwtNiA4LTYtOHYxNEg5eiIvPgogIDxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00MiAxOGg4djE2aDdMNDYgNDcgMzUgMzRoN3oiLz4KPC9zdmc+Cg==">
 
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-maskable-512.png">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -712,7 +750,7 @@ main.editando #drop{display:none}
 main.editando #editTxt{display:block; width:100%; height:100%; resize:none; margin:0;
   border:0; border-right:1px solid var(--line); outline:none; padding:20px;
   background:var(--surface); color:var(--ink); font:13px/1.6 var(--mono); tab-size:2}
-main.editando #doc{overflow-y:auto; max-width:none; margin:0}
+main.editando #doc{overflow-y:auto; max-width:none; margin:0; container-type:inline-size}
 @media (max-width:820px){
   main.editando{grid-template-columns:minmax(0,1fr)}
   main.editando #editAlternar{display:inline-block}
@@ -768,6 +806,11 @@ tr.leyendo > td{background:var(--accent-soft)}
 </style>
 </head>
 <body>
+<noscript>
+  <h1>Lector MD</h1>
+  <p>Lector de archivos Markdown (<code>.md</code>) que funciona en el navegador y sin conexión. Los archivos se leen en tu máquina y no se suben a ningún lado. Muestra fórmulas LaTeX, diagramas Mermaid y gráficos, lee el documento en voz alta y permite editarlo y guardarlo en el archivo original.</p>
+  <p>Para usarlo, activá JavaScript en el navegador.</p>
+</noscript>
 
 <div class="app">
   <aside id="side">
@@ -778,16 +821,16 @@ tr.leyendo > td{background:var(--accent-soft)}
         <h1>Lector MD</h1>
         <button class="icon" id="sideCollapse" data-t-title="ocultarPanelTitle" data-t-aria="ocultarPanelTitle">«</button>
       </div>
-      <p data-t="lema"></p>
+      <p data-t="lema">Portátil · funciona sin internet</p>
     </div>
 
     <details class="fold" id="actionsWrap" open>
-      <summary data-t="abrirArchivosSum"></summary>
+      <summary data-t="abrirArchivosSum">Abrir archivos</summary>
       <div class="actions">
-        <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec"></button>
-        <button class="btn" id="carpetaActualizar" data-t="carpetaActualizarBtn" data-t-title="carpetaActualizarTitle" hidden></button>
-        <button class="btn" id="pickFiles" data-t="abrirSueltos"></button>
-        <button class="btn" id="pickGithub" data-t="importarGithub"></button>
+        <button class="btn primary" id="pickFolder" data-t="abrirCarpetaRec">Abrir carpeta<kbd>recomendado</kbd></button>
+        <button class="btn" id="carpetaActualizar" data-t="carpetaActualizarBtn" data-t-title="carpetaActualizarTitle" hidden>↻ Actualizar carpeta</button>
+        <button class="btn" id="pickFiles" data-t="abrirSueltos">Abrir archivos sueltos</button>
+        <button class="btn" id="pickGithub" data-t="importarGithub">Importar de GitHub</button>
         <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
         <input type="file" id="inFiles" accept=".md,.markdown,.txt,.sql,.pq" multiple hidden>
       </div>
@@ -796,29 +839,29 @@ tr.leyendo > td{background:var(--accent-soft)}
     <div class="listhd" id="listHd" hidden>
       <span id="fileCount"></span>
       <span class="listhdBtns">
-        <button class="link" id="ghActualizar" data-t="ghActualizarBtn" hidden></button>
-        <button class="link" id="clearAll" data-t="limpiarTodo" data-t-title="limpiarTodoTitle"></button>
+        <button class="link" id="ghActualizar" data-t="ghActualizarBtn" hidden>↻ Actualizar</button>
+        <button class="link" id="clearAll" data-t="limpiarTodo" data-t-title="limpiarTodoTitle">Limpiar todo</button>
       </span>
     </div>
 
     <div class="files" id="files">
-      <p class="empty" data-t="vacioInicial"></p>
+      <p class="empty" data-t="vacioInicial">Todavía no cargaste nada.<br><br>Usá <b>Abrir carpeta</b> y elegí la carpeta que quieras leer: aparecen todos los <code>.md</code> que haya adentro, incluidos los de subcarpetas.</p>
     </div>
 
     <details class="fold toc" id="tocWrap" hidden open>
-      <summary data-t="enEsteArchivo"></summary>
+      <summary data-t="enEsteArchivo">En este archivo</summary>
       <nav id="toc"></nav>
     </details>
 
     <div class="foot">
-      <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle"></button>
+      <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle">◐ Tema</button>
       <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
       <button class="icon" id="density"></button>
 
       <button class="icon" id="mathInfo">∑</button>
       <button class="icon" id="diagInfo">◇</button>
-      <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle"></button>
-      <button class="icon" id="lang" data-t="idiomaBoton" data-t-title="idiomaTitle"></button>
+      <button class="icon" id="help" data-t="ayuda" data-t-title="ayudaTitle">? Ayuda</button>
+      <button class="icon" id="lang" data-t="idiomaBoton" data-t-title="idiomaTitle">EN</button>
     </div>
     </div>
   </aside>
@@ -833,7 +876,7 @@ tr.leyendo > td{background:var(--accent-soft)}
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
       <button type="button" class="icon" id="editAlternar"></button>
-      <button type="button" class="icon" id="editGuardar" data-t="editGuardar" data-t-title="editGuardarTitle" hidden></button>
+      <button type="button" class="icon" id="editGuardar" data-t="editGuardar" data-t-title="editGuardarTitle" hidden>Guardar</button>
       <button type="button" class="icon" id="editBtn" data-t-title="editar" data-t-aria="editar" aria-pressed="false" disabled>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
       </button>
@@ -842,57 +885,57 @@ tr.leyendo > td{background:var(--accent-soft)}
     <textarea id="editTxt" spellcheck="false" data-t-aria="editTexto"></textarea>
 
     <div class="drop" id="drop">
-      <p class="big" data-t="dropBig"></p>
-      <p data-t="dropTxt"></p>
+      <p class="big" data-t="dropBig">Arrastrá tus archivos acá</p>
+      <p data-t="dropTxt">O elegilos directamente. Nada sale de tu máquina: el archivo se lee y se muestra localmente, sin subir nada a ningún lado.</p>
       <div class="dropactions">
-        <button class="btn primary" id="pickFolder2" data-t="abrirCarpeta"></button>
-        <button class="btn" id="pickFiles2" data-t="abrirSueltos"></button>
-        <button class="btn" id="pickGithub2" data-t="importarGithub"></button>
-        <button class="btn" id="help2" data-t="verEjemplo"></button>
+        <button class="btn primary" id="pickFolder2" data-t="abrirCarpeta">Abrir carpeta</button>
+        <button class="btn" id="pickFiles2" data-t="abrirSueltos">Abrir archivos sueltos</button>
+        <button class="btn" id="pickGithub2" data-t="importarGithub">Importar de GitHub</button>
+        <button class="btn" id="help2" data-t="verEjemplo">Ver un ejemplo</button>
       </div>
 
       <div class="tip tip-pwa" id="instalarTip" hidden>
-        <h3 data-t="instalarTitulo"></h3>
-        <p data-t="instalarTxt"></p>
-        <button class="btn primary" id="instalarApp" data-t="instalarBtn"></button>
+        <h3 data-t="instalarTitulo">Instalá Lector MD en tu compu</h3>
+        <p data-t="instalarTxt">Así se abre como una app propia, anda sin internet y los <code>.md</code> se abren con clic derecho → <b>Abrir con</b> → <b>Lector MD</b>.</p>
+        <button class="btn primary" id="instalarApp" data-t="instalarBtn">⬇ Instalar app</button>
       </div>
 
       <div class="tip tip-movil">
-        <h3 data-t="tipMovilTitulo"></h3>
+        <h3 data-t="tipMovilTitulo">¿Te mandan archivos <code>.md</code> por WhatsApp?</h3>
         <ol>
-          <li data-t="tipMovil1"></li>
-          <li data-t="tipMovil2"></li>
-          <li data-t="tipMovil3"></li>
+          <li data-t="tipMovil1">En el chat, tocá el archivo para descargarlo.</li>
+          <li data-t="tipMovil2">Acá, tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › <code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. Tocá <b>Usar esta carpeta</b> y confirmá.</li>
+          <li data-t="tipMovil3">Cuando te llegue otro, descargalo, tocá <b>↻&nbsp;Actualizar carpeta</b> (en el panel <b>☰</b>, debajo de <b>Abrir carpeta</b>), elegí la misma carpeta y confirmá.</li>
         </ol>
-        <p class="fine" data-t="tipMovilFine"></p>
+        <p class="fine" data-t="tipMovilFine">Para un solo archivo también sirve <b>Abrir archivos sueltos</b>: buscalo en esa misma carpeta.</p>
       </div>
 
       <div class="tip tip-ios">
-        <h3 data-t="tipIosTitulo"></h3>
+        <h3 data-t="tipIosTitulo">¿Te mandaron un <code>.md</code> por WhatsApp?</h3>
         <ol>
-          <li data-t="tipIos1"></li>
-          <li data-t="tipIos2"></li>
-          <li data-t="tipIos3"></li>
+          <li data-t="tipIos1">En el chat, tocá el archivo y después el ícono de <b>compartir</b> <span class="k">⤴</span>.</li>
+          <li data-t="tipIos2">Elegí <b>Guardar en Archivos</b> y fijate en qué carpeta lo dejás.</li>
+          <li data-t="tipIos3">Volvé acá, tocá <b>Abrir archivos</b> y buscalo ahí.</li>
         </ol>
-        <p class="fine" data-t="tipIosFine"></p>
+        <p class="fine" data-t="tipIosFine">Es el paso de más que pide el iPhone: iOS no deja que una app web aparezca en el menú <b>Compartir</b> ni que se abra tocando un <code>.md</code>, así que los archivos siempre entran desde este botón.</p>
       </div>
 
       <div class="tip tip-instalar">
-        <h3 data-t="tipInstTitulo"></h3>
+        <h3 data-t="tipInstTitulo">Dejalo en la pantalla de inicio</h3>
         <ol>
-          <li data-t="tipInst1"></li>
-          <li data-t="tipInst2"></li>
-          <li data-t="tipInst3"></li>
+          <li data-t="tipInst1">Tocá el botón <b>Compartir</b> <span class="k">⤴</span> de la barra del navegador.</li>
+          <li data-t="tipInst2">Bajá hasta <b>Agregar a inicio</b> y confirmá.</li>
+          <li data-t="tipInst3">Se abre como una app, sin la barra de Safari, y anda sin internet.</li>
         </ol>
-        <p class="fine" data-t="tipInstFine"></p>
+        <p class="fine" data-t="tipInstFine">Instalado también conserva lo que abriste: a una página suelta, iOS le borra los datos guardados después de una semana sin visitarla. En Chrome o Edge la opción está en su propio menú; si no aparece, abrilo con Safari.</p>
       </div>
 
       <div class="tip tip-escritorio">
-        <h3 data-t="tipEscTitulo"></h3>
+        <h3 data-t="tipEscTitulo">Tu carpeta de apuntes, siempre al día</h3>
         <ol>
-          <li data-t="tipEsc1"></li>
-          <li data-t="tipEsc2"></li>
-          <li id="tipEsc3" data-t="tipEsc3"></li>
+          <li data-t="tipEsc1">Hacé clic en <b>Abrir carpeta</b> y elegí la carpeta donde guardás tus <code>.md</code>.</li>
+          <li data-t="tipEsc2">Cuando agregues o cambies archivos, hacé clic en <b>↻&nbsp;Actualizar carpeta</b>: en Chrome o Edge la relee sin volver a elegirla.</li>
+          <li id="tipEsc3" data-t="tipEsc3">Instalalo desde la barra de direcciones y los <code>.md</code> se abren con clic derecho → <b>Abrir con</b> → <b>Lector MD</b>, también sin internet.</li>
         </ol>
       </div>
     </div>
@@ -936,30 +979,30 @@ tr.leyendo > td{background:var(--accent-soft)}
 
 <div class="ghmodal" id="ghModal" hidden>
   <div class="ghbox" role="dialog" aria-modal="true" aria-labelledby="ghTitulo">
-    <h2 id="ghTitulo" data-t="ghTitulo"></h2>
+    <h2 id="ghTitulo" data-t="ghTitulo">Importar desde GitHub</h2>
     <form id="ghForm">
-      <label class="ghlabel" for="ghRepo" data-t="ghRepoLabel"></label>
+      <label class="ghlabel" for="ghRepo" data-t="ghRepoLabel">Repositorio</label>
       <input type="text" id="ghRepo" data-t-placeholder="ghRepoPlaceholder" autocomplete="off" required>
 
-      <label class="ghlabel" for="ghRama" data-t="ghRamaLabel"></label>
+      <label class="ghlabel" for="ghRama" data-t="ghRamaLabel">Rama (opcional)</label>
       <input type="text" id="ghRama" data-t-placeholder="ghRamaPlaceholder" autocomplete="off">
 
       <details class="ghpriv" id="ghPrivWrap">
-        <summary data-t="ghPrivSum"></summary>
-        <label class="ghlabel" for="ghToken" data-t="ghTokenLabel"></label>
+        <summary data-t="ghPrivSum">¿Es un repositorio privado?</summary>
+        <label class="ghlabel" for="ghToken" data-t="ghTokenLabel">Token de acceso personal</label>
         <input type="password" id="ghToken" data-t-placeholder="ghTokenPlaceholder" autocomplete="off">
         <label class="ghremember">
           <input type="checkbox" id="ghRecordar">
-          <span data-t="ghRecordarToken"></span>
+          <span data-t="ghRecordarToken">Recordar este token en este navegador</span>
         </label>
-        <p class="ghayuda" id="ghTokenAyuda" data-t="ghTokenAyuda"></p>
+        <p class="ghayuda" id="ghTokenAyuda" data-t="ghTokenAyuda">Hace falta un <b>Personal Access Token</b> con permiso de solo lectura sobre el contenido del repo. En GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b>, elegí <b>solo este repositorio</b> y el permiso <b>Contents: Read-only</b>. El token queda guardado únicamente en este navegador (y solo si tildás la casilla de arriba); podés borrarlo cuando quieras. Convivé poniéndole una fecha de expiración corta. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Crear un token →</a></p>
       </details>
 
       <p class="ghmsg" id="ghMsg" hidden></p>
 
       <div class="ghbotones">
-        <button type="button" class="btn" id="ghCancelar" data-t="ghCancelar"></button>
-        <button type="submit" class="btn primary" id="ghSubmit" data-t="ghImportar"></button>
+        <button type="button" class="btn" id="ghCancelar" data-t="ghCancelar">Cancelar</button>
+        <button type="submit" class="btn primary" id="ghSubmit" data-t="ghImportar">Importar</button>
       </div>
     </form>
   </div>
@@ -3196,6 +3239,8 @@ https://github.com/JHProyectos/mdreader-pwa
 <script>
 "use strict";
 
+// El título largo del HTML es para buscadores y pestañas sin documento abierto.
+const TITULO_INICIAL = document.title;
 const DOCS = [];
 let current = -1;
 const REPOS_GITHUB = [];
@@ -5467,7 +5512,7 @@ function limpiarVista(){
   $("doc").innerHTML = "";
   $("drop").hidden = false;
   $("docname").textContent = t("ningunArchivo");
-  document.title = "Lector MD";
+  document.title = TITULO_INICIAL;
   $("search").value = "";
   $("search").disabled = true;
   $("hits").textContent = "";
