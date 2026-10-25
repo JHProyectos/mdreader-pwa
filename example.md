@@ -642,12 +642,13 @@ It doesn't matter how they were saved. The reader normalizes all three styles:
 
 ### Extensions
 
-Five are accepted: `.md`, `.markdown`, `.txt`, `.sql` and `.pq` (Power Query).
-When you open a folder, the reader filters by those extensions and ignores
-everything else.
+`.md`, `.markdown` and `.txt` are accepted, plus code files: `.js`, `.mjs`,
+`.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
+`.h`, `.cs`, `.sql` and `.pq` (Power Query). When you open a folder, the reader
+filters by those extensions and ignores everything else.
 
-A `.sql` or `.pq` isn't processed as Markdown: it shows whole as a single code
-block, with colors and a copy button. They open from a computer; on a phone
+A code file isn't processed as Markdown: it shows whole as a single code block,
+with colors and a copy button. They open from a computer; on a phone
 they don't show up in the Share menu.
 
 A `.txt` is processed as Markdown just like the others. If there's no Markdown

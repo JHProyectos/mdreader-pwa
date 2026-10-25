@@ -38,7 +38,17 @@
         "text/markdown": [".md", ".markdown"],
         "text/plain": [".txt"],
         "application/sql": [".sql"],
-        "text/x-powerquery": [".pq"]
+        "text/x-powerquery": [".pq"],
+        "text/javascript": [".js", ".mjs", ".cjs"],
+        "application/json": [".json"],
+        "text/x-typescript": [".ts"],
+        "text/x-python": [".py"],
+        "text/html": [".html", ".htm"],
+        "text/xml": [".xml"],
+        "text/css": [".css"],
+        "text/x-java-source": [".java"],
+        "text/x-csrc": [".c", ".h"],
+        "text/x-csharp": [".cs"]
       },
       "icons": [
         {

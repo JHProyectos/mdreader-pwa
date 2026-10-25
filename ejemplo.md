@@ -643,12 +643,13 @@ Da igual cómo estén guardados. El lector normaliza los tres estilos:
 
 ### Extensiones
 
-Se aceptan cinco: `.md`, `.markdown`, `.txt`, `.sql` y `.pq` (Power Query).
-Cuando abrís una carpeta, el lector filtra por esas extensiones e ignora todo
-lo demás.
+Se aceptan `.md`, `.markdown` y `.txt`, más archivos de código: `.js`, `.mjs`,
+`.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
+`.h`, `.cs`, `.sql` y `.pq` (Power Query). Cuando abrís una carpeta, el lector
+filtra por esas extensiones e ignora todo lo demás.
 
-Un `.sql` o un `.pq` no se procesa como Markdown: se muestra completo como un
-solo bloque de código, con colores y botón de copiar. Se abren desde la
+Un archivo de código no se procesa como Markdown: se muestra completo como un
+solo bloque, con colores y botón de copiar. Se abren desde la
 computadora; en el celular no aparecen en el menú Compartir.
 
 Un `.txt` se procesa como Markdown igual que los otros. Si adentro no tiene

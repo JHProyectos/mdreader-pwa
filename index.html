@@ -832,7 +832,7 @@ tr.leyendo > td{background:var(--accent-soft)}
         <button class="btn" id="pickFiles" data-t="abrirSueltos">Abrir archivos sueltos</button>
         <button class="btn" id="pickGithub" data-t="importarGithub">Importar de GitHub</button>
         <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
-        <input type="file" id="inFiles" accept=".md,.markdown,.txt,.sql,.pq" multiple hidden>
+        <input type="file" id="inFiles" accept=".md,.markdown,.txt,.js,.mjs,.cjs,.json,.ts,.py,.html,.htm,.xml,.css,.java,.c,.h,.cs,.sql,.pq" multiple hidden>
       </div>
     </details>
 
@@ -2167,12 +2167,13 @@ Da igual cómo estén guardados. El lector normaliza los tres estilos:
 
 ### Extensiones
 
-Se aceptan cinco: `.md`, `.markdown`, `.txt`, `.sql` y `.pq` (Power Query).
-Cuando abrís una carpeta, el lector filtra por esas extensiones e ignora todo
-lo demás.
+Se aceptan `.md`, `.markdown` y `.txt`, más archivos de código: `.js`, `.mjs`,
+`.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
+`.h`, `.cs`, `.sql` y `.pq` (Power Query). Cuando abrís una carpeta, el lector
+filtra por esas extensiones e ignora todo lo demás.
 
-Un `.sql` o un `.pq` no se procesa como Markdown: se muestra completo como un
-solo bloque de código, con colores y botón de copiar. Se abren desde la
+Un archivo de código no se procesa como Markdown: se muestra completo como un
+solo bloque, con colores y botón de copiar. Se abren desde la
 computadora; en el celular no aparecen en el menú Compartir.
 
 Un `.txt` se procesa como Markdown igual que los otros. Si adentro no tiene
@@ -3024,12 +3025,13 @@ It doesn't matter how they were saved. The reader normalizes all three styles:
 
 ### Extensions
 
-Five are accepted: `.md`, `.markdown`, `.txt`, `.sql` and `.pq` (Power Query).
-When you open a folder, the reader filters by those extensions and ignores
-everything else.
+`.md`, `.markdown` and `.txt` are accepted, plus code files: `.js`, `.mjs`,
+`.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
+`.h`, `.cs`, `.sql` and `.pq` (Power Query). When you open a folder, the reader
+filters by those extensions and ignores everything else.
 
-A `.sql` or `.pq` isn't processed as Markdown: it shows whole as a single code
-block, with colors and a copy button. They open from a computer; on a phone
+A code file isn't processed as Markdown: it shows whole as a single code block,
+with colors and a copy button. They open from a computer; on a phone
 they don't show up in the Share menu.
 
 A `.txt` is processed as Markdown just like the others. If there's no Markdown
@@ -3986,10 +3988,23 @@ const LENGUAJES = {
 
 // Archivos de código que se abren enteros, sin pasar por Markdown: se muestran
 // como un único bloque con su lenguaje, así reusan el resaltado y el botón copiar.
-const EXT_CODIGO = {sql:"sql", pq:"powerquery"};
-const RE_ABRIBLE = /\.(md|markdown|txt|sql|pq)$/i;
+const EXT_CODIGO = {
+  js:"javascript", mjs:"javascript", cjs:"javascript", json:"javascript",
+  ts:"typescript",
+  py:"python",
+  html:"markup", htm:"markup", xml:"markup",
+  css:"css",
+  java:"java",
+  c:"c", h:"c",
+  cs:"csharp",
+  sql:"sql",
+  pq:"powerquery"
+};
+const EXT_CODIGO_RE = Object.keys(EXT_CODIGO).join("|");
+const RE_CODIGO = new RegExp("\\.(" + EXT_CODIGO_RE + ")$", "i");
+const RE_ABRIBLE = new RegExp("\\.(md|markdown|txt|" + EXT_CODIGO_RE + ")$", "i");
 function lenguajeDeArchivo(nombre){
-  const m = /\.(sql|pq)$/i.exec(nombre);
+  const m = RE_CODIGO.exec(nombre);
   return m ? EXT_CODIGO[m[1].toLowerCase()] : null;
 }
 function textoParaRender(d){
@@ -5189,7 +5204,7 @@ async function obtenerArbolGithub(owner, repo, rama, token){
     "/git/trees/" + encodeURIComponent(rama) + "?recursive=1";
   const data = await pedirGithub(url, token);
   const tree = data.tree || [];
-  const archivos = tree.filter(it => it.type === "blob" && /\.(md|markdown|txt)$/i.test(it.path));
+  const archivos = tree.filter(it => it.type === "blob" && RE_ABRIBLE.test(it.path));
 
   // El SHA de las imágenes ya viene en esta misma respuesta: no hace falta
   // ningún pedido extra para saber qué imágenes cambiaron de contenido.
@@ -5539,7 +5554,7 @@ function open(i, opciones = {}){
   mostrarDocumento(html);
   $("docname").textContent = d.path;
 
-  document.title = d.name.replace(/\.(md|markdown|txt|sql|pq)$/i, "");
+  document.title = d.name.replace(RE_ABRIBLE, "");
   $("search").disabled = false;
   $("search").value = "";
   $("hits").textContent = "";
@@ -7622,7 +7637,7 @@ async function cargarCompartidos(){
       // lo descartaría, así que se le completa ".md".
       let nombre = decodeURIComponent(new URL(k.url).pathname.split("/").pop()).trim();
       if(!nombre) nombre = keys.length > 1 ? "compartido-" + (i + 1) : "compartido";
-      if(!/\.(md|markdown|txt)$/i.test(nombre)) nombre += ".md";
+      if(!RE_ABRIBLE.test(nombre)) nombre += ".md";
       const blob = await res.blob();
       archivos.push(new File([blob], nombre, {type:"text/markdown"}));
     }
