@@ -236,10 +236,28 @@ aside{
 }
 .filerow:hover .rm, .rm:focus-visible{opacity:1}
 .rm:hover{color:var(--warm)}
-.grp{
-  font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--muted); padding:12px 9px 4px;
+.dirrow{
+  display:flex; align-items:center; gap:5px; width:100%; text-align:left;
+  font:inherit; font-size:13px; cursor:pointer; border:none; border-radius:4px;
+  background:transparent; color:var(--ink); padding:6px 6px 6px 4px;
+  border-left:2px solid transparent;
 }
+.dirrow:hover{background:var(--surface-2)}
+.dirrow:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+.dirrow .chev{
+  flex:none; width:12px; text-align:center; font-size:16px; line-height:1;
+  color:var(--muted); transition:transform .15s;
+}
+.dirrow[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.dirrow .dn{
+  flex:1 1 auto; min-width:0; font-weight:500;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.dirrow .dc{
+  flex:none; font-family:var(--mono); font-size:10px; color:var(--muted);
+}
+.dirkids{margin-left:11px; padding-left:5px; border-left:1px solid var(--line)}
+.dirkids[hidden]{display:none}
 
 .fold{border-top:1px solid var(--line); flex:none}
 .fold > summary{
@@ -1143,7 +1161,6 @@ const TEXTOS = {
     instalarBtn: "⬇ Instalar app",
     tipEsc3: "Instalalo desde la barra de direcciones y los <code>.md</code> se abren con clic derecho → " +
       "<b>Abrir con</b> → <b>Lector MD</b>, también sin internet.",
-    raizCarpeta: "raíz de la carpeta",
     archivos: n => n + (n === 1 ? " archivo" : " archivos"),
     quitarAria: nombre => "Quitar " + nombre + " de la lista",
     quitarTitle: "Quitar de la lista (no borra el archivo)",
@@ -1366,7 +1383,6 @@ const TEXTOS = {
     instalarBtn: "⬇ Install app",
     tipEsc3: "Install it from the address bar and <code>.md</code> files open with right-click → " +
       "<b>Open with</b> → <b>Lector MD</b>, offline too.",
-    raizCarpeta: "folder root",
     archivos: n => n + (n === 1 ? " file" : " files"),
     quitarAria: nombre => "Remove " + nombre + " from the list",
     quitarTitle: "Remove from the list (doesn't delete the file)",
@@ -3601,10 +3617,7 @@ async function restaurarWorkspace(){
     );
     if(validos.length){
       DOCS.splice(0, DOCS.length, ...validos);
-      DOCS.sort((a,b)=>{
-        const w = p => p.includes("/") ? 1 : 0;
-        return w(a.path) - w(b.path) || a.path.localeCompare(b.path,"es");
-      });
+      DOCS.sort(compararRutas);
 
       if(state && state.scrollPorRuta && typeof state.scrollPorRuta === "object"){
         DOCS.forEach(d => {
@@ -5412,12 +5425,22 @@ $("ghModal").addEventListener("mousedown", e => { if(e.target === $("ghModal")) 
 $("ghForm").addEventListener("submit", e => { e.preventDefault(); void importarDesdeGithub(); });
 $("ghActualizar").onclick = () => void actualizarGithub();
 
+// Orden del árbol: en cada carpeta van primero las subcarpetas y después los
+// archivos, cada grupo alfabético. Así la lista lateral y Alt+↑/↓ coinciden.
+function compararRutas(a, b){
+  const pa = a.path.split("/"), pb = b.path.split("/");
+  for(let i = 0; i < Math.min(pa.length, pb.length); i++){
+    if(pa[i] === pb[i]) continue;
+    const carpA = i < pa.length - 1, carpB = i < pb.length - 1;
+    if(carpA !== carpB) return carpA ? -1 : 1;
+    return pa[i].localeCompare(pb[i], "es");
+  }
+  return pa.length - pb.length;
+}
+
 function afterLoad(rutaActiva = null){
 
-  DOCS.sort((a,b)=>{
-    const w = p => p.includes("/") ? 1 : 0;
-    return w(a.path) - w(b.path) || a.path.localeCompare(b.path,"es");
-  });
+  DOCS.sort(compararRutas);
 
   const siguiente = rutaActiva
     ? DOCS.findIndex(d => d.path === rutaActiva)
@@ -5425,27 +5448,94 @@ function afterLoad(rutaActiva = null){
   if(DOCS.length) open(siguiente >= 0 ? siguiente : 0);
 }
 
-function drawFiles(){
-  const box = $("files");
-  if(!DOCS.length) return;
-  let html = "", lastGrp = null;
-  DOCS.forEach((d,idx)=>{
-    const parts = d.path.split("/");
-    const grp = parts.length > 1 ? parts.slice(0,-1).join(" / ") : t("raizCarpeta");
-    if(grp !== lastGrp){ html += '<div class="grp">'+esc(grp)+"</div>"; lastGrp = grp; }
+// Carpetas plegadas en la lista lateral (rutas completas). Se recuerdan entre
+// sesiones; lo que no está acá se ve expandido.
+const PLEGADAS_CLAVE = "lectormd-plegadas";
+const plegadas = new Set();
+try{
+  const g = JSON.parse(localStorage.getItem(PLEGADAS_CLAVE) || "[]");
+  if(Array.isArray(g)) g.forEach(r => typeof r === "string" && plegadas.add(r));
+}catch(e){}
+function guardarPlegadas(){
+  try{ localStorage.setItem(PLEGADAS_CLAVE, JSON.stringify([...plegadas])); }catch(e){}
+}
+
+function armarArbol(){
+  const raiz = {carpetas:new Map(), archivos:[], total:0};
+  DOCS.forEach((d, idx) => {
+    const partes = d.path.split("/");
+    let nodo = raiz;
+    raiz.total++;
+    for(let i = 0; i < partes.length - 1; i++){
+      if(!nodo.carpetas.has(partes[i])){
+        nodo.carpetas.set(partes[i], {
+          nombre:partes[i], ruta:partes.slice(0, i + 1).join("/"),
+          carpetas:new Map(), archivos:[], total:0
+        });
+      }
+      nodo = nodo.carpetas.get(partes[i]);
+      nodo.total++;
+    }
+    nodo.archivos.push(idx);
+  });
+  return raiz;
+}
+
+function htmlNodo(nodo){
+  let html = "";
+  for(const c of nodo.carpetas.values()){
+    const abierta = !plegadas.has(c.ruta);
+    html += '<button type="button" class="dirrow" data-dir="'+esc(c.ruta)+'" aria-expanded="'+abierta+
+            '" title="'+esc(c.ruta)+'"><span class="chev" aria-hidden="true">›</span>'+
+            '<span class="dn">'+esc(c.nombre)+'</span><span class="dc">'+c.total+'</span></button>'
+          + '<div class="dirkids"'+(abierta ? "" : " hidden")+'>'+htmlNodo(c)+'</div>';
+  }
+  for(const idx of nodo.archivos){
+    const d = DOCS[idx];
     html += '<div class="filerow'+(idx===current?" cur":"")+'">'
           +   '<button class="file" data-i="'+idx+'" aria-current="'+(idx===current)+
               '" title="'+esc(d.path)+'">'+esc(d.name)+'</button>'
           +   '<button class="rm" data-rm="'+idx+'" aria-label="'+esc(t("quitarAria", d.name))+
               '" title="'+esc(t("quitarTitle"))+'">&times;</button>'
           + '</div>';
-  });
-  box.innerHTML = html;
+  }
+  return html;
+}
+
+function drawFiles(){
+  const box = $("files");
+  if(!DOCS.length) return;
+  const scroll = box.scrollTop;
+  box.innerHTML = htmlNodo(armarArbol());
+  box.scrollTop = scroll;
   box.querySelectorAll(".file").forEach(b => b.onclick = () => open(+b.dataset.i));
   box.querySelectorAll(".rm").forEach(b => b.onclick = () => removeDoc(+b.dataset.rm));
+  box.querySelectorAll(".dirrow").forEach(b => b.onclick = () => {
+    const ruta = b.dataset.dir;
+    const abrir = b.getAttribute("aria-expanded") !== "true";
+    if(abrir) plegadas.delete(ruta); else plegadas.add(ruta);
+    guardarPlegadas();
+    b.setAttribute("aria-expanded", String(abrir));
+    b.nextElementSibling.hidden = !abrir;
+  });
 
   $("listHd").hidden = false;
   $("fileCount").textContent = t("archivos", DOCS.length);
+}
+
+// Al abrir un documento se despliegan las carpetas que lo contienen, para que
+// siempre se vea dónde está. Sólo cuando cambia de documento: así plegar la
+// carpeta del documento actual no se deshace solo.
+let rutaDesplegada = null;
+function desplegarCarpetasDe(ruta){
+  if(ruta === rutaDesplegada) return;
+  rutaDesplegada = ruta;
+  const partes = ruta.split("/");
+  let cambio = false;
+  for(let i = 1; i < partes.length; i++){
+    if(plegadas.delete(partes.slice(0, i).join("/"))) cambio = true;
+  }
+  if(cambio) guardarPlegadas();
 }
 
 function removeDoc(i){
@@ -5568,6 +5658,7 @@ function open(i, opciones = {}){
   });
 
   dibujarIndice(heads);
+  desplegarCarpetasDe(d.path);
   drawFiles();
   closeSide();
   $("editBtn").disabled = false;
