@@ -642,7 +642,7 @@ It doesn't matter how they were saved. The reader normalizes all three styles:
 
 ### Extensions
 
-`.md`, `.markdown` and `.txt` are accepted, plus code files: `.js`, `.mjs`,
+`.md`, `.markdown` and `.txt` are accepted, plus code files (turn on **Also open code files** in the Open files panel): `.js`, `.mjs`,
 `.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
 `.h`, `.cs`, `.sql` and `.pq` (Power Query). When you open a folder, the reader
 filters by those extensions and ignores everything else.

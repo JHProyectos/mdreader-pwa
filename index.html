@@ -550,6 +550,8 @@ td{font-variant-numeric:tabular-nums}
   cursor:pointer; padding:8px 0; list-style:none; font-size:12.5px; color:var(--muted); user-select:none;
 }
 .ghpriv > summary::-webkit-details-marker{display:none}
+.optcodigo{display:flex; align-items:flex-start; gap:7px; margin-top:4px; font-size:12px; line-height:1.4; color:var(--muted); cursor:pointer}
+.optcodigo input{margin-top:2px; accent-color:var(--accent)}
 .ghremember{display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12.5px; color:var(--muted)}
 .ghayuda{font-size:11.5px; line-height:1.5; color:var(--muted); margin:8px 0 0}
 .ghayuda a{color:var(--accent)}
@@ -849,8 +851,12 @@ tr.leyendo > td{background:var(--accent-soft)}
         <button class="btn" id="carpetaActualizar" data-t="carpetaActualizarBtn" data-t-title="carpetaActualizarTitle" hidden>↻ Actualizar carpeta</button>
         <button class="btn" id="pickFiles" data-t="abrirSueltos">Abrir archivos sueltos</button>
         <button class="btn" id="pickGithub" data-t="importarGithub">Importar de GitHub</button>
+        <label class="optcodigo" data-t-title="abrirCodigoTitle">
+          <input type="checkbox" id="abrirCodigo">
+          <span data-t="abrirCodigoOpt">Abrir también archivos de código (.py, .js, .css…)</span>
+        </label>
         <input type="file" id="inFolder" webkitdirectory directory multiple hidden>
-        <input type="file" id="inFiles" accept=".md,.markdown,.txt,.js,.mjs,.cjs,.json,.ts,.py,.html,.htm,.xml,.css,.java,.c,.h,.cs,.sql,.pq" multiple hidden>
+        <input type="file" id="inFiles" accept=".md,.markdown,.txt" multiple hidden>
       </div>
     </details>
 
@@ -1035,6 +1041,8 @@ const TEXTOS = {
     abrirCarpetaRec: "Abrir carpeta<kbd>recomendado</kbd>",
     abrirCarpeta: "Abrir carpeta",
     abrirArchivosSum: "Abrir archivos",
+    abrirCodigoOpt: "Abrir también archivos de código (.py, .js, .css…)",
+    abrirCodigoTitle: "Por defecto sólo se abren .md, .markdown y .txt. Con esto activado, las carpetas, los archivos sueltos y GitHub incluyen también archivos de código.",
     abrirSueltos: "Abrir archivos sueltos",
     importarGithub: "Importar de GitHub",
     verEjemplo: "Ver un ejemplo",
@@ -1259,6 +1267,8 @@ const TEXTOS = {
     abrirCarpetaRec: "Open folder<kbd>recommended</kbd>",
     abrirCarpeta: "Open folder",
     abrirArchivosSum: "Open files",
+    abrirCodigoOpt: "Also open code files (.py, .js, .css…)",
+    abrirCodigoTitle: "By default only .md, .markdown and .txt are opened. When on, folders, individual files and GitHub also include code files.",
     abrirSueltos: "Open individual files",
     importarGithub: "Import from GitHub",
     verEjemplo: "See an example",
@@ -2183,7 +2193,7 @@ Da igual cómo estén guardados. El lector normaliza los tres estilos:
 
 ### Extensiones
 
-Se aceptan `.md`, `.markdown` y `.txt`, más archivos de código: `.js`, `.mjs`,
+Se aceptan `.md`, `.markdown` y `.txt`, más archivos de código (activá **Abrir también archivos de código** en el panel Abrir archivos): `.js`, `.mjs`,
 `.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
 `.h`, `.cs`, `.sql` y `.pq` (Power Query). Cuando abrís una carpeta, el lector
 filtra por esas extensiones e ignora todo lo demás.
@@ -3041,7 +3051,7 @@ It doesn't matter how they were saved. The reader normalizes all three styles:
 
 ### Extensions
 
-`.md`, `.markdown` and `.txt` are accepted, plus code files: `.js`, `.mjs`,
+`.md`, `.markdown` and `.txt` are accepted, plus code files (turn on **Also open code files** in the Open files panel): `.js`, `.mjs`,
 `.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
 `.h`, `.cs`, `.sql` and `.pq` (Power Query). When you open a folder, the reader
 filters by those extensions and ignores everything else.
@@ -3298,7 +3308,7 @@ async function leerCarpetaConAcceso(handle){
     for await (const entrada of dir.values()){
       if(entrada.kind === "directory"){
         await recorrer(entrada, ruta + entrada.name + "/");
-      }else if(RE_ABRIBLE.test(entrada.name)){
+      }else if(esAbrible(entrada.name)){
         const file = await entrada.getFile();
         Object.defineProperty(file, "webkitRelativePath", {value: ruta + entrada.name});
         archivos.push(file);
@@ -4016,6 +4026,13 @@ const EXT_CODIGO = {
 const EXT_CODIGO_RE = Object.keys(EXT_CODIGO).join("|");
 const RE_CODIGO = new RegExp("\\.(" + EXT_CODIGO_RE + ")$", "i");
 const RE_ABRIBLE = new RegExp("\\.(md|markdown|txt|" + EXT_CODIGO_RE + ")$", "i");
+const RE_SOLO_TEXTO = /\.(md|markdown|txt)$/i;
+
+// Abrir archivos de código es opcional: la idea original es leer Markdown.
+// Cuando está apagado, carpetas, archivos sueltos y GitHub los ignoran.
+let abrirCodigo = false;
+try{ abrirCodigo = localStorage.getItem("lectormd-codigo") === "1"; }catch(e){}
+const esAbrible = nombre => (abrirCodigo ? RE_ABRIBLE : RE_SOLO_TEXTO).test(nombre);
 function lenguajeDeArchivo(nombre){
   const m = RE_CODIGO.exec(nombre);
   return m ? EXT_CODIGO[m[1].toLowerCase()] : null;
@@ -5112,7 +5129,8 @@ function leerArchivoComoTexto(file){
 // el archivo que acaba de abrir, no el anterior.
 async function addFiles(list, opciones = {}){
   await workspaceReady;
-  const md = [...list].filter(f => RE_ABRIBLE.test(f.name));
+  // Lo que entrega el sistema con "Abrir con" se abre siempre: se pidió a propósito.
+  const md = [...list].filter(f => (opciones.abrirPrimero ? RE_ABRIBLE : {test:esAbrible}).test(f.name));
   if(!md.length){
     alert(t("alertSinMd"));
     return;
@@ -5217,7 +5235,7 @@ async function obtenerArbolGithub(owner, repo, rama, token){
     "/git/trees/" + encodeURIComponent(rama) + "?recursive=1";
   const data = await pedirGithub(url, token);
   const tree = data.tree || [];
-  const archivos = tree.filter(it => it.type === "blob" && RE_ABRIBLE.test(it.path));
+  const archivos = tree.filter(it => it.type === "blob" && esAbrible(it.path));
 
   // El SHA de las imágenes ya viene en esta misma respuesta: no hace falta
   // ningún pedido extra para saber qué imágenes cambiaron de contenido.
@@ -5942,6 +5960,21 @@ function search(q){
 }
 
 $("pickFolder").onclick = abrirCarpeta;
+const ACCEPT_TEXTO = ".md,.markdown,.txt";
+function aplicarOpcionCodigo(){
+  $("abrirCodigo").checked = abrirCodigo;
+  const inFiles = $("inFiles");
+  if(!inFiles.hasAttribute("accept")) return;
+  inFiles.setAttribute("accept", abrirCodigo
+    ? ACCEPT_TEXTO + "," + Object.keys(EXT_CODIGO).map(e => "." + e).join(",")
+    : ACCEPT_TEXTO);
+}
+aplicarOpcionCodigo();
+$("abrirCodigo").onchange = e => {
+  abrirCodigo = e.target.checked;
+  try{ localStorage.setItem("lectormd-codigo", abrirCodigo ? "1" : "0"); }catch(error){}
+  aplicarOpcionCodigo();
+};
 $("pickFiles").onclick  = () => $("inFiles").click();
 
 $("pickFolder2").onclick = abrirCarpeta;
@@ -7728,7 +7761,7 @@ async function cargarCompartidos(){
       // lo descartaría, así que se le completa ".md".
       let nombre = decodeURIComponent(new URL(k.url).pathname.split("/").pop()).trim();
       if(!nombre) nombre = keys.length > 1 ? "compartido-" + (i + 1) : "compartido";
-      if(!RE_ABRIBLE.test(nombre)) nombre += ".md";
+      if(!esAbrible(nombre)) nombre += ".md";
       const blob = await res.blob();
       archivos.push(new File([blob], nombre, {type:"text/markdown"}));
     }

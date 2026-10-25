@@ -643,7 +643,7 @@ Da igual cómo estén guardados. El lector normaliza los tres estilos:
 
 ### Extensiones
 
-Se aceptan `.md`, `.markdown` y `.txt`, más archivos de código: `.js`, `.mjs`,
+Se aceptan `.md`, `.markdown` y `.txt`, más archivos de código (activá **Abrir también archivos de código** en el panel Abrir archivos): `.js`, `.mjs`,
 `.cjs`, `.json`, `.ts`, `.py`, `.html`, `.htm`, `.xml`, `.css`, `.java`, `.c`,
 `.h`, `.cs`, `.sql` y `.pq` (Power Query). Cuando abrís una carpeta, el lector
 filtra por esas extensiones e ignora todo lo demás.
