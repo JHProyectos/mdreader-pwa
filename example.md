@@ -23,9 +23,8 @@ files on any computer with a browser.
 
 Installed as an app, it does two more things:
 
-- On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
-  Drive or another app and it opens here. From the WhatsApp chat the file doesn't
-  arrive; for that, see *Files you get on WhatsApp* below.
+- On **Android** it shows up in the *Share* menu: send a `.md` from WhatsApp, the
+  file manager, Drive or another app and it opens here.
 - On **desktop** it shows up in *Open with*. If the reader is already open, the file
   is added to that same window, next to the ones you already had, instead of opening another.
   On Windows, installing from **Edge** works best: that is where `.md` files get the reader's icon.
@@ -73,24 +72,25 @@ opens it.
 
 ### Files you get on WhatsApp
 
-WhatsApp keeps documents in a folder on the phone. Open it once from the reader
-and after that you only need to refresh it:
+With the reader installed, they open straight from the chat:
 
-1. In the chat, tap the file to download it.
+1. In the chat, long-press the file.
+2. Tap the **share** icon at the top and choose **Lector MD** from the list.
+
+If you get a lot of them, you can also open the folder where WhatsApp keeps
+documents and then just refresh it:
+
+1. In the chat, tap each file to download it.
 2. In the reader, tap **Open folder** and go to **Internal storage** ›
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tap
    **Use this folder** and confirm.
 3. When another one arrives, download it, tap **↻ Refresh folder** (in the **☰**
    panel, below **Open folder**), pick the same folder and confirm.
 
-For a single file, **Open individual files** works too: look for it in that
-same folder.
-
 ### From another app, on your phone
 
-In the file manager, tap the file's **share** icon and choose
-**Lector MD** from the list. It doesn't work from WhatsApp: for that, use the
-steps above.
+In the file manager, Drive or another app, tap the file's **share** icon and
+choose **Lector MD** from the list.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.

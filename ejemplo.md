@@ -23,9 +23,8 @@ leer tus `.md` en cualquier computadora con navegador.
 
 Instalado como app tiene dos cosas más:
 
-- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
-  Drive u otra app y se abre acá. Desde el chat de WhatsApp no llega el archivo;
-  para eso, mirá *Archivos que te mandan por WhatsApp*, más abajo.
+- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde WhatsApp,
+  el explorador, Drive u otra app y se abre acá.
 - En **escritorio** aparece en *Abrir con*. Si el lector ya está abierto, el archivo se
   suma a esa misma ventana, con los que ya tenías, en vez de abrir otra.
   En Windows conviene instalarlo desde **Edge**: ahí los archivos `.md` muestran el ícono del lector.
@@ -73,24 +72,25 @@ superior lo abre.
 
 ### Archivos que te mandan por WhatsApp
 
-WhatsApp guarda los documentos en una carpeta del celular. Abrila una vez desde el
-lector y después sólo hace falta actualizarla:
+Con el lector instalado, se abren directo desde el chat:
 
-1. En el chat, tocá el archivo para descargarlo.
+1. En el chat, mantené apretado el archivo.
+2. Tocá el ícono de **compartir** de arriba y elegí **Lector MD** en la lista.
+
+Si te mandan muchos, también podés abrir la carpeta donde WhatsApp guarda los
+documentos y después sólo actualizarla:
+
+1. En el chat, tocá cada archivo para descargarlo.
 2. En el lector, tocá **Abrir carpeta** y entrá a **Almacenamiento interno** ›
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tocá
    **Usar esta carpeta** y confirmá.
 3. Cuando te llegue otro, descargalo, tocá **↻ Actualizar carpeta** (en el panel
    **☰**, debajo de **Abrir carpeta**), elegí la misma carpeta y confirmá.
 
-Para un solo archivo también sirve **Abrir archivos sueltos**: lo buscás en esa
-misma carpeta.
-
 ### Desde otra app, en el celular
 
-En el explorador de archivos, tocá el ícono de **compartir** del archivo y
-elegí **Lector MD** en la lista. Desde WhatsApp no funciona: para eso está el
-paso a paso de arriba.
+En el explorador de archivos, Drive u otra app, tocá el ícono de **compartir**
+del archivo y elegí **Lector MD** en la lista.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.

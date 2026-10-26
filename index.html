@@ -927,11 +927,11 @@ tr.leyendo > td{background:var(--accent-soft)}
       <div class="tip tip-movil">
         <h3 data-t="tipMovilTitulo">¿Te mandan archivos <code>.md</code> por WhatsApp?</h3>
         <ol>
-          <li data-t="tipMovil1">En el chat, tocá el archivo para descargarlo.</li>
-          <li data-t="tipMovil2">Acá, tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › <code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. Tocá <b>Usar esta carpeta</b> y confirmá.</li>
-          <li data-t="tipMovil3">Cuando te llegue otro, descargalo, tocá <b>↻&nbsp;Actualizar carpeta</b> (en el panel <b>☰</b>, debajo de <b>Abrir carpeta</b>), elegí la misma carpeta y confirmá.</li>
+          <li data-t="tipMovil1">En el chat, mantené apretado el archivo y tocá el ícono de <b>compartir</b> de arriba.</li>
+          <li data-t="tipMovil2">Elegí <b>Lector MD</b> en la lista: se abre acá y queda guardado para leerlo sin conexión.</li>
+          <li data-t="tipMovil3">¿Te mandan muchos? Tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › <code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. Cuando lleguen otros, tocá <b>↻&nbsp;Actualizar carpeta</b>.</li>
         </ol>
-        <p class="fine" data-t="tipMovilFine">Para un solo archivo también sirve <b>Abrir archivos sueltos</b>: buscalo en esa misma carpeta.</p>
+        <p class="fine" data-t="tipMovilFine">Para que aparezca en <b>Compartir</b>, el lector tiene que estar instalado: en el menú <b>⋮</b> de Chrome, <b>Instalar app</b> o <b>Agregar a la pantalla principal</b>.</p>
       </div>
 
       <div class="tip tip-ios">
@@ -1127,13 +1127,13 @@ const TEXTOS = {
     dropTxt: "O elegilos directamente. Nada sale de tu máquina: el archivo se lee y se muestra " +
       "localmente, sin subir nada a ningún lado. Es gratis, sin cuenta y sin publicidad.",
     tipMovilTitulo: "¿Te mandan archivos <code>.md</code> por WhatsApp?",
-    tipMovil1: "En el chat, tocá el archivo para descargarlo.",
-    tipMovil2: "Acá, tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › " +
+    tipMovil1: "En el chat, mantené apretado el archivo y tocá el ícono de <b>compartir</b> de arriba.",
+    tipMovil2: "Elegí <b>Lector MD</b> en la lista: se abre acá y queda guardado para leerlo sin conexión.",
+    tipMovil3: "¿Te mandan muchos? Tocá <b>Abrir carpeta</b> y entrá a <b>Almacenamiento interno</b> › " +
       "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. " +
-      "Tocá <b>Usar esta carpeta</b> y confirmá.",
-    tipMovil3: "Cuando te llegue otro, descargalo, tocá <b>↻&nbsp;Actualizar carpeta</b> (en el panel <b>☰</b>, debajo de <b>Abrir carpeta</b>), " +
-      "elegí la misma carpeta y confirmá.",
-    tipMovilFine: "Para un solo archivo también sirve <b>Abrir archivos sueltos</b>: buscalo en esa misma carpeta.",
+      "Cuando lleguen otros, tocá <b>↻&nbsp;Actualizar carpeta</b>.",
+    tipMovilFine: "Para que aparezca en <b>Compartir</b>, el lector tiene que estar instalado: en el menú <b>⋮</b> de Chrome, " +
+      "<b>Instalar app</b> o <b>Agregar a la pantalla principal</b>.",
 
     abrirSueltosIOS: "Abrir archivos",
     vacioInicialIOS: "Todavía no cargaste nada.<br><br>Usá <b>Abrir archivos</b> y buscá tus " +
@@ -1176,7 +1176,7 @@ const TEXTOS = {
     alertSinMd: "No encontré archivos .md en lo que elegiste.",
     alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
     alertBinario: nombres => "No son texto, así que no se abrieron: " + nombres + ".\n\nSi vienen de Google Drive, probablemente sean documentos de Google con nombre .md: Drive los entrega como PDF. Abrilos en Documentos y usá Archivo → Descargar → Markdown (.md).",
-    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nSi viene de WhatsApp: descargalo en el chat y, acá, tocá «Abrir carpeta» y elegí Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. Cuando te llegue otro, tocá «↻ Actualizar carpeta».",
+    alertCompartidoSinArchivo: texto => "La app que compartió no mandó el archivo, sólo un texto" + (texto ? ": «" + texto + "»" : "") + ".\n\nProbá compartirlo de nuevo. Si viene de WhatsApp y sigue sin llegar: descargalo en el chat y, acá, tocá «Abrir carpeta» y elegí Almacenamiento interno › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. Cuando te llegue otro, tocá «↻ Actualizar carpeta».",
     diagCompartir: "Diagnóstico: esto es lo que llegó al lector.",
     alertPersistencia: "Los archivos se abrieron, pero el navegador no pudo guardar la sesión " +
       "local. La app no aplicará una actualización mientras haya documentos abiertos.",
@@ -1365,13 +1365,13 @@ const TEXTOS = {
     dropTxt: "Or pick them directly. Nothing leaves your machine: the file is read and shown " +
       "locally, without uploading anything anywhere. It's free, with no account and no ads.",
     tipMovilTitulo: "Getting <code>.md</code> files on WhatsApp?",
-    tipMovil1: "In the chat, tap the file to download it.",
-    tipMovil2: "Here, tap <b>Open folder</b> and go to <b>Internal storage</b> › " +
+    tipMovil1: "In the chat, long-press the file and tap the <b>share</b> icon at the top.",
+    tipMovil2: "Choose <b>Lector MD</b> from the list: it opens here and stays saved to read offline.",
+    tipMovil3: "Getting lots of them? Tap <b>Open folder</b> and go to <b>Internal storage</b> › " +
       "<code>Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents</code>. " +
-      "Tap <b>Use this folder</b> and confirm.",
-    tipMovil3: "When another one arrives, download it, tap <b>↻&nbsp;Refresh folder</b> (in the <b>☰</b> panel, below <b>Open folder</b>), " +
-      "pick the same folder and confirm.",
-    tipMovilFine: "For a single file, <b>Open individual files</b> works too: look for it in that same folder.",
+      "When more arrive, tap <b>↻&nbsp;Refresh folder</b>.",
+    tipMovilFine: "To show up in <b>Share</b>, the reader has to be installed: in Chrome's <b>⋮</b> menu, " +
+      "<b>Install app</b> or <b>Add to Home screen</b>.",
 
     abrirSueltosIOS: "Open files",
     vacioInicialIOS: "Nothing loaded yet.<br><br>Tap <b>Open files</b> and look for your " +
@@ -1414,7 +1414,7 @@ const TEXTOS = {
     alertSinMd: "No .md files found in what you picked.",
     alertNoLeidos: "None of the selected files could be read.",
     alertBinario: names => "These aren't text, so they weren't opened: " + names + ".\n\nIf they come from Google Drive, they're probably Google Docs named .md: Drive delivers them as PDF. Open them in Docs and use File → Download → Markdown (.md).",
-    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nIf it comes from WhatsApp: download it in the chat and, here, tap \"Open folder\" and pick Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. When another one arrives, tap \"↻ Refresh folder\".",
+    alertCompartidoSinArchivo: text => "The sharing app didn't send the file, only some text" + (text ? ": \"" + text + "\"" : "") + ".\n\nTry sharing it again. If it comes from WhatsApp and still doesn't arrive: download it in the chat and, here, tap \"Open folder\" and pick Internal storage › Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents. When another one arrives, tap \"↻ Refresh folder\".",
     diagCompartir: "Diagnostics: this is what reached the reader.",
     alertPersistencia: "The files were opened, but the browser couldn't save the local session. " +
       "The app won't apply an update while documents are open.",
@@ -1601,9 +1601,8 @@ leer tus `.md` en cualquier computadora con navegador.
 
 Instalado como app tiene dos cosas más:
 
-- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde el explorador,
-  Drive u otra app y se abre acá. Desde el chat de WhatsApp no llega el archivo;
-  para eso, mirá *Archivos que te mandan por WhatsApp*, más abajo.
+- En **Android** aparece en el menú *Compartir*: mandás un `.md` desde WhatsApp,
+  el explorador, Drive u otra app y se abre acá.
 - En **escritorio** aparece en *Abrir con*. Si el lector ya está abierto, el archivo se
   suma a esa misma ventana, con los que ya tenías, en vez de abrir otra.
   En Windows conviene instalarlo desde **Edge**: ahí los archivos `.md` muestran el ícono del lector.
@@ -1651,24 +1650,25 @@ superior lo abre.
 
 ### Archivos que te mandan por WhatsApp
 
-WhatsApp guarda los documentos en una carpeta del celular. Abrila una vez desde el
-lector y después sólo hace falta actualizarla:
+Con el lector instalado, se abren directo desde el chat:
 
-1. En el chat, tocá el archivo para descargarlo.
+1. En el chat, mantené apretado el archivo.
+2. Tocá el ícono de **compartir** de arriba y elegí **Lector MD** en la lista.
+
+Si te mandan muchos, también podés abrir la carpeta donde WhatsApp guarda los
+documentos y después sólo actualizarla:
+
+1. En el chat, tocá cada archivo para descargarlo.
 2. En el lector, tocá **Abrir carpeta** y entrá a **Almacenamiento interno** ›
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tocá
    **Usar esta carpeta** y confirmá.
 3. Cuando te llegue otro, descargalo, tocá **↻ Actualizar carpeta** (en el panel
    **☰**, debajo de **Abrir carpeta**), elegí la misma carpeta y confirmá.
 
-Para un solo archivo también sirve **Abrir archivos sueltos**: lo buscás en esa
-misma carpeta.
-
 ### Desde otra app, en el celular
 
-En el explorador de archivos, tocá el ícono de **compartir** del archivo y
-elegí **Lector MD** en la lista. Desde WhatsApp no funciona: para eso está el
-paso a paso de arriba.
+En el explorador de archivos, Drive u otra app, tocá el ícono de **compartir**
+del archivo y elegí **Lector MD** en la lista.
 
 > Es **compartir**, no *abrir con*. En Android, Chrome no implementa la API que
 > haría falta para aparecer en *abrir con*, así que el camino es el otro.
@@ -2483,9 +2483,8 @@ files on any computer with a browser.
 
 Installed as an app, it does two more things:
 
-- On **Android** it shows up in the *Share* menu: send a `.md` from the file manager,
-  Drive or another app and it opens here. From the WhatsApp chat the file doesn't
-  arrive; for that, see *Files you get on WhatsApp* below.
+- On **Android** it shows up in the *Share* menu: send a `.md` from WhatsApp, the
+  file manager, Drive or another app and it opens here.
 - On **desktop** it shows up in *Open with*. If the reader is already open, the file
   is added to that same window, next to the ones you already had, instead of opening another.
   On Windows, installing from **Edge** works best: that is where `.md` files get the reader's icon.
@@ -2533,24 +2532,25 @@ opens it.
 
 ### Files you get on WhatsApp
 
-WhatsApp keeps documents in a folder on the phone. Open it once from the reader
-and after that you only need to refresh it:
+With the reader installed, they open straight from the chat:
 
-1. In the chat, tap the file to download it.
+1. In the chat, long-press the file.
+2. Tap the **share** icon at the top and choose **Lector MD** from the list.
+
+If you get a lot of them, you can also open the folder where WhatsApp keeps
+documents and then just refresh it:
+
+1. In the chat, tap each file to download it.
 2. In the reader, tap **Open folder** and go to **Internal storage** ›
    `Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Documents`. Tap
    **Use this folder** and confirm.
 3. When another one arrives, download it, tap **↻ Refresh folder** (in the **☰**
    panel, below **Open folder**), pick the same folder and confirm.
 
-For a single file, **Open individual files** works too: look for it in that
-same folder.
-
 ### From another app, on your phone
 
-In the file manager, tap the file's **share** icon and choose
-**Lector MD** from the list. It doesn't work from WhatsApp: for that, use the
-steps above.
+In the file manager, Drive or another app, tap the file's **share** icon and
+choose **Lector MD** from the list.
 
 > It's **share**, not *open with*. On Android, Chrome doesn't implement the API
 > needed to appear in *open with*, so this is the way in.
