@@ -43,7 +43,7 @@ Installed as an app, it does two more things:
 | **Charts** | bar, line, area, scatter and pie charts, from a data table written in the file |
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
-| **Listen** | the document read aloud, with the device's own voice |
+| **Listen** | the document read aloud, with the device's own voice or with an enhanced voice downloaded on request |
 | **Print** | or save as PDF, with a stylesheet made for paper |
 | **Edit** | the file's text with the preview beside it, and save it to the original file |
 | **View** | light or dark theme, comfortable or compact line spacing |
@@ -691,8 +691,9 @@ screen, and it highlights the block it is saying. A bar appears at the bottom
 with pause, previous and next paragraph, speed and voice. The speed and the
 voice you pick are remembered.
 
-The voice is the device's own: nothing is downloaded and, if the system has
-voices installed, it works offline. What it says for each thing:
+By default the voice is the device's own: nothing is downloaded and, if the
+system has voices installed, it works offline (there is also an enhanced voice,
+see below). What it says for each thing:
 
 | Block | What it says |
 |---|---|
@@ -713,6 +714,28 @@ and, if only online ones exist, it asks you to confirm before using one.
 While it reads, the screen stays on in browsers that allow it, because on a
 phone turning it off cuts the voice. If it gets cut anyway, it is paused when
 you come back to the app and you continue from the same sentence.
+
+### Enhanced voice
+
+At the end of the voice list is the **enhanced voice**: ten voices (five female
+and five male) that speak Spanish and English and sound more natural than most
+system voices. It isn't installed: the first time you tap play with one of them
+about 100 MB are downloaded, only once, and then it works offline. Wi-Fi is
+recommended.
+
+The audio is generated on your own device, so the text doesn't leave your
+machine either. On slow devices it can take a moment to start; if it can't keep
+up, the reader lowers the quality a little so there are no gaps. With this voice
+pause resumes on the same word, the speed changes without cutting the sentence
+and the controls show up on the phone's lock screen.
+
+To free the space, pick *Remove the enhanced voice* in the same list.
+
+The enhanced voice is [Supertonic 2](https://huggingface.co/Supertone/supertonic-2),
+by Supertone, in the lightweight version prepared by
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx). It is used under the
+[OpenRAIL-M license](https://huggingface.co/Supertone/supertonic-2/blob/main/LICENSE),
+which forbids using it to impersonate people, deceive or spread disinformation.
 
 ### Comfortable or compact
 

@@ -43,7 +43,7 @@ Instalado como app tiene dos cosas más:
 | **Gráficos** | de barras, de líneas, de área, de dispersión y de torta, a partir de una tabla de datos escrita en el archivo |
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
-| **Escuchar** | el documento en voz alta, con la voz del propio dispositivo |
+| **Escuchar** | el documento en voz alta, con la voz del propio dispositivo o con una voz mejorada que se descarga a pedido |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Editar** | el texto del archivo con la vista previa al lado, y guardarlo en el archivo original |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
@@ -692,8 +692,9 @@ primero que se ve en pantalla, y va resaltando el bloque que está diciendo.
 Abajo aparece una barra con pausa, párrafo anterior y siguiente, velocidad y
 voz. La velocidad y la voz que elijas quedan guardadas.
 
-La voz es la del propio dispositivo: no se descarga nada y, si el sistema trae
-voces instaladas, funciona sin conexión. Qué dice de cada cosa:
+De entrada la voz es la del propio dispositivo: no se descarga nada y, si el
+sistema trae voces instaladas, funciona sin conexión (también hay una voz
+mejorada, más abajo). Qué dice de cada cosa:
 
 | Bloque | Qué dice |
 |---|---|
@@ -715,6 +716,28 @@ lo confirmes.
 Mientras lee, la pantalla se mantiene encendida en los navegadores que lo
 permiten, porque en el celular apagarla corta la voz. Si igual se corta, al
 volver a la app queda en pausa y seguís desde la misma oración.
+
+### Voz mejorada
+
+Al final de la lista de voces está la **voz mejorada**: diez voces (cinco de
+mujer y cinco de hombre) que hablan español e inglés y suenan más naturales que
+la mayoría de las voces del sistema. No viene instalada: la primera vez que
+tocás reproducir con una de ellas se descargan unos 100 MB, una sola vez, y
+después funciona sin conexión. Conviene hacerlo con wifi.
+
+El audio se genera en tu propio dispositivo, así que el texto tampoco sale de
+tu máquina. En equipos lentos puede tardar un momento en arrancar; si no da
+abasto, el lector baja la calidad un poco para que no haya cortes. Con esta voz
+la pausa retoma en la misma palabra, la velocidad cambia sin cortar la frase y
+los controles aparecen en la pantalla bloqueada del celular.
+
+Para liberar el espacio, elegí *Quitar la voz mejorada* en la misma lista.
+
+La voz mejorada es [Supertonic 2](https://huggingface.co/Supertone/supertonic-2),
+de Supertone, en la versión liviana preparada por
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx). Se usa bajo la
+[licencia OpenRAIL-M](https://huggingface.co/Supertone/supertonic-2/blob/main/LICENSE),
+que prohíbe usarla para hacerse pasar por otra persona, engañar o desinformar.
 
 ### Cómodo o compacto
 

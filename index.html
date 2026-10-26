@@ -1252,6 +1252,20 @@ const TEXTOS = {
       " instaladas en este dispositivo.",
     vozBloqueada: "El navegador no dejó iniciar el audio. Tocá reproducir de nuevo.",
     vozError: "No se pudo reproducir la voz. Probá con otra de la lista.",
+    vozStGrupo: "Voz mejorada · descarga de unos 100 MB",
+    vozStGrupoLista: "Voz mejorada",
+    vozStVoz: v => (v[0] === "F" ? "Mujer " : "Hombre ") + v.slice(1),
+    vozStQuitar: "Quitar la voz mejorada",
+    vozStQuitarConfirma: "¿Quitar la voz mejorada? Se borra de este dispositivo (libera unos 115 MB) " +
+      "y, para volver a usarla, hay que descargarla de nuevo.",
+    vozStQuitada: "Se quitó la voz mejorada.",
+    vozStDescargar: "La voz mejorada se descarga una sola vez, unos 100 MB (conviene usar wifi), " +
+      "y después funciona sin conexión. Tocá reproducir para descargarla.",
+    vozStBajando: pct => "Descargando la voz mejorada… " + pct + " %",
+    vozStPreparando: "Preparando la voz mejorada…",
+    vozStSinEspacio: "No hay lugar en el dispositivo para la voz mejorada: hacen falta unos 130 MB libres.",
+    vozStError: msg => "No se pudo usar la voz mejorada" + (msg ? " (" + msg + ")" : "") +
+      ". Tocá reproducir para reintentar o elegí otra voz.",
     vozDiceFormula: "fórmula",
     vozDiceCodigo: "Bloque de código.",
     vozDiceDiagrama: "Diagrama.",
@@ -1476,6 +1490,20 @@ const TEXTOS = {
       " voices installed on this device.",
     vozBloqueada: "The browser wouldn't start the audio. Tap play again.",
     vozError: "The voice couldn't be played. Try another one from the list.",
+    vozStGrupo: "Enhanced voice · about a 100 MB download",
+    vozStGrupoLista: "Enhanced voice",
+    vozStVoz: v => (v[0] === "F" ? "Female " : "Male ") + v.slice(1),
+    vozStQuitar: "Remove the enhanced voice",
+    vozStQuitarConfirma: "Remove the enhanced voice? It is deleted from this device (frees about 115 MB) " +
+      "and you'll have to download it again to use it.",
+    vozStQuitada: "The enhanced voice was removed.",
+    vozStDescargar: "The enhanced voice is downloaded once, about 100 MB (Wi-Fi recommended), " +
+      "and then works offline. Tap play to download it.",
+    vozStBajando: pct => "Downloading the enhanced voice… " + pct + "%",
+    vozStPreparando: "Getting the enhanced voice ready…",
+    vozStSinEspacio: "There isn't enough room on the device for the enhanced voice: it needs about 130 MB free.",
+    vozStError: msg => "The enhanced voice couldn't be used" + (msg ? " (" + msg + ")" : "") +
+      ". Tap play to try again or pick another voice.",
     vozDiceFormula: "formula",
     vozDiceCodigo: "Code block.",
     vozDiceDiagrama: "Diagram.",
@@ -1593,7 +1621,7 @@ Instalado como app tiene dos cosas más:
 | **Gráficos** | de barras, de líneas, de área, de dispersión y de torta, a partir de una tabla de datos escrita en el archivo |
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
-| **Escuchar** | el documento en voz alta, con la voz del propio dispositivo |
+| **Escuchar** | el documento en voz alta, con la voz del propio dispositivo o con una voz mejorada que se descarga a pedido |
 | **Imprimir** | o guardar en PDF, con estilos propios para papel |
 | **Editar** | el texto del archivo con la vista previa al lado, y guardarlo en el archivo original |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
@@ -2242,8 +2270,9 @@ primero que se ve en pantalla, y va resaltando el bloque que está diciendo.
 Abajo aparece una barra con pausa, párrafo anterior y siguiente, velocidad y
 voz. La velocidad y la voz que elijas quedan guardadas.
 
-La voz es la del propio dispositivo: no se descarga nada y, si el sistema trae
-voces instaladas, funciona sin conexión. Qué dice de cada cosa:
+De entrada la voz es la del propio dispositivo: no se descarga nada y, si el
+sistema trae voces instaladas, funciona sin conexión (también hay una voz
+mejorada, más abajo). Qué dice de cada cosa:
 
 | Bloque | Qué dice |
 |---|---|
@@ -2265,6 +2294,28 @@ lo confirmes.
 Mientras lee, la pantalla se mantiene encendida en los navegadores que lo
 permiten, porque en el celular apagarla corta la voz. Si igual se corta, al
 volver a la app queda en pausa y seguís desde la misma oración.
+
+### Voz mejorada
+
+Al final de la lista de voces está la **voz mejorada**: diez voces (cinco de
+mujer y cinco de hombre) que hablan español e inglés y suenan más naturales que
+la mayoría de las voces del sistema. No viene instalada: la primera vez que
+tocás reproducir con una de ellas se descargan unos 100 MB, una sola vez, y
+después funciona sin conexión. Conviene hacerlo con wifi.
+
+El audio se genera en tu propio dispositivo, así que el texto tampoco sale de
+tu máquina. En equipos lentos puede tardar un momento en arrancar; si no da
+abasto, el lector baja la calidad un poco para que no haya cortes. Con esta voz
+la pausa retoma en la misma palabra, la velocidad cambia sin cortar la frase y
+los controles aparecen en la pantalla bloqueada del celular.
+
+Para liberar el espacio, elegí *Quitar la voz mejorada* en la misma lista.
+
+La voz mejorada es [Supertonic 2](https://huggingface.co/Supertone/supertonic-2),
+de Supertone, en la versión liviana preparada por
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx). Se usa bajo la
+[licencia OpenRAIL-M](https://huggingface.co/Supertone/supertonic-2/blob/main/LICENSE),
+que prohíbe usarla para hacerse pasar por otra persona, engañar o desinformar.
 
 ### Cómodo o compacto
 
@@ -2452,7 +2503,7 @@ Installed as an app, it does two more things:
 | **Charts** | bar, line, area, scatter and pie charts, from a data table written in the file |
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
-| **Listen** | the document read aloud, with the device's own voice |
+| **Listen** | the document read aloud, with the device's own voice or with an enhanced voice downloaded on request |
 | **Print** | or save as PDF, with a stylesheet made for paper |
 | **Edit** | the file's text with the preview beside it, and save it to the original file |
 | **View** | light or dark theme, comfortable or compact line spacing |
@@ -3100,8 +3151,9 @@ screen, and it highlights the block it is saying. A bar appears at the bottom
 with pause, previous and next paragraph, speed and voice. The speed and the
 voice you pick are remembered.
 
-The voice is the device's own: nothing is downloaded and, if the system has
-voices installed, it works offline. What it says for each thing:
+By default the voice is the device's own: nothing is downloaded and, if the
+system has voices installed, it works offline (there is also an enhanced voice,
+see below). What it says for each thing:
 
 | Block | What it says |
 |---|---|
@@ -3122,6 +3174,28 @@ and, if only online ones exist, it asks you to confirm before using one.
 While it reads, the screen stays on in browsers that allow it, because on a
 phone turning it off cuts the voice. If it gets cut anyway, it is paused when
 you come back to the app and you continue from the same sentence.
+
+### Enhanced voice
+
+At the end of the voice list is the **enhanced voice**: ten voices (five female
+and five male) that speak Spanish and English and sound more natural than most
+system voices. It isn't installed: the first time you tap play with one of them
+about 100 MB are downloaded, only once, and then it works offline. Wi-Fi is
+recommended.
+
+The audio is generated on your own device, so the text doesn't leave your
+machine either. On slow devices it can take a moment to start; if it can't keep
+up, the reader lowers the quality a little so there are no gaps. With this voice
+pause resumes on the same word, the speed changes without cutting the sentence
+and the controls show up on the phone's lock screen.
+
+To free the space, pick *Remove the enhanced voice* in the same list.
+
+The enhanced voice is [Supertonic 2](https://huggingface.co/Supertone/supertonic-2),
+by Supertone, in the lightweight version prepared by
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx). It is used under the
+[OpenRAIL-M license](https://huggingface.co/Supertone/supertonic-2/blob/main/LICENSE),
+which forbids using it to impersonate people, deceive or spread disinformation.
 
 ### Comfortable or compact
 
@@ -6159,6 +6233,16 @@ $("lang").onclick = () => cambiarIdioma(IDIOMA === "es" ? "en" : "es");
 // ("Diagrama."); el lugar para explicarlos es el caso "diagrama" de vozFinalizar().
 
 const VOZ_OK = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+// Voz mejorada: Supertonic 2 corriendo en voz-worker.js. Es opcional y se
+// descarga a pedido (unos 100 MB); necesita Worker, WebAssembly y Cache API.
+const VOZ_ST_OK = typeof Worker === "function" && typeof WebAssembly === "object" && "caches" in window;
+const VOZ_HAY = VOZ_OK || VOZ_ST_OK;
+const VOZ_ST_PREFIJO = "supertonic:";
+const VOZ_ST_QUITAR = "supertonic-quitar";
+const VOZ_ST_CACHE = "lector-md-voz";
+const VOZ_ST_MARCA = "/__voz-completa__";
+const VOZ_ST_VOCES = ["F1", "F2", "F3", "F4", "F5", "M1", "M2", "M3", "M4", "M5"];
+const VOZ_ST_ESPACIO = 130e6;
 const VOZ_CLAVE = "lectormd-voz";
 const VOZ_VELOCIDADES = [0.75, 1, 1.25, 1.5, 1.75, 2];
 const VOZ_FRAGMENTO_MAX = 200;
@@ -6198,6 +6282,28 @@ const voz = {
   arranque: null, vigia: null,
   pantalla: null, pidiendoPantalla: false,
   gesto: 0            // última vez que el usuario movió la página a mano
+};
+
+// Estado de la voz mejorada. El worker genera de a un fragmento: el que suena
+// y los dos siguientes, así no quedan silencios entre frases.
+const vozSt = {
+  worker: null,
+  motorListo: false,  // el modelo está cargado en el worker
+  carga: null,        // promesa de la carga en curso
+  alCargar: null,     // {res, rej} de esa promesa
+  descargada: false,  // el modelo está completo en el caché
+  confirmada: false,  // el usuario aceptó descargarlo
+  bajando: false,
+  clips: new Map(),   // "u:p" -> fragmento generado o por generar
+  pedido: null,       // el fragmento que está generando el worker
+  sonando: null,      // el fragmento cargado en el reproductor
+  sigId: 0,
+  pasos: 5,           // vueltas de refinado del audio; baja a 3 si el equipo es lento
+  medidas: 0, medSeg: 0, medMs: 0,   // para decidir los pasos (vozStMedir)
+  audio: null,
+  pausado: false,
+  cierre: null,       // libera la memoria del modelo un rato después de dejar de escuchar
+  medios: false
 };
 
 const vozPrefs = {rate: 1, voces: {}, nube: {}};
@@ -7313,6 +7419,7 @@ function vozVozActual(){
 // Una voz en línea manda el texto a un servidor. El lector promete que lo que
 // abrís no sale de tu máquina, así que esa voz sólo suena si lo confirmás.
 function vozNubeSinConfirmar(){
+  if(vozMejorada()) return false;
   const v = vozVozActual();
   return !!v && !v.localService && !vozPrefs.nube[v.voiceURI];
 }
@@ -7346,9 +7453,18 @@ function vozLlenarVoces(){
     o.textContent = v.name + (v.localService ? "" : t("vozEnLinea"));
     sel.appendChild(o);
   }
-  const actual = vozVozActual();
-  if(actual) sel.value = actual.voiceURI;
-  sel.hidden = !lista.length;
+  if(VOZ_ST_OK){
+    const grupo = document.createElement("optgroup");
+    grupo.label = t(vozSt.descargada ? "vozStGrupoLista" : "vozStGrupo");
+    for(const v of VOZ_ST_VOCES) grupo.appendChild(new Option(t("vozStVoz", v), VOZ_ST_PREFIJO + v));
+    if(vozSt.descargada) grupo.appendChild(new Option(t("vozStQuitar"), VOZ_ST_QUITAR));
+    sel.appendChild(grupo);
+  }
+  const st = vozMejorada();
+  const actual = st ? null : vozVozActual();
+  if(st) sel.value = VOZ_ST_PREFIJO + st;
+  else if(actual) sel.value = actual.voiceURI;
+  sel.hidden = !sel.options.length;
 }
 
 function vozLlenarControles(){
@@ -7423,6 +7539,7 @@ function vozCortar(){
   clearTimeout(voz.arranque);
   clearTimeout(voz.vigia);
   try{ speechSynthesis.cancel(); }catch(e){}
+  vozStParar();
 }
 
 function vozDetener(){
@@ -7434,11 +7551,24 @@ function vozDetener(){
   voz.unidades = [];
   voz.u = voz.p = 0;
   voz.fallos = 0;
+  vozStLimpiar();
+  vozStDormir();
   vozMensaje("");
   vozPintar();
 }
 
 function vozPausar(){
+  // Con la voz mejorada la pausa es de verdad: el audio queda donde estaba.
+  const a = vozSt.audio;
+  if(vozMejorada() && voz.estado === "leyendo" && a && a.currentSrc && !a.paused && !a.ended){
+    clearTimeout(voz.arranque);
+    a.pause();
+    vozSt.pausado = true;
+    vozSoltarPantalla();
+    voz.estado = "pausa";
+    vozPintar();
+    return;
+  }
   vozCortar();
   vozSoltarPantalla();
   if(voz.estado !== "quieto") voz.estado = "pausa";
@@ -7457,6 +7587,11 @@ function vozReprogramar(){
 
 function vozArrancar(){
   if(voz.estado !== "leyendo") return;
+  if(vozMejorada() && !vozSt.descargada && !vozSt.confirmada){
+    vozPausar();
+    vozMensaje(t("vozStDescargar"), true);
+    return;
+  }
   if(vozNubeSinConfirmar()){
     vozPausar();
     vozMensaje(t("vozNube"), true);
@@ -7466,8 +7601,25 @@ function vozArrancar(){
   vozHablar();
 }
 
-// Reproducir, apretado por el usuario: es también su confirmación de la voz en línea.
+// Reproducir, apretado por el usuario: es también su confirmación de la voz en
+// línea y de la descarga de la voz mejorada.
 function vozJugar(){
+  if(vozMejorada()){
+    const a = vozSt.audio;
+    if(vozSt.pausado && a && a.currentSrc){
+      vozSt.pausado = false;
+      voz.estado = "leyendo";
+      vozMensaje("");
+      vozPintar();
+      void vozPedirPantalla();
+      a.playbackRate = vozPrefs.rate;
+      a.play().catch(() => vozReprogramar());
+      return;
+    }
+    if(!vozSt.descargada) vozSt.confirmada = true;
+    vozReprogramar();
+    return;
+  }
   const v = vozVozActual();
   if(v && !v.localService && !vozPrefs.nube[v.voiceURI]){
     vozPrefs.nube[v.voiceURI] = true;
@@ -7480,6 +7632,7 @@ function vozHablar(){
   const u = voz.unidades[voz.u];
   if(!u){ vozDetener(); return; }
   vozMarcar(voz.u);
+  if(vozMejorada()){ void vozStHablar(); return; }
 
   const texto = u.partes[voz.p];
   const mi = ++voz.token;
@@ -7531,6 +7684,352 @@ function vozVigilar(mi, texto){
   }, espera);
 }
 
+// ── Voz mejorada ─────────────────────────────────────────────────────────────
+// Los fragmentos son los mismos que dice la voz del sistema; cambia quién los
+// pronuncia. Se reproducen con un elemento audio: la velocidad se cambia sin
+// regenerar (playbackRate mantiene el tono), la pausa es de verdad y aparecen
+// los controles en la pantalla bloqueada.
+
+// La voz mejorada elegida para el idioma del documento ("F1"…"M5"), o null.
+function vozMejorada(){
+  if(!VOZ_ST_OK) return null;
+  const g = vozPrefs.voces[voz.idioma];
+  if(typeof g !== "string" || !g.startsWith(VOZ_ST_PREFIJO)) return null;
+  const v = g.slice(VOZ_ST_PREFIJO.length);
+  return VOZ_ST_VOCES.includes(v) ? v : null;
+}
+
+async function vozStRevisar(){
+  if(!VOZ_ST_OK) return false;
+  try{
+    vozSt.descargada = await caches.has(VOZ_ST_CACHE) &&
+      !!(await (await caches.open(VOZ_ST_CACHE)).match(VOZ_ST_MARCA));
+  }catch(e){ vozSt.descargada = false; }
+  return vozSt.descargada;
+}
+
+function vozStWorker(){
+  if(vozSt.worker) return vozSt.worker;
+  const w = new Worker("/voz-worker.js", {type: "module"});
+  w.onmessage = e => vozStMensaje(e.data || {});
+  w.onerror = e => {
+    if(e.preventDefault) e.preventDefault();
+    vozStFallo(e.message || "worker");
+  };
+  vozSt.worker = w;
+  return w;
+}
+
+function vozStCargar(){
+  clearTimeout(vozSt.cierre);
+  if(vozSt.motorListo) return Promise.resolve();
+  if(vozSt.carga) return vozSt.carga;
+  vozSt.carga = new Promise((res, rej) => { vozSt.alCargar = {res, rej}; });
+  vozSt.carga.catch(() => {});
+  if(navigator.storage && navigator.storage.persist){
+    navigator.storage.persist().catch(() => {});
+  }
+  try{ vozStWorker().postMessage({tipo: "cargar"}); }
+  catch(e){ vozStFallo(e.message); }
+  return vozSt.carga;
+}
+
+// El worker se murió o no pudo cargar: todo lo pendiente falla y la próxima
+// vez se arranca de cero.
+function vozStFallo(mensaje){
+  const err = new Error(String(mensaje || "error"));
+  const espera = vozSt.alCargar;
+  const pedido = vozSt.pedido;
+  vozStCerrar();
+  if(espera) espera.rej(err);
+  if(pedido) pedido.fallo(err);
+}
+
+function vozStCerrar(){
+  clearTimeout(vozSt.cierre);
+  if(vozSt.worker) vozSt.worker.terminate();
+  vozSt.worker = null;
+  vozSt.motorListo = false;
+  vozSt.carga = null;
+  vozSt.alCargar = null;
+  vozSt.bajando = false;
+  if(vozSt.pedido) vozSt.clips.delete(vozSt.pedido.clave);
+  vozSt.pedido = null;
+}
+
+// El modelo cargado ocupa bastante memoria: si nadie escucha por un rato, se libera.
+function vozStDormir(){
+  clearTimeout(vozSt.cierre);
+  if(vozSt.worker && !vozSt.bajando) vozSt.cierre = setTimeout(vozStCerrar, 5 * 60 * 1000);
+}
+
+function vozStMensaje(m){
+  if(m.tipo === "progreso"){
+    vozSt.bajando = true;
+    if(voz.estado !== "quieto" && vozMejorada()){
+      vozMensaje(t("vozStBajando", Math.floor(m.hecho / Math.max(1, m.total) * 100)));
+    }
+  }else if(m.tipo === "listo"){
+    const recien = !vozSt.descargada;
+    vozSt.motorListo = true;
+    vozSt.descargada = true;
+    vozSt.bajando = false;
+    vozSt.carga = null;
+    const espera = vozSt.alCargar;
+    vozSt.alCargar = null;
+    if(recien && voz.estado !== "quieto") vozLlenarVoces();
+    if(espera) espera.res();
+    vozStBombear();
+  }else if(m.tipo === "audio" || (m.tipo === "error" && m.id)){
+    const c = vozSt.pedido;
+    if(!c || c.id !== m.id) return;
+    vozSt.pedido = null;
+    const vigente = vozSt.clips.get(c.clave) === c;
+    if(m.tipo === "audio"){
+      vozStMedir(m.audio.length / m.sr, m.ms);
+      if(vigente){
+        c.url = URL.createObjectURL(vozStWav(m.audio, m.sr, c.pausa));
+        c.listo(c);
+      }
+    }else{
+      if(vigente) vozSt.clips.delete(c.clave);
+      c.fallo(new Error(m.mensaje));
+    }
+    vozStBombear();
+  }else if(m.tipo === "error"){
+    vozStFallo(m.mensaje);
+  }
+}
+
+// Si generar tarda casi lo mismo que decir, se bajan las vueltas de refinado:
+// suena apenas menos pulido, pero sin cortes. Se mide sobre unos 10 segundos
+// de audio, porque en una frase corta pesa más lo fijo; la primera no cuenta,
+// porque incluye el arranque del motor.
+function vozStMedir(segundos, ms){
+  if(vozSt.medidas < 0 || !ms) return;
+  if(++vozSt.medidas < 2) return;
+  vozSt.medSeg = (vozSt.medSeg || 0) + segundos;
+  vozSt.medMs = (vozSt.medMs || 0) + ms;
+  if(vozSt.medSeg < 10) return;
+  vozSt.medidas = -1;
+  if(vozSt.medSeg / (vozSt.medMs / 1000) < 1.5 * vozPrefs.rate) vozSt.pasos = 3;
+}
+
+// Silencio después de cada fragmento, según qué bloque termina.
+function vozStPausaTras(u, p){
+  const unidad = voz.unidades[u];
+  if(p < unidad.partes.length - 1) return 0.12;
+  const tag = unidad.el.tagName;
+  if(/^H[1-6]$/.test(tag)) return 0.6;
+  if(tag === "LI" || tag === "TR") return 0.3;
+  return 0.45;
+}
+
+function vozStWav(audio, sr, pausa){
+  const n = audio.length + Math.round((pausa || 0) * sr);
+  const buf = new ArrayBuffer(44 + n * 2);
+  const v = new DataView(buf);
+  const txt = (o, s) => { for(let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  txt(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); txt(8, "WAVE");
+  txt(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  txt(36, "data"); v.setUint32(40, n * 2, true);
+  for(let i = 0; i < audio.length; i++){
+    const s = Math.max(-1, Math.min(1, audio[i]));
+    v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return new Blob([buf], {type: "audio/wav"});
+}
+
+// El fragmento en curso y los dos que siguen.
+function vozStVentana(){
+  const lista = [];
+  let u = voz.u, p = voz.p;
+  while(lista.length < 3 && u < voz.unidades.length){
+    if(p < voz.unidades[u].partes.length){ lista.push([u, p]); p++; }
+    else{ u++; p = 0; }
+  }
+  return lista;
+}
+
+function vozStClip(u, p){
+  const clave = u + ":" + p;
+  let c = vozSt.clips.get(clave);
+  if(!c){
+    c = {clave, id: 0, url: null, texto: voz.unidades[u].partes[p], pausa: vozStPausaTras(u, p),
+      voz: vozMejorada(), idioma: voz.idioma};
+    c.promesa = new Promise((res, rej) => { c.listo = res; c.fallo = rej; });
+    c.promesa.catch(() => {});
+    vozSt.clips.set(clave, c);
+  }
+  return c;
+}
+
+function vozStSoltar(c){
+  if(c.url && c !== vozSt.sonando) URL.revokeObjectURL(c.url);
+}
+
+// Le pasa al worker el próximo fragmento que haga falta y descarta los que
+// quedaron atrás (por ejemplo, después de saltar de párrafo).
+function vozStBombear(){
+  if(vozSt.pedido || !vozSt.motorListo || voz.estado === "quieto" || !vozMejorada()) return;
+  const ventana = vozStVentana();
+  const claves = new Set(ventana.map(([u, p]) => u + ":" + p));
+  for(const [k, c] of vozSt.clips){
+    if(!claves.has(k)){ vozStSoltar(c); vozSt.clips.delete(k); }
+  }
+  for(const [u, p] of ventana){
+    const c = vozStClip(u, p);
+    if(c.id) continue;
+    c.id = ++vozSt.sigId;
+    vozSt.pedido = c;
+    vozSt.worker.postMessage({tipo: "generar", id: c.id, texto: c.texto, idioma: c.idioma,
+      voz: c.voz, pasos: vozSt.pasos});
+    return;
+  }
+}
+
+function vozStLimpiar(){
+  for(const c of vozSt.clips.values()) vozStSoltar(c);
+  vozSt.clips.clear();
+}
+
+function vozStAudio(){
+  if(!vozSt.audio){
+    const a = new Audio();
+    a.preload = "auto";
+    a.preservesPitch = true;
+    vozSt.audio = a;
+  }
+  return vozSt.audio;
+}
+
+function vozStParar(){
+  vozSt.pausado = false;
+  const a = vozSt.audio;
+  if(!a || !a.currentSrc) return;
+  a.onended = null;
+  a.pause();
+  a.removeAttribute("src");
+  a.load();
+}
+
+// iOS sólo deja reproducir audio más tarde si el elemento ya sonó dentro de un
+// toque del usuario: se lo estrena con un instante de silencio.
+function vozStDesbloquear(){
+  if(!VOZ_ST_OK || !vozMejorada()) return;
+  const a = vozStAudio();
+  if(a.currentSrc && !a.ended) return;
+  const url = URL.createObjectURL(vozStWav(new Float32Array(0), 44100, 0.05));
+  a.src = url;
+  a.play().catch(() => {}).finally(() => setTimeout(() => URL.revokeObjectURL(url), 1000));
+}
+
+function vozStSesionMedios(){
+  if(!("mediaSession" in navigator)) return;
+  try{
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: $("docname").textContent || "Lector MD", artist: "Lector MD"});
+    if(vozSt.medios) return;
+    vozSt.medios = true;
+    const si = f => () => { if(voz.estado !== "quieto" && vozMejorada()) f(); };
+    navigator.mediaSession.setActionHandler("play", si(vozJugar));
+    navigator.mediaSession.setActionHandler("pause", si(vozPausar));
+    navigator.mediaSession.setActionHandler("previoustrack", si(() => vozSaltar(-1)));
+    navigator.mediaSession.setActionHandler("nexttrack", si(() => vozSaltar(1)));
+    navigator.mediaSession.setActionHandler("stop", si(vozDetener));
+  }catch(e){}
+}
+
+async function vozStHablar(){
+  const mi = ++voz.token;
+  const u = voz.u, p = voz.p;
+
+  if(!vozSt.motorListo){
+    try{
+      if(!vozSt.descargada){
+        let libre = Infinity;
+        try{
+          const e = await navigator.storage.estimate();
+          if(e && e.quota) libre = e.quota - (e.usage || 0);
+        }catch(e){}
+        if(mi !== voz.token) return;
+        if(libre < VOZ_ST_ESPACIO){
+          vozPausar();
+          vozMensaje(t("vozStSinEspacio"), true);
+          return;
+        }
+        vozMensaje(t("vozStBajando", 0));
+      }else{
+        vozMensaje(t("vozStPreparando"));
+      }
+      await vozStCargar();
+    }catch(e){
+      if(mi !== voz.token) return;
+      vozPausar();
+      vozMensaje(t("vozStError", e.message), true);
+      return;
+    }
+    if(mi !== voz.token) return;
+    vozMensaje("");
+  }
+
+  try{
+    const c = vozStClip(u, p);
+    vozStBombear();
+    await c.promesa;
+    if(mi !== voz.token) return;
+    const a = vozStAudio();
+    const anterior = vozSt.sonando;
+    vozSt.sonando = c;
+    if(anterior && anterior !== c && !vozSt.clips.has(anterior.clave) && anterior.url){
+      URL.revokeObjectURL(anterior.url);
+    }
+    a.onended = () => { if(mi === voz.token) vozAvanzar(); };
+    a.src = c.url;
+    a.playbackRate = vozPrefs.rate;
+    await a.play();
+    if(mi !== voz.token) return;
+    voz.fallos = 0;
+    vozStSesionMedios();
+  }catch(e){
+    if(mi !== voz.token) return;
+    if(e && e.name === "NotAllowedError"){
+      vozPausar();
+      vozMensaje(t("vozBloqueada"), true);
+      return;
+    }
+    if(++voz.fallos >= 3){
+      vozPausar();
+      vozMensaje(t("vozStError", e && e.message || ""), true);
+      return;
+    }
+    vozAvanzar();
+  }
+}
+
+// Quitar la voz mejorada: se borra el caché y se vuelve a la voz del sistema.
+async function vozStQuitar(){
+  if(!confirm(t("vozStQuitarConfirma"))){ vozLlenarVoces(); return; }
+  const leyendo = voz.estado === "leyendo" && !!vozMejorada();
+  if(leyendo) vozPausar();
+  for(const k of Object.keys(vozPrefs.voces)){
+    if(String(vozPrefs.voces[k]).startsWith(VOZ_ST_PREFIJO)) delete vozPrefs.voces[k];
+  }
+  // Sin voces del sistema en este idioma, sigue elegida la mejorada: reproducir
+  // vuelve a ofrecer la descarga.
+  if(!vozListaVoces(voz.idioma).length) vozPrefs.voces[voz.idioma] = VOZ_ST_PREFIJO + VOZ_ST_VOCES[0];
+  vozGuardarPrefs();
+  vozStParar();
+  vozStLimpiar();
+  vozStCerrar();
+  try{ await caches.delete(VOZ_ST_CACHE); }catch(e){}
+  vozSt.descargada = false;
+  vozSt.confirmada = false;
+  vozLlenarVoces();
+  vozMensaje(t("vozStQuitada"));
+}
+
 function vozAvanzar(){
   const u = voz.unidades[voz.u];
   if(!u) return;
@@ -7569,7 +8068,7 @@ function vozUnidadInicial(){
 }
 
 function vozIniciar(){
-  if(!VOZ_OK || $("doc").hidden) return;
+  if(!VOZ_HAY || $("doc").hidden) return;
   vozDetener();
 
   const crudo = [];
@@ -7590,7 +8089,12 @@ function vozIniciar(){
 
   let hayVoces = false;
   try{ hayVoces = speechSynthesis.getVoices().length > 0; }catch(e){}
-  if(hayVoces && !vozListaVoces(voz.idioma).length){
+  const sinSistema = !VOZ_OK || (hayVoces && !vozListaVoces(voz.idioma).length);
+  if(sinSistema && !vozMejorada() && VOZ_ST_OK){
+    // Sin voces del sistema en este idioma, la única que queda es la mejorada.
+    vozPrefs.voces[voz.idioma] = VOZ_ST_PREFIJO + VOZ_ST_VOCES[0];
+    vozLlenarVoces();
+  }else if(sinSistema && !vozMejorada()){
     voz.estado = "pausa";
     vozPintar();
     vozMensaje(t("vozSinVocesIdioma", voz.idioma), true);
@@ -7599,10 +8103,16 @@ function vozIniciar(){
   vozReprogramar();
 }
 
-if(VOZ_OK){
+if(VOZ_HAY){
   $("vozBtn").hidden = false;
-  $("vozBtn").onclick = () => { if(voz.estado === "quieto") vozIniciar(); else vozDetener(); };
-  $("vozPlay").onclick = () => { if(voz.estado === "leyendo") vozPausar(); else vozJugar(); };
+  $("vozBtn").onclick = () => {
+    if(voz.estado === "quieto"){ vozIniciar(); vozStDesbloquear(); }
+    else vozDetener();
+  };
+  $("vozPlay").onclick = () => {
+    if(voz.estado === "leyendo") vozPausar();
+    else{ vozStDesbloquear(); vozJugar(); }
+  };
   $("vozAnt").onclick = () => vozSaltar(-1);
   $("vozSig").onclick = () => vozSaltar(1);
   $("vozX").onclick = () => vozDetener();
@@ -7610,30 +8120,47 @@ if(VOZ_OK){
   $("vozVel").onchange = () => {
     vozPrefs.rate = Number($("vozVel").value);
     vozGuardarPrefs();
-    if(voz.estado === "leyendo") vozReprogramar();
+    // La voz mejorada cambia de velocidad al vuelo, sin cortar la frase.
+    if(vozMejorada()){ if(vozSt.audio) vozSt.audio.playbackRate = vozPrefs.rate; }
+    else if(voz.estado === "leyendo") vozReprogramar();
   };
   $("vozSel").onchange = () => {
-    vozPrefs.voces[voz.idioma] = $("vozSel").value;
+    const valor = $("vozSel").value;
+    if(valor === VOZ_ST_QUITAR){ void vozStQuitar(); return; }
+    vozPrefs.voces[voz.idioma] = valor;
     vozGuardarPrefs();
     vozMensaje("");
+    // Lo ya generado era con la voz anterior.
+    vozStParar();
+    vozStLimpiar();
+    if(vozMejorada() && !vozSt.descargada && !vozSt.confirmada){
+      if(voz.estado === "leyendo") vozPausar();
+      vozMensaje(t("vozStDescargar"), true);
+      return;
+    }
     if(voz.estado === "leyendo") vozReprogramar();
     else if(vozNubeSinConfirmar()) vozMensaje(t("vozNube"), true);
   };
 
-  // Chrome carga la lista de voces en segundo plano.
-  try{ speechSynthesis.getVoices(); }catch(e){}
-  const alCambiarVoces = () => { if(voz.estado !== "quieto") vozLlenarVoces(); };
-  if(speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", alCambiarVoces);
-  else speechSynthesis.onvoiceschanged = alCambiarVoces;
+  if(VOZ_OK){
+    // Chrome carga la lista de voces en segundo plano.
+    try{ speechSynthesis.getVoices(); }catch(e){}
+    const alCambiarVoces = () => { if(voz.estado !== "quieto") vozLlenarVoces(); };
+    if(speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", alCambiarVoces);
+    else speechSynthesis.onvoiceschanged = alCambiarVoces;
+  }
+  void vozStRevisar().then(() => { if(voz.estado !== "quieto") vozLlenarVoces(); });
 
   ["wheel", "touchmove"].forEach(ev =>
     $("main").addEventListener(ev, () => { voz.gesto = Date.now(); }, {passive: true}));
 
   // Si el sistema mató la voz con la app en segundo plano, no hay evento que
   // lo avise: al volver se lo detecta y queda en pausa, listo para seguir.
+  // La voz mejorada sigue sonando en segundo plano, como cualquier audio.
   document.addEventListener("visibilitychange", () => {
     if(document.visibilityState !== "visible" || voz.estado !== "leyendo") return;
     void vozPedirPantalla();
+    if(vozMejorada()) return;
     let hablando = false;
     try{ hablando = speechSynthesis.speaking || speechSynthesis.pending; }catch(e){}
     if(!hablando) vozPausar();
@@ -7641,6 +8168,7 @@ if(VOZ_OK){
 
   window.addEventListener("pagehide", () => {
     try{ speechSynthesis.cancel(); }catch(e){}
+    vozStParar();
   });
 }
 

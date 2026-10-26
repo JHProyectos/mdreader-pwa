@@ -13,7 +13,7 @@
 // exista una ventana abierta. Sólo toma control al cerrar la app o cuando la
 // página envía SKIP_WAITING después de guardar el área de trabajo.
 
-const VERSION = "v0.31.0";
+const VERSION = "v0.32.0";
 const CACHE_NAME = "lector-md-" + VERSION;
 
 // Caché aparte, de vida corta: sólo transporta los archivos que llegan
@@ -24,6 +24,22 @@ const SHARE_CACHE = "lector-md-share";
 // No lleva el sufijo de VERSION: tiene que sobrevivir a cada actualización
 // del service worker, si no se perdería y se volvería a descargar todo.
 const IMG_CACHE = "lector-md-img-github";
+
+// Caché de la voz mejorada (unos 115 MB: modelo y motor de ejecución). Lo llena
+// y lo lee voz-worker.js, no este service worker. Tampoco lleva VERSION: si se
+// borrara en cada actualización, habría que volver a bajar todo.
+const VOZ_CACHE = "lector-md-voz";
+
+// Los archivos de la voz mejorada pasan de largo: el worker los guarda en
+// VOZ_CACHE y, si entraran también al caché versionado, ocuparían el doble.
+function esArchivoDeVoz(url) {
+  return (
+    url.hostname === "huggingface.co" ||
+    url.hostname.endsWith(".hf.co") ||
+    (url.hostname === "cdn.jsdelivr.net" &&
+      url.pathname.startsWith("/npm/onnxruntime-web@"))
+  );
+}
 
 // Misma base de datos que usa la página (mdreader-pwa/index.html) para guardar
 // el mapeo URL de imagen -> SHA de blob de GitHub. No se comparte por
@@ -98,7 +114,7 @@ async function manejarImagenGithub(request){
 
 // La imagen de la ayuda entra acá y no en la revalidación perezosa: si no,
 // la primera vez que abrís la ayuda sin conexión saldría sin ilustración.
-const SHELL = ["/", "/index.html", "/manifest.json", "/ejemplo-portada.png"];
+const SHELL = ["/", "/index.html", "/manifest.json", "/ejemplo-portada.png", "/voz-worker.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -120,7 +136,8 @@ self.addEventListener("activate", (event) => {
                 k.startsWith("lector-md-") &&
                 k !== CACHE_NAME &&
                 k !== SHARE_CACHE &&
-                k !== IMG_CACHE
+                k !== IMG_CACHE &&
+                k !== VOZ_CACHE
             )
             .map((k) => caches.delete(k))
         )
@@ -356,6 +373,9 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(manejarImagenGithub(request));
     return;
   }
+
+  // 3a-ter. Voz mejorada: sin intervenir (ver esArchivoDeVoz).
+  if (esArchivoDeVoz(url)) return;
 
   // 3b. Librerías externas (KaTeX, Mermaid, Prism): network-first con respaldo
   // en caché. Gracias a esto, una vez bajadas las fórmulas, los diagramas y
