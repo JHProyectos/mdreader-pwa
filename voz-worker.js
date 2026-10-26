@@ -25,8 +25,9 @@ const CACHE = "lector-md-voz";
 const MARCA = new URL("/__voz-completa__", self.location.origin).href;
 
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/";
-const MODELO = "https://huggingface.co/csukuangfj2/sherpa-onnx-supertonic-tts-int8-2026-03-06/resolve/5dec5897b86e2b293790eedb5e1f561a3295651f/";
-const CONFIG = "https://huggingface.co/Supertone/supertonic-2/resolve/75e6727618a02f323c720cba9478152d4bc16ca4/";
+// Copia propia del modelo (huggingface.co/mdreader-supertonic/supertonic-int8),
+// fijada a una revisión: si el repo cambia, esta URL sigue sirviendo lo mismo.
+const REPO = "https://huggingface.co/mdreader-supertonic/supertonic-int8/resolve/c6e3fb1b5a455763b6fffb3d403551d3d7f10508/";
 
 const VOCES = ["F1", "F2", "F3", "F4", "F5", "M1", "M2", "M3", "M4", "M5"];
 const PARTES = ["duration_predictor", "text_encoder", "vector_estimator", "vocoder"];
@@ -35,13 +36,13 @@ const PARTES = ["duration_predictor", "text_encoder", "vector_estimator", "vocod
 const ARCHIVOS = [
   {url: ORT + "ort.wasm.bundle.min.mjs", bytes: 72799},
   {url: ORT + "ort-wasm-simd-threaded.wasm", bytes: 13479978},
-  {url: CONFIG + "onnx/tts.json", bytes: 8699},
-  {url: CONFIG + "onnx/unicode_indexer.json", bytes: 262196},
-  ...VOCES.map(v => ({url: CONFIG + "voice_styles/" + v + ".json", bytes: 420000})),
-  {url: MODELO + "duration_predictor.int8.onnx", bytes: 1521526},
-  {url: MODELO + "text_encoder.int8.onnx", bytes: 27431318},
-  {url: MODELO + "vector_estimator.int8.onnx", bytes: 40686657},
-  {url: MODELO + "vocoder.int8.onnx", bytes: 25977132}
+  {url: REPO + "onnx/tts.json", bytes: 8699},
+  {url: REPO + "onnx/unicode_indexer.json", bytes: 262196},
+  ...VOCES.map(v => ({url: REPO + "voice_styles/" + v + ".json", bytes: 420000})),
+  {url: REPO + "onnx/duration_predictor.onnx", bytes: 1521526},
+  {url: REPO + "onnx/text_encoder.onnx", bytes: 27431318},
+  {url: REPO + "onnx/vector_estimator.onnx", bytes: 40686657},
+  {url: REPO + "onnx/vocoder.onnx", bytes: 25977132}
 ];
 
 let motor = null;      // {ort, cfg, indexer, dp, enc, est, voc}
@@ -117,13 +118,13 @@ async function cargar(){
   ort.env.wasm.proxy = false;
 
   const [cfg, indexer] = await Promise.all([
-    leer(cache, CONFIG + "onnx/tts.json", "json"),
-    leer(cache, CONFIG + "onnx/unicode_indexer.json", "json")
+    leer(cache, REPO + "onnx/tts.json", "json"),
+    leer(cache, REPO + "onnx/unicode_indexer.json", "json")
   ]);
   const opciones = {executionProviders: ["wasm"], graphOptimizationLevel: "all"};
   const ses = [];
   for(const p of PARTES){
-    const bytes = await leer(cache, MODELO + p + ".int8.onnx", "arrayBuffer");
+    const bytes = await leer(cache, REPO + "onnx/" + p + ".onnx", "arrayBuffer");
     ses.push(await ort.InferenceSession.create(new Uint8Array(bytes), opciones));
   }
   motor = {ort, cfg, indexer, dp: ses[0], enc: ses[1], est: ses[2], voc: ses[3]};
@@ -133,7 +134,7 @@ async function estilo(voz){
   if(estilos[voz]) return estilos[voz];
   if(!VOCES.includes(voz)) throw new Error("Voz desconocida: " + voz);
   const cache = await caches.open(CACHE);
-  const j = await leer(cache, CONFIG + "voice_styles/" + voz + ".json", "json");
+  const j = await leer(cache, REPO + "voice_styles/" + voz + ".json", "json");
   const {ort} = motor;
   const t = x => new ort.Tensor("float32", Float32Array.from(x.data.flat(Infinity)), x.dims);
   return (estilos[voz] = {ttl: t(j.style_ttl), dp: t(j.style_dp)});

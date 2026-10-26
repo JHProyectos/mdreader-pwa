@@ -7560,7 +7560,7 @@ function vozDetener(){
 function vozPausar(){
   // Con la voz mejorada la pausa es de verdad: el audio queda donde estaba.
   const a = vozSt.audio;
-  if(vozMejorada() && voz.estado === "leyendo" && a && a.currentSrc && !a.paused && !a.ended){
+  if(vozMejorada() && voz.estado === "leyendo" && vozStFrase() && !a.paused && !a.ended){
     clearTimeout(voz.arranque);
     a.pause();
     vozSt.pausado = true;
@@ -7606,7 +7606,7 @@ function vozArrancar(){
 function vozJugar(){
   if(vozMejorada()){
     const a = vozSt.audio;
-    if(vozSt.pausado && a && a.currentSrc){
+    if(vozSt.pausado && vozStFrase()){
       vozSt.pausado = false;
       voz.estado = "leyendo";
       vozMensaje("");
@@ -7904,6 +7904,12 @@ function vozStAudio(){
   return vozSt.audio;
 }
 
+// En el reproductor hay una frase del documento (y no el silencio de vozStDesbloquear).
+function vozStFrase(){
+  const a = vozSt.audio, c = vozSt.sonando;
+  return !!(a && c && c.url && a.currentSrc === c.url);
+}
+
 function vozStParar(){
   vozSt.pausado = false;
   const a = vozSt.audio;
@@ -7919,7 +7925,7 @@ function vozStParar(){
 function vozStDesbloquear(){
   if(!VOZ_ST_OK || !vozMejorada()) return;
   const a = vozStAudio();
-  if(a.currentSrc && !a.ended) return;
+  if(vozStFrase() && !a.ended) return;
   const url = URL.createObjectURL(vozStWav(new Float32Array(0), 44100, 0.05));
   a.src = url;
   a.play().catch(() => {}).finally(() => setTimeout(() => URL.revokeObjectURL(url), 1000));
