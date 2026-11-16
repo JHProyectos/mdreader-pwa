@@ -810,6 +810,11 @@ In other browsers, and on Android and iOS, the changes stay saved in the reader
 and a copy of the file is downloaded. If you leave edit mode with unsaved
 changes, the reader asks before discarding them.
 
+Task list checkboxes can be checked without entering edit mode. Checking one
+shows **Save**, which writes the change to the file just like the editor. If
+you switch documents or close the tab without saving, the reader asks before
+discarding the checks.
+
 ### What gets remembered
 
 The files you loaded, which one you were reading and how far along you were in

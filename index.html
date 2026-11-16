@@ -383,7 +383,8 @@ article ul,article ol{margin:0 0 var(--sp-p); padding-left:1.5em}
 article li{margin:var(--sp-li) 0}
 article li > ul,article li > ol{margin:var(--sp-li) 0}
 article li.task{list-style:none; position:relative}
-article li.task > input{position:absolute; left:-1.35em; top:.3em; width:1em; height:1em; margin:0; accent-color:var(--accent); pointer-events:none}
+article li.task > input{position:absolute; left:-1.35em; top:.3em; width:1em; height:1em; margin:0; accent-color:var(--accent); cursor:pointer}
+main.editando article li.task > input{cursor:default}
 article a{color:var(--accent); text-underline-offset:2px}
 article hr{border:none; border-top:1px solid var(--line); margin:var(--sp-h2) 0}
 article strong{font-weight:600}
@@ -1234,6 +1235,7 @@ const TEXTOS = {
     editGuardadoLocal: "Guardado solo en el lector",
     editDescargado: "Guardado en el lector y descargado",
     editDescartar: "Hay cambios sin guardar. ¿Descartarlos?",
+    tildesDescartar: "Tildaste casillas y no guardaste el archivo. ¿Descartar esos cambios?",
     editSinPermiso: "No se pudo guardar en el archivo: el navegador no dio permiso de escritura. " +
       "Los cambios quedaron guardados en el lector.",
     editError: msg => "No se pudo guardar en el archivo (" + msg + "). Los cambios quedaron guardados en el lector.",
@@ -1472,6 +1474,7 @@ const TEXTOS = {
     editGuardadoLocal: "Saved in the reader only",
     editDescargado: "Saved in the reader and downloaded",
     editDescartar: "There are unsaved changes. Discard them?",
+    tildesDescartar: "You checked boxes but didn't save the file. Discard those changes?",
     editSinPermiso: "Couldn't save to the file: the browser didn't grant write permission. " +
       "Your changes were saved in the reader.",
     editError: msg => "Couldn't save to the file (" + msg + "). Your changes were saved in the reader.",
@@ -2278,7 +2281,7 @@ mejorada, más abajo). Qué dice de cada cosa:
 |---|---|
 | Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
 | Tablas | cada fila, con el nombre de su columna (si el encabezado termina en «…», como «Si te dan…», la fila se lee como una frase); si pasa de 15 filas, sólo avisa cuántas son |
-| Fórmulas | con su lectura matemática: «x al cuadrado», «a sobre b», «raíz cuadrada de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
+| Fórmulas | con su lectura matemática: «x es igual a», «x cuadrado», «a sobre b», «la raíz de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
 | Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
 | Gráficos | el tipo y el título y, de cada serie, sus valores si son pocos o, si son muchos, dónde empieza, dónde termina, el máximo, el mínimo y la tendencia; en una torta, el porcentaje de cada porción |
 | Imágenes | su texto descriptivo |
@@ -2389,6 +2392,11 @@ hoy es Chrome o Edge de escritorio:
 En los demás navegadores, y en Android y iOS, los cambios quedan guardados en
 el lector y se descarga una copia del archivo. Si salís del modo edición con
 cambios sin guardar, el lector pregunta antes de descartarlos.
+
+Las casillas de las listas de tareas se pueden tildar sin entrar al modo
+edición. Al tildar aparece **Guardar**, que escribe el cambio en el archivo
+igual que el editor. Si cambiás de documento o cerrás la pestaña sin guardar,
+el lector pregunta antes de descartar los tildes.
 
 ### Lo que queda guardado
 
@@ -3270,6 +3278,11 @@ In other browsers, and on Android and iOS, the changes stay saved in the reader
 and a copy of the file is downloaded. If you leave edit mode with unsaved
 changes, the reader asks before discarding them.
 
+Task list checkboxes can be checked without entering edit mode. Checking one
+shows **Save**, which writes the change to the file just like the editor. If
+you switch documents or close the tab without saving, the reader asks before
+discarding the checks.
+
 ### What gets remembered
 
 The files you loaded, which one you were reading and how far along you were in
@@ -3876,8 +3889,12 @@ function inline(t){
 let hCount = 0;
 function slug(t,i){ return "h"+i+"-"+t.toLowerCase().replace(/[^a-z0-9áéíóúñü]+/g,"-").slice(0,40); }
 
-function render(md){
+// lineasOrigen: para cada línea de md, su número de línea en el archivo. Lo pasan
+// las llamadas recursivas (sublistas y citas) para que cada casilla de tarea
+// sepa qué línea del archivo tildar.
+function render(md, lineasOrigen){
   const L = md.replace(/\r\n?/g,"\n").split("\n");
+  const N = lineasOrigen || L.map((_, k) => k);
   const out = [];
   const heads = [];
 
@@ -3988,9 +4005,9 @@ function render(md){
 
     if(/^\s*>/.test(ln)){
       flushPara(para);
-      const body = [];
-      while(i < L.length && /^\s*>/.test(L[i])){ body.push(L[i].replace(/^\s*>\s?/,"")); i++; }
-      out.push("<blockquote>"+render(body.join("\n")).html+"</blockquote>");
+      const body = [], bodyLineas = [];
+      while(i < L.length && /^\s*>/.test(L[i])){ body.push(L[i].replace(/^\s*>\s?/,"")); bodyLineas.push(N[i]); i++; }
+      out.push("<blockquote>"+render(body.join("\n"), bodyLineas).html+"</blockquote>");
       continue;
     }
 
@@ -4003,6 +4020,7 @@ function render(md){
         const ind = L[i].match(/^\s*/)[0].length;
         if(ind < baseIndent) break;
         let txt = L[i].replace(/^\s*([-*+]|\d+[.)])\s+/,"");
+        const lineaItem = N[i];
         i++;
 
         const cont = [];
@@ -4011,18 +4029,18 @@ function render(md){
           cont.push(L[i].trim()); i++;
         }
 
-        const sub = [];
+        const sub = [], subLineas = [];
         while(i < L.length && /^\s*([-*+]|\d+[.)])\s+/.test(L[i])
               && L[i].match(/^\s*/)[0].length > ind){
-          sub.push(L[i]); i++;
+          sub.push(L[i]); subLineas.push(N[i]); i++;
         }
         const tarea = txt.match(/^\[([ xX])\]\s+/);
         if(tarea) txt = txt.slice(tarea[0].length);
         let html = inline([txt, ...cont].join(" "));
-        if(sub.length) html += render(sub.map(s=>s.replace(/^\s{0,3}/,"")).join("\n")).html;
+        if(sub.length) html += render(sub.map(s=>s.replace(/^\s{0,3}/,"")).join("\n"), subLineas).html;
         if(tarea){
           const hecha = tarea[1] !== " ";
-          items.push('<li class="task'+(hecha?" done":"")+'"><input type="checkbox" tabindex="-1" aria-readonly="true"'
+          items.push('<li class="task'+(hecha?" done":"")+'" data-linea="'+lineaItem+'"><input type="checkbox"'
                      +(hecha?" checked":"")+"> "+html+"</li>");
         } else items.push("<li>"+html+"</li>");
       }
@@ -5635,6 +5653,10 @@ function removeDoc(i){
   tomarPosicionActual();
   const [quitado] = DOCS.splice(i, 1);
   if(edicion && edicion.ruta === quitado.path) terminarEdicion();
+  if(tildesPendientes && tildesPendientes.ruta === quitado.path){
+    tildesPendientes = null;
+    $("editGuardar").hidden = true;
+  }
   delete scrollPorRuta[quitado.path];
 
   if(!DOCS.length){ resetWorkspace(); return; }
@@ -5725,6 +5747,7 @@ function open(i, opciones = {}){
     if(DOCS[i].path === edicion.ruta){ current = i; drawFiles(); closeSide(); pintarVistaEdicion(); return; }
     if(!salirDeEdicion()) return;
   }
+  if(tildesPendientes && DOCS[i].path !== tildesPendientes.ruta && !descartarTildes()) return;
   if(viendoAyuda) cerrarAyuda();
   const guardarAnterior = opciones.guardarAnterior !== false;
   const persistir = opciones.persistir !== false;
@@ -5754,6 +5777,7 @@ function open(i, opciones = {}){
   drawFiles();
   closeSide();
   $("editBtn").disabled = false;
+  marcarTildes();
   if(persistir) programarGuardadoEstado();
 }
 
@@ -5861,6 +5885,12 @@ function entrarEnEdicion(){
   const d = DOCS[current];
   edicion = {ruta:d.path, sucio:false, timer:null};
   $("editTxt").value = d.text;
+  // Los tildes sin guardar pasan al editor como cambios del texto.
+  if(docConTildes() === d){
+    d.text = tildesPendientes.original;
+    tildesPendientes = null;
+    edicion.sucio = true;
+  }
   $("main").classList.add("editando");
   $("main").classList.remove("ver-vista");
   $("main").scrollTop = 0;
@@ -5890,8 +5920,80 @@ function terminarEdicion(){
 // Devuelve false si el usuario prefiere quedarse con los cambios sin guardar.
 function salirDeEdicion(){
   if(edicion && edicion.sucio && !confirm(t("editDescartar"))) return false;
+  if(!descartarTildes()) return false;
   terminarEdicion();
   return true;
+}
+
+// Casillas tildadas desde la vista, todavía sin guardar en el archivo.
+// original: el texto del documento antes del primer tilde, para poder descartar.
+let tildesPendientes = null;
+
+function docConTildes(){
+  return tildesPendientes ? DOCS.find(d => d.path === tildesPendientes.ruta) : null;
+}
+
+function marcarTildes(){
+  if(edicion) return;
+  const d = docConTildes();
+  $("editGuardar").hidden = !d;
+  $("editGuardar").classList.toggle("sucio", !!d);
+  if(d && DOCS[current] === d) $("docname").textContent = "● " + d.path;
+}
+
+// Devuelve false si el usuario prefiere quedarse con los tildes sin guardar.
+function descartarTildes(){
+  const d = docConTildes();
+  if(!d){ tildesPendientes = null; return true; }
+  if(!confirm(t("tildesDescartar"))) return false;
+  d.text = tildesPendientes.original;
+  tildesPendientes = null;
+  $("editGuardar").hidden = true;
+  $("editGuardar").classList.remove("sucio");
+  return true;
+}
+
+const RE_MARCA_TAREA = /^((?:\s*>)*\s*(?:[-*+]|\d+[.)])\s+\[)[ xX](\])/;
+
+// Pasa el tilde de la casilla al texto del documento. Devuelve false si no
+// encuentra la marca en la línea esperada, para no tocar una línea equivocada.
+function alternarTilde(casilla){
+  const d = DOCS[current];
+  const li = casilla.closest("li.task");
+  if(!d || !li || (tildesPendientes && tildesPendientes.ruta !== d.path)) return false;
+  // split por \n: si el archivo usa \r\n, el \r queda al final de cada línea y se respeta.
+  const lineas = d.text.split("\n");
+  const n = Number(li.dataset.linea);
+  if(!RE_MARCA_TAREA.test(lineas[n] || "")) return false;
+  if(!tildesPendientes) tildesPendientes = {ruta:d.path, original:d.text};
+  lineas[n] = lineas[n].replace(RE_MARCA_TAREA, "$1" + (casilla.checked ? "x" : " ") + "$2");
+  d.text = lineas.join("\n");
+  li.classList.toggle("done", casilla.checked);
+  if(d.text === tildesPendientes.original){
+    tildesPendientes = null;
+    $("editGuardar").hidden = true;
+    $("editGuardar").classList.remove("sucio");
+    $("docname").textContent = d.path;
+  }
+  marcarTildes();
+  return true;
+}
+
+$("doc").addEventListener("click", e => {
+  const casilla = e.target.closest("li.task > input");
+  if(!casilla) return;
+  // En el editor y en la ayuda las casillas son de solo lectura.
+  if(edicion || viendoAyuda || !alternarTilde(casilla)) e.preventDefault();
+});
+
+async function guardarTildes(){
+  const d = docConTildes();
+  if(!d || guardandoEdicion) return;
+  tildesPendientes = null;
+  $("editGuardar").classList.remove("sucio");
+  if(DOCS[current] === d) $("docname").textContent = d.path;
+  await escribirDocumento(d, d.text);
+  if(!tildesPendientes) $("editGuardar").hidden = true;
 }
 
 async function permisoEscritura(handle){
@@ -5929,16 +6031,22 @@ function descargarTexto(nombre, texto){
 async function guardarEdicion(){
   const d = docEnEdicion();
   if(!d || guardandoEdicion) return;
+  // El textarea pasa todo a \n: si el archivo venía con \r\n, se respeta.
+  let texto = $("editTxt").value;
+  if(d.text.includes("\r\n")) texto = texto.replace(/\r?\n/g, "\r\n");
+  d.text = texto;
+  edicion.sucio = false;
+  marcarEdicion();
+  await escribirDocumento(d, texto);
+}
+
+// Escribe el texto en el archivo original (o lo descarga) y en la copia local.
+// La usan el editor y las casillas tildadas desde la vista.
+async function escribirDocumento(d, texto){
+  if(guardandoEdicion) return;
   guardandoEdicion = true;
   $("editGuardar").disabled = true;
   try{
-    // El textarea pasa todo a \n: si el archivo venía con \r\n, se respeta.
-    let texto = $("editTxt").value;
-    if(d.text.includes("\r\n")) texto = texto.replace(/\r?\n/g, "\r\n");
-    d.text = texto;
-    edicion.sucio = false;
-    marcarEdicion();
-
     // Primero el archivo: el permiso y el "Guardar como" necesitan el clic reciente.
     let aviso = null;
     try{
@@ -5978,7 +6086,7 @@ $("editBtn").onclick = () => {
   const i = DOCS.findIndex(d => d.path === ruta);
   if(i >= 0) open(i, {guardarAnterior:false});
 };
-$("editGuardar").onclick = () => void guardarEdicion();
+$("editGuardar").onclick = () => void (edicion ? guardarEdicion() : guardarTildes());
 $("editAlternar").onclick = () => {
   const vista = $("main").classList.toggle("ver-vista");
   $("editAlternar").textContent = t(vista ? "editVerTexto" : "editVerVista");
@@ -5990,7 +6098,7 @@ $("editTxt").addEventListener("input", () => {
   edicion.timer = setTimeout(pintarVistaEdicion, 400);
 });
 window.addEventListener("beforeunload", e => {
-  if(edicion && edicion.sucio){ e.preventDefault(); e.returnValue = ""; }
+  if((edicion && edicion.sucio) || docConTildes()){ e.preventDefault(); e.returnValue = ""; }
 });
 
 function clearMarks(root){
@@ -6482,12 +6590,14 @@ function vozGriegas(i, conAviso){
 }
 
 // Cómo se dice cada cosa, por idioma. Las funciones arman las frases que
-// dependen de la gramática: "x al cuadrado" / "x squared".
+// dependen de la gramática: "x cuadrado" / "x squared".
 const VOZ_HABLA = {
   es: {
     de: "de", tal: "tal que", tiende: "tiende a", base: " en base ",
     // Una "y" suelta suena igual que la conjunción: se la nombra por su nombre.
-    letras: {y:"i griega", Y:"i griega"},
+    // La b y la c se escriben como se dicen ("be", "ce"): así no dependen de cómo
+    // la voz lea una letra sola. Si otra letra suena mal, se agrega acá.
+    letras: {y:"i griega", Y:"i griega", b:"be", B:"be", c:"ce", C:"ce"},
     mayus: l => l + " mayúscula",
     por: "por", barra: "barra", invertida: "barra invertida",
     conjugado: b => b + " conjugado",
@@ -6502,7 +6612,9 @@ const VOZ_HABLA = {
     sistema: filas => "sistema de ecuaciones: " +
       filas.map((f, k) => "ecuación " + (k + 1) + ", " + f).join("; ") + ", fin del sistema",
     num: v => v.replace(".", ","),
-    s: {"+":"más", "-":"menos", "−":"menos", "=":"igual a", "<":"menor que", ">":"mayor que",
+    // "x es igual a 5"; dentro de un subíndice o un límite sobra el "es": "n igual a 1".
+    igualSub: "igual a",
+    s: {"+":"más", "-":"menos", "−":"menos", "=":"es igual a", "<":"menor que", ">":"mayor que",
         "/":"sobre", "*":"convolucionado con", "×":"por", "·":"por", "÷":"dividido por", "±":"más menos",
         "≤":"menor o igual que", "≥":"mayor o igual que", "≠":"distinto de", "≈":"aproximadamente igual a",
         "→":"flecha a", "∞":"infinito", "π":"pi", "(":"abre paréntesis", ")":"cierra paréntesis",
@@ -6542,15 +6654,20 @@ const VOZ_HABLA = {
     abs: "valor absoluto de", finAbs: ", fin del valor absoluto", norma: "norma de", finNorma: ", fin de la norma",
     dif: x => "diferencial de " + x,
     frac: (a, b) => a + " sobre " + b,
+    // Numerador largo sobre un denominador corto: "…, sobre 2 por a". La coma de
+    // atrás marca dónde termina el denominador.
+    fracMedia: (a, b) => a + ", sobre " + b + ",",
     fracLarga: (a, b) => "fracción, numerador " + a + ", denominador " + b + ", fin de la fracción",
-    raiz: x => "raíz cuadrada de " + x,
-    raizLarga: x => "raíz cuadrada de " + x + ", fin de la raíz",
-    cubica: x => "raíz cúbica de " + x,
-    cubicaLarga: x => "raíz cúbica de " + x + ", fin de la raíz",
-    raizN: (n, x) => "raíz " + n + "-ésima de " + x,
-    raizNLarga: (n, x) => "raíz " + n + "-ésima de " + x + ", fin de la raíz",
-    cuadrado: b => b + " al cuadrado",
-    cubo: b => b + " al cubo",
+    // "fin de la raíz" sólo cuando sigue algo; al final de un término no hace falta.
+    raiz: x => "la raíz de " + x,
+    raizLarga: (x, cierra = true) => "la raíz de " + x + (cierra ? ", fin de la raíz" : ""),
+    cubica: x => "la raíz cúbica de " + x,
+    cubicaLarga: (x, cierra = true) => "la raíz cúbica de " + x + (cierra ? ", fin de la raíz" : ""),
+    raizN: (n, x) => "la raíz " + n + "-ésima de " + x,
+    raizNLarga: (n, x, cierra = true) => "la raíz " + n + "-ésima de " + x + (cierra ? ", fin de la raíz" : ""),
+    // "b cuadrado" con una letra o un número; "al cuadrado" después de un paréntesis.
+    cuadrado: (b, suelta) => b + (suelta ? " cuadrado" : " al cuadrado"),
+    cubo: (b, suelta) => b + (suelta ? " cubo" : " al cubo"),
     // Con una letra como exponente se dice "elevado a la x": los nombres de las letras son femeninos.
     pot: (b, e, conLa) => b + " elevado a " + (conLa ? "la " : "") + e,
     potLarga: (b, e, conLa) => b + " elevado a " + (conLa ? "la " : "") + e + ", fin del exponente",
@@ -6657,13 +6774,14 @@ const VOZ_HABLA = {
     abs: "absolute value of", finAbs: ", end of absolute value", norma: "norm of", finNorma: ", end of norm",
     dif: x => "d " + x,
     frac: (a, b) => a + " over " + b,
+    fracMedia: (a, b) => a + ", over " + b + ",",
     fracLarga: (a, b) => "fraction, numerator " + a + ", denominator " + b + ", end of fraction",
     raiz: x => "square root of " + x,
-    raizLarga: x => "square root of " + x + ", end of root",
+    raizLarga: (x, cierra = true) => "square root of " + x + (cierra ? ", end of root" : ""),
     cubica: x => "cube root of " + x,
-    cubicaLarga: x => "cube root of " + x + ", end of root",
+    cubicaLarga: (x, cierra = true) => "cube root of " + x + (cierra ? ", end of root" : ""),
     raizN: (n, x) => n + "-th root of " + x,
-    raizNLarga: (n, x) => n + "-th root of " + x + ", end of root",
+    raizNLarga: (n, x, cierra = true) => n + "-th root of " + x + (cierra ? ", end of root" : ""),
     cuadrado: b => b + " squared",
     cubo: b => b + " cubed",
     pot: (b, e) => b + " to the " + e,
@@ -6892,6 +7010,8 @@ const vozPeso = nodos => nodos.reduce((a, n) => a + vozPesoNodo(n), 0);
 // Un exponente, subíndice o numerador "corto" se dice de corrido; uno largo
 // se cierra con un aviso ("fin del exponente") para que se entienda dónde termina.
 const vozCorto = nodos => vozPeso(nodos) <= 2;
+// Hasta cuántas palabras puede tener un numerador para decirlo "…, sobre 2 por a".
+const VOZ_FRACCION_MEDIA_PALABRAS = 20;
 
 function vozDerivada(n, H, ctx){
   const num = n.a.filter(x => x.t !== "nada"), den = n.b.filter(x => x.t !== "nada");
@@ -6907,7 +7027,7 @@ function vozDerivada(n, H, ctx){
 }
 
 function vozDecirBig(clave, sub, sup, H, ctx){
-  const nuevo = /^(lim|limsup|liminf)$/.test(clave) ? {...ctx, lim: true} : ctx;
+  const nuevo = /^(lim|limsup|liminf)$/.test(clave) ? {...ctx, lim: true, enSub: true} : {...ctx, enSub: true};
   return H.bigFrase(clave, H.big[clave],
                     sub ? vozDecir(sub, H, nuevo) : "", sup ? vozDecir(sup, H, ctx) : "");
 }
@@ -6923,7 +7043,9 @@ function vozOrdenDerivada(sup){
 const vozSonPrimas = sup => sup.length > 0 && sup.every(x => x.t === "s" && x.v === "'");
 const vozEsDerivada = sup => !!sup && (vozSonPrimas(sup) || vozOrdenDerivada(sup) !== null);
 
-function vozDecirPotencia(base, sup, H, ctx){
+// "suelta": la base es una letra o un número, no un paréntesis ("b cuadrado" y
+// "cierra paréntesis al cuadrado").
+function vozDecirPotencia(base, sup, H, ctx, suelta = false){
   // f' y f'': una, dos o tres primas.
   if(vozSonPrimas(sup)) return H.primas(base, sup.length);
   // f^{(n)}: la derivada de orden n de f.
@@ -6936,15 +7058,15 @@ function vozDecirPotencia(base, sup, H, ctx){
     const x = sup[0];
     // 0^-: el límite por la izquierda ("cero menos"); 0^+ por la derecha.
     if(x.t === "s" && (x.v === "-" || x.v === "−" || x.v === "+")) return base + " " + H.s[x.v];
-    if(x.t === "num" && x.v === "2") return H.cuadrado(base);
-    if(x.t === "num" && x.v === "3") return H.cubo(base);
+    if(x.t === "num" && x.v === "2") return H.cuadrado(base, suelta);
+    if(x.t === "num" && x.v === "3") return H.cubo(base, suelta);
     if(x.t === "c" && (x.v === "circ" || x.v === "degree")) return H.grados(base);
     if((x.t === "c" && x.v === "prime") || (x.t === "s" && x.v === "'")) return H.prima(base);
     if((x.t === "var" && x.v === "T") || (x.t === "c" && x.v === "top")) return H.traspuesta(base);
     if((x.t === "s" && x.v === "*") || (x.t === "c" && x.v === "ast")) return H.conjugado(base);
   }
   // En un exponente, dos letras seguidas son un producto: e^{jt} es "jota por te".
-  const e = vozDecir(sup, H, {...ctx, producto: true});
+  const e = vozDecir(sup, H, {...ctx, producto: true, noProducto: false});
   const primero = sup.filter(x => x.t !== "nada")[0];
   const cabeza = primero && primero.t === "scr" ? primero.base : primero;
   const conLa = !!cabeza && cabeza.t === "var";
@@ -7000,7 +7122,9 @@ function vozDecirNodo(n, H, ctx){
     case "llave": return H.llave(vozDecir(n.x, H, hijo), n.e ? vozDecir(n.e, H, hijo) : null);
     case "set": return H.set[n.v] || n.v;
     case "grp": return vozDecir(n.c, H, hijo);
-    case "s":   return H.s[n.v] !== undefined ? H.s[n.v] : n.v;
+    case "s":
+      if(n.v === "=" && ctx.enSub && H.igualSub) return H.igualSub;
+      return H.s[n.v] !== undefined ? H.s[n.v] : n.v;
     case "fila": case "amp": return ",";
     case "c": {
       const v = n.v;
@@ -7015,17 +7139,24 @@ function vozDecirNodo(n, H, ctx){
       const d = vozDerivada(n, H, hijo);
       if(d) return d;
       const a = vozDecir(n.a, H, hijo), b = vozDecir(n.b, H, hijo);
-      return vozCorto(n.a) && vozCorto(n.b) ? H.frac(a, b) : H.fracLarga(a, b);
+      if(vozCorto(n.a) && vozCorto(n.b)) return H.frac(a, b);
+      // Un denominador corto cierra solo la fracción: "…, sobre 2 por a". Con otra
+      // fracción adentro, o un numerador larguísimo, se dice completa.
+      const anidada = vozContiene(n.a, x => x.t === "frac") || vozContiene(n.b, x => x.t === "frac");
+      if(vozCorto(n.b) && !anidada && a.split(/\s+/).length <= VOZ_FRACCION_MEDIA_PALABRAS) return H.fracMedia(a, b);
+      return H.fracLarga(a, b);
     }
     case "binom": return H.binom(vozDecir(n.a, H, hijo), vozDecir(n.b, H, hijo));
     case "sqrt": {
       const x = vozDecir(n.x, H, hijo), largo = !vozCorto(n.x);
+      // Si la raíz es lo último de su término, el final se entiende solo.
+      const cierra = !ctx.ultimo;
       if(n.n){
         const idx = vozDecir(n.n, H, hijo);
-        if(idx === "3") return largo ? H.cubicaLarga(x) : H.cubica(x);
-        return largo ? H.raizNLarga(idx, x) : H.raizN(idx, x);
+        if(idx === "3") return largo ? H.cubicaLarga(x, cierra) : H.cubica(x);
+        return largo ? H.raizNLarga(idx, x, cierra) : H.raizN(idx, x);
       }
-      return largo ? H.raizLarga(x) : H.raiz(x);
+      return largo ? H.raizLarga(x, cierra) : H.raiz(x);
     }
     case "acc": {
       const f = H.acc[n.n];
@@ -7038,13 +7169,15 @@ function vozDecirNodo(n, H, ctx){
       if(b.t === "s" && (b.v === "]" || b.v === ")") && n.sub && n.sup){
         return vozDecirNodo(b, H, ctx) + H.evaluado(vozDecir(n.sub, H, hijo), vozDecir(n.sup, H, hijo));
       }
-      let t = vozDecirNodo(b, H, ctx);
+      // Una raíz con exponente no es lo último de su término.
+      let t = vozDecirNodo(b, H, n.sup || n.sub ? {...ctx, ultimo: false} : ctx);
       if(n.sub){
-        const s = vozDecir(n.sub, H, hijo);
+        // Los índices (a_{ij}) no son un producto: no llevan "por" entre letras.
+        const s = vozDecir(n.sub, H, {...hijo, enSub: true, noProducto: true});
         if(b.t === "c" && b.v === "log") t += H.base + s;
         else t = vozCorto(n.sub) ? H.sub(t, s) : H.subLarga(t, s);
       }
-      if(n.sup) t = vozDecirPotencia(t, n.sup, H, hijo);
+      if(n.sup) t = vozDecirPotencia(t, n.sup, H, hijo, b.t === "num" || vozEsLetra(b));
       return t;
     }
     case "env": return vozDecirEntorno(n, H, ctx);
@@ -7105,8 +7238,13 @@ function vozDecir(nodos, H, ctx = {}){
   const ns = nodos.filter(n => n.t !== "nada");
   const out = [];
   let absAbierto = false, normaAbierta = false, difPendiente = false;
-  let ultimaLetra = false, ultimoOperando = false;
+  let ultimaLetra = false, ultimoOperando = false, ultimoFactor = false;
   const baseDe = n => n.t === "scr" ? n.base : n;
+  // Un factor "de a pie": número, letra o letra con exponente o subíndice. Dos
+  // seguidos son un producto y se dicen con "por": 4ac es "4 por a por ce". Una
+  // "d" pegada a una letra es un diferencial, no un factor.
+  const esFactor = (x, sig) => !!x && (x.t === "num" || vozEsLetra(x) || (x.t === "scr" && vozEsLetra(x.base))) &&
+    !(x.t === "var" && x.v === "d" && !!sig && sig.t === "var");
   const esOperando = x => x.t === "num" || x.t === "var" || x.t === "grp" ||
     x.t === "frac" || x.t === "sqrt" || x.t === "acc" ||
     (x.t === "c" && H.pal[x.v] !== undefined) ||
@@ -7119,6 +7257,9 @@ function vozDecir(nodos, H, ctx = {}){
 
   for(let j = 0; j < ns.length; j++){
     const n = ns[j], sig = ns[j + 1];
+    // Se lee y se apaga: lo que no pase por el final del ciclo no deja factor pendiente.
+    const factorPrevio = ultimoFactor, previoNum = ultimoFactor && ns[j - 1].t === "num";
+    ultimoFactor = false;
 
     // | y \| abren y cierran de a pares; una barra sola es un "tal que".
     const esBarra = n.t === "s" && n.v === "|", esNorma = n.t === "c" && n.v === "|";
@@ -7141,7 +7282,9 @@ function vozDecir(nodos, H, ctx = {}){
     if(difPendiente && (n.t === "var" || n.t === "txt") && n.v === "d" && sig && (sig.t === "var" || sig.t === "c")){
       out.push(H.dif(vozDecirNodo(sig, H, ctx)));
       j++;
-      difPendiente = false;
+      // dx dy: el segundo diferencial también se dice como tal.
+      const siguiente = ns[j + 1];
+      difPendiente = !!siguiente && (siguiente.t === "var" || siguiente.t === "txt") && siguiente.v === "d";
       ultimaLetra = false; ultimoOperando = true;
       continue;
     }
@@ -7210,8 +7353,10 @@ function vozDecir(nodos, H, ctx = {}){
     // En un exponente, lo que va pegado se multiplica: e^{j\omega t}.
     const operando = esOperando(n);
     if(ctx.producto && ultimoOperando && operando) out.push(H.por);
+    else if(!ctx.noProducto && factorPrevio && esFactor(n, sig) && !(previoNum && n.t === "num")) out.push(H.por);
 
-    out.push(vozDecirNodo(n, H, ctx));
+    out.push(vozDecirNodo(n, H, {...ctx, ultimo: j === ns.length - 1}));
+    ultimoFactor = esFactor(n, sig);
     // Una potencia pegada a lo que sigue ("s^n F(s)") se separa con una pausa.
     // Lo mismo con una fracción corta: "5 sobre 3, e elevado a…" y no "5 sobre 3 e…".
     const cierraTermino = (n.t === "scr" && n.sup && !(n.base.t === "c" && H.big[n.base.v])) || n.t === "frac";
@@ -8205,7 +8350,9 @@ document.addEventListener("keydown", e=>{
   if(e.key === "Escape" && document.activeElement === $("search")){
     $("search").value = ""; search(""); $("search").blur();
   }
-  if(edicion && (e.ctrlKey||e.metaKey) && e.key.toLowerCase() === "s"){ e.preventDefault(); void guardarEdicion(); return; }
+  if((edicion || docConTildes()) && (e.ctrlKey||e.metaKey) && e.key.toLowerCase() === "s"){
+    e.preventDefault(); void (edicion ? guardarEdicion() : guardarTildes()); return;
+  }
   if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
   if((e.key === "j" || e.key === "ArrowDown") && e.altKey && current < DOCS.length-1) open(current+1);
   if((e.key === "k" || e.key === "ArrowUp")   && e.altKey && current > 0) open(current-1);

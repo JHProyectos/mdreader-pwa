@@ -700,7 +700,7 @@ mejorada, más abajo). Qué dice de cada cosa:
 |---|---|
 | Texto, listas y citas | el texto tal cual; las listas numeradas, con su número |
 | Tablas | cada fila, con el nombre de su columna (si el encabezado termina en «…», como «Si te dan…», la fila se lee como una frase); si pasa de 15 filas, sólo avisa cuántas son |
-| Fórmulas | con su lectura matemática: «x al cuadrado», «a sobre b», «raíz cuadrada de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
+| Fórmulas | con su lectura matemática: «x es igual a», «x cuadrado», «a sobre b», «la raíz de», «integral desde 0 hasta 1 de»; si una no logra entenderla, dice sólo «fórmula» |
 | Código y diagramas | sólo avisa que hay un bloque de código o un diagrama |
 | Gráficos | el tipo y el título y, de cada serie, sus valores si son pocos o, si son muchos, dónde empieza, dónde termina, el máximo, el mínimo y la tendencia; en una torta, el porcentaje de cada porción |
 | Imágenes | su texto descriptivo |
@@ -811,6 +811,11 @@ hoy es Chrome o Edge de escritorio:
 En los demás navegadores, y en Android y iOS, los cambios quedan guardados en
 el lector y se descarga una copia del archivo. Si salís del modo edición con
 cambios sin guardar, el lector pregunta antes de descartarlos.
+
+Las casillas de las listas de tareas se pueden tildar sin entrar al modo
+edición. Al tildar aparece **Guardar**, que escribe el cambio en el archivo
+igual que el editor. Si cambiás de documento o cerrás la pestaña sin guardar,
+el lector pregunta antes de descartar los tildes.
 
 ### Lo que queda guardado
 
