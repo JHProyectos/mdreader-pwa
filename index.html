@@ -234,15 +234,16 @@ aside{
   border:none; background:none; color:var(--muted); padding:0 6px 0 0;
   opacity:0; transition:opacity .12s, color .12s;
 }
-.filerow:hover .rm, .rm:focus-visible{opacity:1}
+.filerow:hover .rm, .dirline:hover .rm, .rm:focus-visible{opacity:1}
 .rm:hover{color:var(--warm)}
+.dirline{display:flex; align-items:stretch; border-radius:4px}
+.dirline:hover{background:var(--surface-2)}
 .dirrow{
-  display:flex; align-items:center; gap:5px; width:100%; text-align:left;
+  display:flex; align-items:center; gap:5px; flex:1 1 auto; min-width:0; text-align:left;
   font:inherit; font-size:13px; cursor:pointer; border:none; border-radius:4px;
   background:transparent; color:var(--ink); padding:6px 6px 6px 4px;
   border-left:2px solid transparent;
 }
-.dirrow:hover{background:var(--surface-2)}
 .dirrow:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
 .dirrow .chev{
   flex:none; width:12px; text-align:center; font-size:16px; line-height:1;
@@ -1173,6 +1174,8 @@ const TEXTOS = {
     archivos: n => n + (n === 1 ? " archivo" : " archivos"),
     quitarAria: nombre => "Quitar " + nombre + " de la lista",
     quitarTitle: "Quitar de la lista (no borra el archivo)",
+    quitarCarpetaAria: nombre => "Quitar la carpeta " + nombre + " de la lista",
+    quitarCarpetaTitle: "Quitar la carpeta de la lista (no borra nada del disco)",
     resultados: n => n ? n + (n === 1 ? " resultado" : " resultados") : "sin resultados",
     alertSinMd: "No encontré archivos .md en lo que elegiste.",
     alertNoLeidos: "No se pudo leer ninguno de los archivos elegidos.",
@@ -1412,6 +1415,8 @@ const TEXTOS = {
     archivos: n => n + (n === 1 ? " file" : " files"),
     quitarAria: nombre => "Remove " + nombre + " from the list",
     quitarTitle: "Remove from the list (doesn't delete the file)",
+    quitarCarpetaAria: name => "Remove the folder " + name + " from the list",
+    quitarCarpetaTitle: "Remove the folder from the list (doesn't delete anything from disk)",
     resultados: n => n ? n + (n === 1 ? " result" : " results") : "no results",
     alertSinMd: "No .md files found in what you picked.",
     alertNoLeidos: "None of the selected files could be read.",
@@ -3386,6 +3391,11 @@ function podarCarpetas(){
     if(!CARPETAS.includes(nombre)) delete ACCESO_CARPETAS[nombre];
   }
   $("carpetaActualizar").hidden = !CARPETAS.length;
+  // Un repo de GitHub sin documentos en la lista no vuelve con "Actualizar".
+  for(let i = REPOS_GITHUB.length - 1; i >= 0; i--){
+    if(!DOCS.some(d => d.path.startsWith(REPOS_GITHUB[i].prefijo + "/"))) REPOS_GITHUB.splice(i, 1);
+  }
+  $("ghActualizar").hidden = !REPOS_GITHUB.length;
 }
 
 // Sólo se leen los .md, .markdown y .txt: el resto de la carpeta ni se abre.
@@ -5595,9 +5605,13 @@ function htmlNodo(nodo){
   let html = "";
   for(const c of nodo.carpetas.values()){
     const abierta = !plegadas.has(c.ruta);
-    html += '<button type="button" class="dirrow" data-dir="'+esc(c.ruta)+'" aria-expanded="'+abierta+
-            '" title="'+esc(c.ruta)+'"><span class="chev" aria-hidden="true">›</span>'+
-            '<span class="dn">'+esc(c.nombre)+'</span><span class="dc">'+c.total+'</span></button>'
+    html += '<div class="dirline">'
+          +   '<button type="button" class="dirrow" data-dir="'+esc(c.ruta)+'" aria-expanded="'+abierta+
+              '" title="'+esc(c.ruta)+'"><span class="chev" aria-hidden="true">›</span>'+
+              '<span class="dn">'+esc(c.nombre)+'</span><span class="dc">'+c.total+'</span></button>'
+          +   '<button type="button" class="rm" data-rm-dir="'+esc(c.ruta)+'" aria-label="'+
+              esc(t("quitarCarpetaAria", c.nombre))+'" title="'+esc(t("quitarCarpetaTitle"))+'">&times;</button>'
+          + '</div>'
           + '<div class="dirkids"'+(abierta ? "" : " hidden")+'>'+htmlNodo(c)+'</div>';
   }
   for(const idx of nodo.archivos){
@@ -5619,14 +5633,15 @@ function drawFiles(){
   box.innerHTML = htmlNodo(armarArbol());
   box.scrollTop = scroll;
   box.querySelectorAll(".file").forEach(b => b.onclick = () => open(+b.dataset.i));
-  box.querySelectorAll(".rm").forEach(b => b.onclick = () => removeDoc(+b.dataset.rm));
+  box.querySelectorAll(".rm[data-rm]").forEach(b => b.onclick = () => removeDoc(+b.dataset.rm));
+  box.querySelectorAll(".rm[data-rm-dir]").forEach(b => b.onclick = () => quitarCarpetaDeLista(b.dataset.rmDir));
   box.querySelectorAll(".dirrow").forEach(b => b.onclick = () => {
     const ruta = b.dataset.dir;
     const abrir = b.getAttribute("aria-expanded") !== "true";
     if(abrir) plegadas.delete(ruta); else plegadas.add(ruta);
     guardarPlegadas();
     b.setAttribute("aria-expanded", String(abrir));
-    b.nextElementSibling.hidden = !abrir;
+    b.parentElement.nextElementSibling.hidden = !abrir;
   });
 
   $("listHd").hidden = false;
@@ -5649,30 +5664,52 @@ function desplegarCarpetasDe(ruta){
 }
 
 function removeDoc(i){
-  if(i < 0 || i >= DOCS.length) return;
+  removeDocs([i]);
+}
+
+// La ✕ de una carpeta en la lista lateral: quita todos los documentos que
+// tiene adentro, con sus subcarpetas. No toca el disco.
+function quitarCarpetaDeLista(ruta){
+  const indices = [];
+  DOCS.forEach((d, i) => { if(d.path.startsWith(ruta + "/")) indices.push(i); });
+  removeDocs(indices);
+}
+
+function removeDocs(indices){
+  const quitar = new Set(indices.filter(i => i >= 0 && i < DOCS.length));
+  if(!quitar.size) return;
   tomarPosicionActual();
-  const [quitado] = DOCS.splice(i, 1);
-  if(edicion && edicion.ruta === quitado.path) terminarEdicion();
-  if(tildesPendientes && tildesPendientes.ruta === quitado.path){
-    tildesPendientes = null;
-    $("editGuardar").hidden = true;
+  const quitoActual = quitar.has(current);
+  let quitadosAntesDelActual = 0;
+  quitar.forEach(i => { if(i < current) quitadosAntesDelActual++; });
+
+  const quitados = [];
+  for(let i = DOCS.length - 1; i >= 0; i--){
+    if(quitar.has(i)) quitados.push(DOCS.splice(i, 1)[0]);
   }
-  delete scrollPorRuta[quitado.path];
+  for(const quitado of quitados){
+    if(edicion && edicion.ruta === quitado.path) terminarEdicion();
+    if(tildesPendientes && tildesPendientes.ruta === quitado.path){
+      tildesPendientes = null;
+      $("editGuardar").hidden = true;
+    }
+    delete scrollPorRuta[quitado.path];
+  }
 
   if(!DOCS.length){ resetWorkspace(); return; }
 
   podarCarpetas();
 
-  if(i === current){
-
-    open(Math.min(i, DOCS.length - 1), {guardarAnterior:false});
+  // Si se fue el documento abierto, se abre el que quedó en su lugar.
+  current -= quitadosAntesDelActual;
+  if(quitoActual){
+    open(Math.min(current, DOCS.length - 1), {guardarAnterior:false});
   } else {
-    if(i < current) current--;
     drawFiles();
     programarGuardadoEstado();
   }
 
-  void eliminarDocumentoPersistido(quitado.path);
+  quitados.forEach(quitado => void eliminarDocumentoPersistido(quitado.path));
 }
 
 function resetWorkspace(persistir = true){
