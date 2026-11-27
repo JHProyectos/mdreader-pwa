@@ -666,7 +666,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     --sp-math:4px 0; --sp-mathfb:4px 8px; --sp-diag:4px 6px; --sp-li:.06em;
     --art-x:0px; --art-pad:0; --katex-disp:.08em;
   }
-  @page{size:A4; margin:14mm}
+  @page{size:A4; margin:20mm 15mm 20mm 20mm}
   aside,.topbar,.scrim,.ampliar,.zoom,.copiar{display:none!important}
 
   .diagram[data-diagram="listo"],.chart[data-chart="listo"],
@@ -826,17 +826,22 @@ tr.leyendo > td{background:var(--accent-soft)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<!-- Número de página al pie de cada hoja. El botón "# Páginas" lo prende y lo
-     apaga con style.disabled (setNumeroPagina). Las variables de :root no llegan
-     a los márgenes de la hoja, por eso la fuente va escrita acá. -->
+<!-- Encabezado de cada hoja impresa: nombre del archivo arriba a la izquierda y
+     número de página arriba a la derecha. Las variables de :root no llegan a los
+     márgenes de la hoja, por eso la fuente va escrita acá.
+     - numeroPaginaEstilo: el botón "# Páginas" lo prende y lo apaga con
+       style.disabled (setNumeroPagina).
+     - nombreArchivoEstilo: lo escribe actualizarNombreArchivoImpreso() antes de
+       imprimir, porque CSS no puede leer el título de la página. -->
 <style id="numeroPaginaEstilo" media="print">
 @page{
-  @bottom-center{
+  @top-right{
     content:counter(page) " / " counter(pages);
     font:9pt system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; color:#666;
   }
 }
 </style>
+<style id="nombreArchivoEstilo" media="print"></style>
 </head>
 <body>
 <noscript>
@@ -1123,7 +1128,7 @@ const TEXTOS = {
     temaTitle: "Cambiar tema",
     pdfTitle: "Imprimir o guardar como PDF, en hoja A4",
     numeroPagina: "# Páginas",
-    numeroPaginaOnTitle: "Al imprimir, cada hoja lleva su número al pie. Tocá para sacarlo",
+    numeroPaginaOnTitle: "Al imprimir, cada hoja lleva su número arriba a la derecha. Tocá para sacarlo",
     numeroPaginaOffTitle: "Al imprimir, las hojas salen sin número. Tocá para numerarlas",
     compacto: "⇕ Compacto",
     compactoTitle: "Interlineado compacto, para que entre más por hoja",
@@ -1367,7 +1372,7 @@ const TEXTOS = {
     temaTitle: "Switch theme",
     pdfTitle: "Print or save as PDF, on A4 paper",
     numeroPagina: "# Pages",
-    numeroPaginaOnTitle: "When printing, each page gets its number at the bottom. Click to turn it off",
+    numeroPaginaOnTitle: "When printing, each page gets its number at the top right. Click to turn it off",
     numeroPaginaOffTitle: "When printing, pages come out unnumbered. Click to number them",
     compacto: "⇕ Compact",
     compactoTitle: "Compact line spacing, to fit more on each page",
@@ -2380,13 +2385,17 @@ El botón **⎙ PDF** abre el diálogo de impresión del navegador, que también
 sirve para guardar en PDF. Hay una hoja de estilos aparte para impresión, así
 que en papel no salen ni el panel lateral ni la barra superior.
 
-La hoja es siempre **A4**. Cada hoja lleva al pie su número y el total
-(`3 / 10`). El botón **# Páginas**, al lado de **⎙ PDF**, lo prende y lo
-apaga; la elección queda guardada. Con el número prendido, dejá apagado
-*Encabezados y pies de página* en el diálogo, así no salen dos.
+La hoja es siempre **A4**, con márgenes de 20 mm arriba, abajo y a la
+izquierda, y de 15 mm a la derecha. En el encabezado de cada hoja va el nombre
+del archivo, a la izquierda, y el número de hoja con el total (`3 / 10`), a la
+derecha. El botón **# Páginas**, al lado de **⎙ PDF**, prende y apaga el
+número; la elección queda guardada. Dejá apagado *Encabezados y pies de
+página* en el diálogo: si no, el navegador suma la fecha, la dirección y su
+propia numeración.
 
-El número lo ponen Chrome y Edge. En otros navegadores puede no salir; en ese
-caso, *Encabezados y pies de página* del diálogo numera las hojas a su manera.
+El encabezado lo ponen Chrome y Edge. En otros navegadores puede no salir; en
+ese caso, *Encabezados y pies de página* del diálogo numera las hojas a su
+manera.
 La tabla de contenidos sale impresa pero sin números de página: el navegador
 no sabe todavía en qué hoja cae cada sección.
 
@@ -3271,12 +3280,14 @@ The **⎙ PDF** button opens the browser's print dialog, which also lets you sav
 as PDF. There's a separate stylesheet for printing, so neither the side panel
 nor the top bar end up on paper.
 
-The paper is always **A4**. Each page gets its number and the total at the
-bottom (`3 / 10`). The **# Pages** button, next to **⎙ PDF**, turns it on and
-off; the choice is remembered. With numbers on, leave *Headers and footers*
-off in the dialog so you don't get two.
+The paper is always **A4**, with 20 mm margins at the top, bottom and left,
+and 15 mm on the right. Each page's header shows the file name on the left
+and the page number with the total (`3 / 10`) on the right. The **# Pages**
+button, next to **⎙ PDF**, turns the number on and off; the choice is
+remembered. Leave *Headers and footers* off in the dialog: otherwise the
+browser adds the date, the address and its own numbering.
 
-Chrome and Edge print the number. Other browsers may not; there, the dialog's
+Chrome and Edge print the header. Other browsers may not; there, the dialog's
 *Headers and footers* numbers the pages its own way. The table of contents is
 printed but without page numbers: the browser doesn't know yet which page
 each section lands on.
@@ -6360,6 +6371,16 @@ function setNumeroPagina(activo){
   try{ localStorage.setItem("lectormd-numero-pagina", activo ? "1" : "0"); }catch(e){}
 }
 $("numeroPagina").onclick = () => setNumeroPagina($("numeroPaginaEstilo").disabled);
+
+// El nombre va entre comillas dentro de content:, así que se escapan la barra,
+// las comillas y los saltos de línea. Sin archivo abierto no lleva nombre.
+function actualizarNombreArchivoImpreso(){
+  const nombre = document.title === TITULO_INICIAL ? "" : document.title;
+  const textoCss = nombre.replace(/\\/g, "\\\\").replace(/"/g, "\\\"").replace(/[\r\n]+/g, " ");
+  $("nombreArchivoEstilo").textContent = nombre ? "@page{ @top-left{ content:\"" + textoCss + "\";" +
+    " font:9pt system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif; color:#666; } }" : "";
+}
+addEventListener("beforeprint", actualizarNombreArchivoImpreso);
 
 let numeroPaginaGuardado = true;
 try{ numeroPaginaGuardado = localStorage.getItem("lectormd-numero-pagina") !== "0"; }catch(e){}
