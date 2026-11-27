@@ -667,6 +667,14 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     --art-x:0px; --art-pad:0; --katex-disp:.08em;
   }
   @page{size:A4; margin:20mm 15mm 20mm 20mm}
+  /* Si en el diálogo está prendido "Encabezados y pies de página", Chrome dibuja
+     la fecha, el título, la dirección y su numeración en los bordes de la hoja
+     que no tienen recuadro propio. Estos recuadros vacíos se lo impiden; el
+     nombre y el número los ponen nombreArchivoEstilo y numeroPaginaEstilo. */
+  @page{
+    @top-center{content:""}
+    @bottom-left{content:""} @bottom-center{content:""} @bottom-right{content:""}
+  }
   aside,.topbar,.scrim,.ampliar,.zoom,.copiar{display:none!important}
 
   .diagram[data-diagram="listo"],.chart[data-chart="listo"],
@@ -2389,9 +2397,9 @@ La hoja es siempre **A4**, con márgenes de 20 mm arriba, abajo y a la
 izquierda, y de 15 mm a la derecha. En el encabezado de cada hoja va el nombre
 del archivo, a la izquierda, y el número de hoja con el total (`3 / 10`), a la
 derecha. El botón **# Páginas**, al lado de **⎙ PDF**, prende y apaga el
-número; la elección queda guardada. Dejá apagado *Encabezados y pies de
-página* en el diálogo: si no, el navegador suma la fecha, la dirección y su
-propia numeración.
+número; la elección queda guardada. Aunque en el diálogo esté prendido
+*Encabezados y pies de página*, no salen la fecha, la dirección ni la
+numeración del navegador.
 
 El encabezado lo ponen Chrome y Edge. En otros navegadores puede no salir; en
 ese caso, *Encabezados y pies de página* del diálogo numera las hojas a su
@@ -3284,8 +3292,8 @@ The paper is always **A4**, with 20 mm margins at the top, bottom and left,
 and 15 mm on the right. Each page's header shows the file name on the left
 and the page number with the total (`3 / 10`) on the right. The **# Pages**
 button, next to **⎙ PDF**, turns the number on and off; the choice is
-remembered. Leave *Headers and footers* off in the dialog: otherwise the
-browser adds the date, the address and its own numbering.
+remembered. Even if *Headers and footers* is on in the dialog, the browser's
+date, address and numbering don't show up.
 
 Chrome and Edge print the header. Other browsers may not; there, the dialog's
 *Headers and footers* numbers the pages its own way. The table of contents is
