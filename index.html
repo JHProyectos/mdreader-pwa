@@ -666,7 +666,7 @@ mark{background:#F6D66B; color:#1A1D26; border-radius:2px}
     --sp-math:4px 0; --sp-mathfb:4px 8px; --sp-diag:4px 6px; --sp-li:.06em;
     --art-x:0px; --art-pad:0; --katex-disp:.08em;
   }
-  @page{margin:14mm}
+  @page{size:A4; margin:14mm}
   aside,.topbar,.scrim,.ampliar,.zoom,.copiar{display:none!important}
 
   .diagram[data-diagram="listo"],.chart[data-chart="listo"],
@@ -826,6 +826,17 @@ tr.leyendo > td{background:var(--accent-soft)}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<!-- Número de página al pie de cada hoja. El botón "# Páginas" lo prende y lo
+     apaga con style.disabled (setNumeroPagina). Las variables de :root no llegan
+     a los márgenes de la hoja, por eso la fuente va escrita acá. -->
+<style id="numeroPaginaEstilo" media="print">
+@page{
+  @bottom-center{
+    content:counter(page) " / " counter(pages);
+    font:9pt system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; color:#666;
+  }
+}
+</style>
 </head>
 <body>
 <noscript>
@@ -882,6 +893,7 @@ tr.leyendo > td{background:var(--accent-soft)}
     <div class="foot">
       <button class="icon" id="theme" data-t="tema" data-t-title="temaTitle">◐ Tema</button>
       <button class="icon" id="print" data-t-title="pdfTitle">⎙ PDF</button>
+      <button class="icon" id="numeroPagina"></button>
       <button class="icon" id="density"></button>
 
       <button class="icon" id="mathInfo">∑</button>
@@ -1109,8 +1121,10 @@ const TEXTOS = {
     })[estado],
     tema: "◐ Tema",
     temaTitle: "Cambiar tema",
-    pdfTitle: "Imprimir o guardar como PDF. Activá \"Encabezados y pies de página\" en el diálogo " +
-      "para que numere las hojas",
+    pdfTitle: "Imprimir o guardar como PDF, en hoja A4",
+    numeroPagina: "# Páginas",
+    numeroPaginaOnTitle: "Al imprimir, cada hoja lleva su número al pie. Tocá para sacarlo",
+    numeroPaginaOffTitle: "Al imprimir, las hojas salen sin número. Tocá para numerarlas",
     compacto: "⇕ Compacto",
     compactoTitle: "Interlineado compacto, para que entre más por hoja",
     comodo: "⇕ Cómodo",
@@ -1351,7 +1365,10 @@ const TEXTOS = {
     })[estado],
     tema: "◐ Theme",
     temaTitle: "Switch theme",
-    pdfTitle: "Print or save as PDF. Turn on \"Headers and footers\" in the dialog to number the pages",
+    pdfTitle: "Print or save as PDF, on A4 paper",
+    numeroPagina: "# Pages",
+    numeroPaginaOnTitle: "When printing, each page gets its number at the bottom. Click to turn it off",
+    numeroPaginaOffTitle: "When printing, pages come out unnumbered. Click to number them",
     compacto: "⇕ Compact",
     compactoTitle: "Compact line spacing, to fit more on each page",
     comodo: "⇕ Comfortable",
@@ -1629,7 +1646,7 @@ Instalado como app tiene dos cosas más:
 | **Navegar** | índice de secciones en el panel lateral, tabla de contenidos dentro del documento con `[TOC]`, y `Alt`+`J` / `Alt`+`K` entre archivos |
 | **Buscar** | dentro del documento abierto, desde dos caracteres, con resaltado |
 | **Escuchar** | el documento en voz alta, con la voz del propio dispositivo o con una voz mejorada que se descarga a pedido |
-| **Imprimir** | o guardar en PDF, con estilos propios para papel |
+| **Imprimir** | o guardar en PDF, en A4, con estilos propios para papel y número de página opcional |
 | **Editar** | el texto del archivo con la vista previa al lado, y guardarlo en el archivo original |
 | **Ver** | tema claro u oscuro, interlineado cómodo o compacto |
 | **Idioma** | español o inglés, según el navegador, con un botón para cambiarlo |
@@ -2363,10 +2380,15 @@ El botón **⎙ PDF** abre el diálogo de impresión del navegador, que también
 sirve para guardar en PDF. Hay una hoja de estilos aparte para impresión, así
 que en papel no salen ni el panel lateral ni la barra superior.
 
-Para que numere las hojas, en el diálogo abrí *Más opciones* y activá
-*Encabezados y pies de página*. Eso lo hace el navegador; no se puede pedir
-desde el documento. Por la misma razón, la tabla de contenidos sale impresa
-pero sin números de página.
+La hoja es siempre **A4**. Cada hoja lleva al pie su número y el total
+(`3 / 10`). El botón **# Páginas**, al lado de **⎙ PDF**, lo prende y lo
+apaga; la elección queda guardada. Con el número prendido, dejá apagado
+*Encabezados y pies de página* en el diálogo, así no salen dos.
+
+El número lo ponen Chrome y Edge. En otros navegadores puede no salir; en ese
+caso, *Encabezados y pies de página* del diálogo numera las hojas a su manera.
+La tabla de contenidos sale impresa pero sin números de página: el navegador
+no sabe todavía en qué hoja cae cada sección.
 
 ### Atajos
 
@@ -2516,7 +2538,7 @@ Installed as an app, it does two more things:
 | **Navigate** | section index in the side panel, a table of contents inside the document with `[TOC]`, and `Alt`+`J` / `Alt`+`K` between files |
 | **Search** | inside the open document, from two characters, with highlighting |
 | **Listen** | the document read aloud, with the device's own voice or with an enhanced voice downloaded on request |
-| **Print** | or save as PDF, with a stylesheet made for paper |
+| **Print** | or save as PDF, on A4, with a stylesheet made for paper and optional page numbers |
 | **Edit** | the file's text with the preview beside it, and save it to the original file |
 | **View** | light or dark theme, comfortable or compact line spacing |
 | **Language** | English or Spanish, following the browser, with a button to switch |
@@ -3249,10 +3271,15 @@ The **⎙ PDF** button opens the browser's print dialog, which also lets you sav
 as PDF. There's a separate stylesheet for printing, so neither the side panel
 nor the top bar end up on paper.
 
-To number the pages, open *More settings* in the dialog and turn on *Headers
-and footers*. The browser does that; it can't be requested from the document.
-For the same reason, the table of contents is printed but without page
-numbers.
+The paper is always **A4**. Each page gets its number and the total at the
+bottom (`3 / 10`). The **# Pages** button, next to **⎙ PDF**, turns it on and
+off; the choice is remembered. With numbers on, leave *Headers and footers*
+off in the dialog so you don't get two.
+
+Chrome and Edge print the number. Other browsers may not; there, the dialog's
+*Headers and footers* numbers the pages its own way. The table of contents is
+printed but without page numbers: the browser doesn't know yet which page
+each section lands on.
 
 ### Shortcuts
 
@@ -6323,6 +6350,21 @@ let densidadGuardada = false;
 try{ densidadGuardada = localStorage.getItem("lectormd-density") === "compact"; }catch(e){}
 setDensity(densidadGuardada);
 
+function setNumeroPagina(activo){
+  $("numeroPaginaEstilo").disabled = !activo;
+  const b = $("numeroPagina");
+  b.textContent = t("numeroPagina");
+  b.title = t(activo ? "numeroPaginaOnTitle" : "numeroPaginaOffTitle");
+  b.classList.toggle("on", activo);
+  b.setAttribute("aria-pressed", String(activo));
+  try{ localStorage.setItem("lectormd-numero-pagina", activo ? "1" : "0"); }catch(e){}
+}
+$("numeroPagina").onclick = () => setNumeroPagina($("numeroPaginaEstilo").disabled);
+
+let numeroPaginaGuardado = true;
+try{ numeroPaginaGuardado = localStorage.getItem("lectormd-numero-pagina") !== "0"; }catch(e){}
+setNumeroPagina(numeroPaginaGuardado);
+
 function setSidebarCollapsed(collapsed){
   document.documentElement.dataset.sidebar = collapsed ? "collapsed" : "";
   $("sideExpand").hidden = !collapsed;
@@ -6356,6 +6398,7 @@ function cambiarIdioma(nuevo){
   traducirPagina();
   pintarEstados();
   setDensity(document.body.classList.contains("compact"));
+  setNumeroPagina(!$("numeroPaginaEstilo").disabled);
 
   if(viendoAyuda) pintarAyuda();
   else if(current >= 0) open(current, {persistir:false});
